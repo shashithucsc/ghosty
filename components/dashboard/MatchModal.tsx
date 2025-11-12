@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { UserProfile } from '@/app/dashboard/page';
 
 interface MatchModalProps {
@@ -9,6 +11,46 @@ interface MatchModalProps {
 }
 
 export function MatchModal({ user, onClose }: MatchModalProps) {
+  const router = useRouter();
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
+
+  const handleStartChat = async () => {
+    setIsCreatingChat(true);
+    
+    try {
+      const currentUserId = localStorage.getItem('userId');
+      
+      if (!currentUserId) {
+        alert('Please log in to start a chat');
+        return;
+      }
+
+      // Create or get conversation
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUserId,
+          otherUserId: user.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.conversation) {
+        // Navigate to chat page with conversation ID and other user ID
+        router.push(`/chat/${data.conversation.id}?userId=${user.id}`);
+      } else {
+        alert(data.error || 'Failed to start chat');
+      }
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      alert('Failed to start chat. Please try again.');
+    } finally {
+      setIsCreatingChat(false);
+    }
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -53,11 +95,21 @@ export function MatchModal({ user, onClose }: MatchModalProps) {
           {/* Actions */}
           <div className="space-y-3">
             <button
-              onClick={() => alert('Chat feature coming soon!')}
-              className="w-full btn-primary py-4 text-lg font-semibold flex items-center justify-center gap-2"
+              onClick={handleStartChat}
+              disabled={isCreatingChat}
+              className="w-full btn-primary py-4 text-lg font-semibold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <MessageCircle className="w-5 h-5" />
-              Send a Message
+              {isCreatingChat ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Opening Chat...
+                </>
+              ) : (
+                <>
+                  <MessageCircle className="w-5 h-5" />
+                  Send a Message
+                </>
+              )}
             </button>
             <button
               onClick={onClose}

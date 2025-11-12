@@ -5,7 +5,7 @@ import { X, ShieldAlert, Flag } from 'lucide-react';
 
 interface BlockReportModalProps {
   userName: string;
-  onBlock: (reason: string) => void;
+  onBlock: (action: 'block' | 'report', reason: string) => void;
   onClose: () => void;
 }
 
@@ -33,9 +33,9 @@ export function BlockReportModal({ userName, onBlock, onClose }: BlockReportModa
   ];
 
   const handleSubmit = () => {
-    const finalReason = reason === 'Other' ? otherReason : reason;
+    const finalReason = reason === 'Other' || reason === 'Other safety concern' ? otherReason : reason;
     if (finalReason.trim()) {
-      onBlock(finalReason);
+      onBlock(action!, finalReason);
     }
   };
 

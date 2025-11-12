@@ -1,38 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { supabaseAdmin } from '@/lib/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { sign } from 'jsonwebtoken';
+import { z } from 'zod';
 
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// =============================================
+// ZOD VALIDATION SCHEMAS
+// =============================================
+
+const LoginSchema = z.object({
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+// =============================================
+// POST /api/auth/login - User login
+// =============================================
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    
+    // Validate request body
+    const validatedData = LoginSchema.parse(body);
+    const { username, password } = validatedData;
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      );
-    }
-
-    // Find user by email
-    const { data: user, error } = await supabaseAdmin
+    // Find user by username
+    const { data: user, error: userError } = await supabase
       .from('users')
       .select('*')
-      .eq('email', email.toLowerCase())
+      .eq('username', username)
       .single();
 
-    if (error || !user) {
+    if (userError || !user) {
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { error: 'Invalid username or password' },
         { status: 401 }
       );
     }
 
-    // Check if email is verified
-    if (!user.email_verified) {
+    // Check if account is restricted
+    if (user.is_restricted) {
       return NextResponse.json(
-        { error: 'Please verify your email before logging in' },
+        { 
+          error: 'Your account has been restricted. Please contact support.',
+          isRestricted: true 
+        },
         { status: 403 }
       );
     }
@@ -41,35 +59,46 @@ export async function POST(request: NextRequest) {
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
     if (!isValidPassword) {
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { error: 'Invalid username or password' },
         { status: 401 }
       );
     }
 
-    // Get user profile
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
     // Generate JWT token
     const token = sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET!,
+      { 
+        userId: user.id, 
+        username: user.username,
+        verificationStatus: user.verification_status,
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
 
-    // Return user data (excluding password)
+    // Return user data (excluding password_hash)
     const userData = {
       id: user.id,
+      username: user.username,
       email: user.email,
       emailVerified: user.email_verified,
-      profile: profile || null,
+      registrationType: user.registration_type,
+      verificationStatus: user.verification_status,
+      fullName: user.full_name,
+      birthday: user.birthday,
+      gender: user.gender,
+      universityName: user.university_name,
+      faculty: user.faculty,
+      bio: user.bio,
+      preferences: user.preferences,
+      partnerPreferences: user.partner_preferences,
+      reportCount: user.report_count,
+      isRestricted: user.is_restricted,
+      createdAt: user.created_at,
     };
 
     return NextResponse.json(
       {
+        success: true,
         message: 'Login successful',
         token,
         user: userData,
@@ -77,6 +106,13 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.issues },
+        { status: 400 }
+      );
+    }
+
     console.error('Login error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

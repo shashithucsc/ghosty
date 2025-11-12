@@ -28,9 +28,10 @@ export interface FilterOptions {
 }
 
 export default function DashboardPage() {
-  const [currentUser] = useState({
+  const [currentUser, setCurrentUser] = useState({
     anonymousName: 'MysteriousGhost123',
     avatar: '👤',
+    userId: '',
   });
 
   const [showFilters, setShowFilters] = useState(false);
@@ -50,25 +51,23 @@ export default function DashboardPage() {
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchedUser, setMatchedUser] = useState<UserProfile | null>(null);
 
-  // Simulate new match notification
+  // Load user data from localStorage
   useEffect(() => {
-    const timer = setTimeout(() => {
-      // Uncomment to test match notification
-      // handleNewMatch({
-      //   id: '999',
-      //   anonymousName: 'CharmingSoul456',
-      //   age: 24,
-      //   gender: 'Female',
-      //   avatar: '👩',
-      //   bio: 'Love adventure and deep conversations',
-      //   isVerified: true,
-      //   interests: ['Travel', 'Music', 'Art'],
-      //   university: 'Stanford University',
-      //   faculty: 'Arts',
-      // });
-    }, 5000);
-
-    return () => clearTimeout(timer);
+    // Get user ID from localStorage (set during login)
+    const userId = localStorage.getItem('userId');
+    const anonymousName = localStorage.getItem('anonymousName');
+    const avatar = localStorage.getItem('avatar');
+    
+    if (userId) {
+      setCurrentUser({
+        anonymousName: anonymousName || 'MysteriousGhost',
+        avatar: avatar || '👤',
+        userId,
+      });
+    } else {
+      // Redirect to login if no user ID found
+      window.location.href = '/login';
+    }
   }, []);
 
   const handleNewMatch = (user: UserProfile) => {
@@ -118,10 +117,19 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 max-w-2xl">
-        <RecommendationFeed
-          filters={filters}
-          onMatch={handleNewMatch}
-        />
+        {currentUser.userId ? (
+          <RecommendationFeed
+            filters={filters}
+            onMatch={handleNewMatch}
+          />
+        ) : (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="spinner-large mx-auto mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Filter Panel */}

@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heart, Sparkles } from 'lucide-react';
+import { SignInModal } from './SignInModal';
 
 export function HeroSection() {
   const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-8">
@@ -48,7 +51,7 @@ export function HeroSection() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-delay-4">
           <button
-            onClick={() => router.push('/register')}
+            onClick={() => setIsModalOpen(true)}
             className="group relative w-full sm:w-auto px-8 py-4 bg-linear-to-r from-purple-600 via-pink-600 to-blue-600 text-white font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
@@ -104,6 +107,9 @@ export function HeroSection() {
           <div className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-600 rounded-full mx-auto animate-scroll-down"></div>
         </div>
       </div>
+
+      {/* Sign In Modal */}
+      <SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </section>
   );
 }

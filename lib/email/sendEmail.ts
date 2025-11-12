@@ -129,10 +129,17 @@ If you didn't create a Ghosty account, please ignore this email.
   };
 
   try {
-    await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent successfully!');
+    console.log('📬 Message ID:', info.messageId);
     return { success: true };
-  } catch (error) {
-    console.error('Error sending activation email:', error);
-    throw new Error('Failed to send activation email');
+  } catch (error: any) {
+    console.error('❌ Error sending activation email:');
+    console.error('Error Name:', error.name);
+    console.error('Error Message:', error.message);
+    console.error('Error Code:', error.code);
+    console.error('Error Command:', error.command);
+    console.error('Full Error:', error);
+    throw error; // Throw original error instead of generic message
   }
 }
