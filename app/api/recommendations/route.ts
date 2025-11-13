@@ -232,13 +232,15 @@ export async function GET(request: NextRequest) {
         age,
         height_cm,
         university,
+        faculty,
         degree_type,
         hometown,
         skin_tone,
         bio,
         gender,
         verified,
-        anonymous_name
+        anonymous_name,
+        real_name
       `)
       .not('gender', 'is', null);
 
@@ -307,11 +309,12 @@ export async function GET(request: NextRequest) {
         id: candidate.user_id,
         userId: candidate.user_id,
         anonymousName: candidate.anonymous_name || user?.username || 'Anonymous',
+        realName: candidate.real_name || candidate.anonymous_name || user?.username || 'Anonymous',
         avatar,
         age: candidate.age,
         gender: candidate.gender || 'Not specified',
         university: candidate.university || 'University',
-        faculty: 'Not specified',
+        faculty: candidate.faculty || 'Not specified',
         bio: candidate.bio || 'No bio yet',
         height: candidate.height_cm,
         degree: candidate.degree_type,

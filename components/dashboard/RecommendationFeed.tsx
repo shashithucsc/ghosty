@@ -70,6 +70,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
         const transformedProfiles: UserProfile[] = (data.recommendations || []).map((rec: any) => ({
           id: rec.id,
           anonymousName: rec.anonymousName,
+          realName: rec.realName,
           age: rec.age,
           gender: rec.gender,
           avatar: rec.avatar,
@@ -79,6 +80,10 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
           university: rec.university,
           faculty: rec.faculty,
           distance: undefined, // Distance calculation can be added later
+          height: rec.height,
+          degree: rec.degree,
+          hometown: rec.hometown,
+          skinTone: rec.skinTone,
         }));
 
         setProfiles(transformedProfiles);

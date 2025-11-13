@@ -9,6 +9,7 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 export interface UserProfile {
   id: string;
   anonymousName: string;
+  realName?: string;
   age: number;
   gender: string;
   avatar: string;
@@ -18,6 +19,10 @@ export interface UserProfile {
   university: string;
   faculty: string;
   distance?: string;
+  height?: number;
+  degree?: string;
+  hometown?: string;
+  skinTone?: string;
 }
 
 export interface FilterOptions {

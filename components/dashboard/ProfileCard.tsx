@@ -114,34 +114,57 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
           </div>
         </div>
 
-        {/* Bio */}
-        <div className="mb-4 grow overflow-y-auto custom-scrollbar">
-          <p className={`text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed ${!showFullBio && 'line-clamp-3'}`}>
-            {profile.bio}
-          </p>
-          {profile.bio.length > 100 && (
-            <button
-              onClick={() => setShowFullBio(!showFullBio)}
-              className="text-purple-600 hover:text-purple-700 text-sm font-medium mt-1"
-            >
-              {showFullBio ? 'Show less' : 'Read more'}
-            </button>
-          )}
-        </div>
+        {/* Profile Information - Single Compact Card */}
+        <div className="mb-4 bg-gradient-to-br from-purple-50/50 via-blue-50/50 to-pink-50/50 dark:from-purple-900/10 dark:via-blue-900/10 dark:to-pink-900/10 rounded-2xl p-4 border border-purple-100 dark:border-purple-800/50 space-y-3">
+          {/* Name */}
+          <div>
+            <h3 className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-0.5 uppercase tracking-wide">Name</h3>
+            <p className="text-xl font-bold text-gray-800 dark:text-white">
+              {profile.realName || profile.anonymousName}
+            </p>
+          </div>
 
-        {/* University & Faculty */}
-        <div className="mb-4 space-y-2">
-          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
-            <GraduationCap className="w-4 h-4" />
-            <span>{profile.university}</span>
+          {/* Quick Stats Row */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Age</p>
+              <p className="text-lg font-bold text-gray-800 dark:text-white">{profile.age}</p>
+            </div>
+            {profile.height && (
+              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Height</p>
+                <p className="text-lg font-bold text-gray-800 dark:text-white">{profile.height}<span className="text-xs">cm</span></p>
+              </div>
+            )}
+            {profile.skinTone && (
+              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Skin Tone</p>
+                <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">{profile.skinTone}</p>
+              </div>
+            )}
           </div>
-          <div className="text-gray-600 dark:text-gray-400 text-sm ml-6">
-            {profile.faculty}
+
+          {/* Education */}
+          <div className="flex items-start gap-2 bg-blue-50/70 dark:bg-blue-900/20 rounded-lg p-3">
+            <GraduationCap className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">
+                {profile.university || 'University not specified'}
+              </p>
+              <div className="flex gap-2 mt-0.5 text-xs text-gray-600 dark:text-gray-400">
+                {profile.faculty && <span>• {profile.faculty}</span>}
+                {profile.degree && <span>• {profile.degree}</span>}
+              </div>
+            </div>
           </div>
-          {profile.distance && (
-            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 text-sm">
-              <MapPin className="w-4 h-4" />
-              <span>{profile.distance}</span>
+
+          {/* Hometown */}
+          {profile.hometown && (
+            <div className="flex items-center gap-2 bg-pink-50/70 dark:bg-pink-900/20 rounded-lg p-2">
+              <MapPin className="w-4 h-4 text-pink-600 dark:text-pink-400 shrink-0" />
+              <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
+                {profile.hometown}
+              </p>
             </div>
           )}
         </div>
