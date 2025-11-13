@@ -341,6 +341,7 @@ export default function SimpleRegisterPage() {
               </Link>
             </div>
 
+            {/* Verified Join temporarily hidden
             <div className="text-center">
               <Link
                 href="/register/verified"
@@ -349,6 +350,7 @@ export default function SimpleRegisterPage() {
                 Want full features? Upgrade to Verified Join →
               </Link>
             </div>
+            */}
           </form>
         </div>
       </motion.div>

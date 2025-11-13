@@ -64,6 +64,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if profile is complete (exists in profiles table with required fields)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_id, age, height_cm, degree_type')
+      .eq('user_id', user.id)
+      .single();
+
+    const isProfileComplete = !!(profile && profile.age && profile.height_cm && profile.degree_type);
+
     // Generate JWT token with admin flag
     const token = sign(
       { 
@@ -96,6 +105,7 @@ export async function POST(request: NextRequest) {
       reportCount: user.report_count,
       isRestricted: user.is_restricted,
       isAdmin: user.is_admin || false,
+      isProfileComplete,
       createdAt: user.created_at,
     };
 

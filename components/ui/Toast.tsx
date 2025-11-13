@@ -28,15 +28,15 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   };
 
   const colors = {
-    success: 'bg-green-50 dark:bg-green-900/20 border-green-500 text-green-800 dark:text-green-200',
-    error: 'bg-red-50 dark:bg-red-900/20 border-red-500 text-red-800 dark:text-red-200',
-    warning: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-500 text-yellow-800 dark:text-yellow-200',
-    info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-800 dark:text-blue-200',
+    success: 'bg-green-600 dark:bg-green-700 text-white',
+    error: 'bg-red-600 dark:bg-red-700 text-white',
+    warning: 'bg-yellow-400 dark:bg-yellow-500 text-black',
+    info: 'bg-blue-600 dark:bg-blue-700 text-white',
   };
 
   return (
     <div className="fixed top-4 right-4 z-9999 animate-slide-in-right">
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 shadow-lg backdrop-blur-sm ${colors[type]} min-w-[300px] max-w-md`}>
+      <div className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg ${colors[type]} min-w-[300px] max-w-md`}>
         <div className="shrink-0">
           {icons[type]}
         </div>

@@ -123,7 +123,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     </div>
                   </motion.button>
 
-                  {/* Verified Join Button */}
+                  {/* Verified Join temporarily hidden
                   <motion.button
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -162,6 +162,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                       </div>
                     </div>
                   </motion.button>
+                  */}
                 </div>
 
                 {/* Footer */}

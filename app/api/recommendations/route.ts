@@ -63,7 +63,62 @@ interface RecommendedProfile {
   isSkipped: boolean;
 }
 
-// GET: Fetch personalized recommendation feed
+// Calculate match score based on weighted criteria
+function calculateMatchScore(
+  candidate: any,
+  prefs: {
+    age_min: number;
+    age_max: number;
+    education_levels: string[];
+    height_pref: { type: string; value_cm?: number };
+    hometown?: string;
+    skin_tone?: string;
+  }
+): number {
+  let score = 0;
+
+  // Age Range (30 points)
+  if (candidate.age >= prefs.age_min && candidate.age <= prefs.age_max) {
+    score += 30;
+  }
+
+  // Education Level (25 points)
+  if (prefs.education_levels && candidate.degree_type && prefs.education_levels.includes(candidate.degree_type)) {
+    score += 25;
+  }
+
+  // Height Match (15 points)
+  const heightPref = prefs.height_pref;
+  if (heightPref && candidate.height_cm) {
+    if (heightPref.type === 'less' && heightPref.value_cm && candidate.height_cm < heightPref.value_cm) {
+      score += 15;
+    } else if (heightPref.type === 'greater' && heightPref.value_cm && candidate.height_cm > heightPref.value_cm) {
+      score += 15;
+    } else if (heightPref.type === 'no preference' || heightPref.type === 'no_preference') {
+      score += 15;
+    }
+  } else if (!heightPref || heightPref.type === 'no preference' || heightPref.type === 'no_preference') {
+    score += 15;
+  }
+
+  // Hometown Match (15 points) - Case-insensitive partial match
+  if (prefs.hometown && candidate.hometown) {
+    const prefHometown = prefs.hometown.toLowerCase();
+    const candHometown = candidate.hometown.toLowerCase();
+    if (candHometown.includes(prefHometown) || prefHometown.includes(candHometown)) {
+      score += 15;
+    }
+  }
+
+  // Skin Tone Match (15 points)
+  if (prefs.skin_tone && candidate.skin_tone === prefs.skin_tone) {
+    score += 15;
+  }
+
+  return score;
+}
+
+// GET: Fetch personalized recommendation feed with weighted scoring
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -93,97 +148,121 @@ export async function GET(request: NextRequest) {
 
     const { userId, page, limit, filterUniversity, filterFaculty, minAge, maxAge } = validation.data;
 
-    // Step 1: Get current user's data
-    const { data: currentUser, error: userError } = await supabaseAdmin
+    // Step 1: Get viewer's profile and gender from profiles table (fallback to users if needed)
+    const { data: viewerProfile, error: viewerError } = await supabaseAdmin
+      .from('profiles')
+      .select('gender, user_id, age, height_cm, degree_type')
+      .eq('user_id', userId)
+      .single();
+
+    let viewerGender: string | null = null;
+    if (viewerProfile && !viewerError) {
+      viewerGender = viewerProfile.gender ?? null;
+    } else {
+      // Fallback to users table for gender if profile is missing
+      const { data: viewerUserRow } = await supabaseAdmin
+        .from('users')
+        .select('gender')
+        .eq('id', userId)
+        .single();
+      viewerGender = (viewerUserRow as any)?.gender ?? null;
+    }
+
+    // Get viewer's partner preferences from users table
+    const { data: viewerUser, error: prefError } = await supabaseAdmin
       .from('users')
-      .select('*')
+      .select('partner_preferences_json')
       .eq('id', userId)
       .single();
 
-    if (userError || !currentUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    // If preferences missing, build a sensible default from query params
+    let prefs: any = undefined;
+    if (!prefError && viewerUser && (viewerUser as any).partner_preferences_json) {
+      prefs = (viewerUser as any).partner_preferences_json;
+    } else {
+      // Defaults: use query minAge/maxAge if provided, otherwise broad range
+      const ageMin = validation.data.minAge ?? 18;
+      const ageMax = validation.data.maxAge ?? 100;
+      prefs = {
+        age_min: ageMin,
+        age_max: ageMax,
+        education_levels: [],
+        height_pref: { type: 'no_preference' },
+        hometown: '',
+        skin_tone: '',
+      };
     }
 
-    // Step 2: Get users who current user already liked or skipped (if swipes table exists)
+    // Step 2: Get blocked user IDs to exclude
+    const { data: blockedUsers } = await supabaseAdmin
+      .from('blocks')
+      .select('blocked_user_id')
+      .eq('blocker_user_id', userId);
+
+    const blockedIds = blockedUsers?.map((b: any) => b.blocked_user_id) || [];
+
+    // Get users who blocked the viewer
+    const { data: blockedByUsers } = await supabaseAdmin
+      .from('blocks')
+      .select('blocker_user_id')
+      .eq('blocked_user_id', userId);
+
+    const blockedByIds = blockedByUsers?.map((b: any) => b.blocker_user_id) || [];
+
+    // Get users already interacted with (swipes)
     let interactedUserIds: string[] = [];
     try {
       const { data: interactions } = await supabaseAdmin
         .from('swipes')
-        .select('target_user_id, action')
+        .select('target_user_id')
         .eq('swiper_user_id', userId);
       interactedUserIds = interactions?.map((interaction) => interaction.target_user_id) || [];
     } catch (error) {
-      // Swipes table might not exist yet, continue without filtering
       console.log('Swipes table not found, skipping interaction filter');
     }
 
-    // Get current user's gender for opposite gender filtering
-    const currentUserGender = currentUser.gender;
+    // Combine all excluded user IDs
+    const excludedUserIds = [...new Set([...blockedIds, ...blockedByIds, ...interactedUserIds, userId])];
 
-    // Step 3: Build query for potential matches from users table
-    // Recommendation logic:
-    // - Show only users with opposite gender
-    // - Exclude restricted users
-    // - Exclude current user
-    // - Sort by preference similarity later
+    // Step 3: Fetch opposite gender candidates with complete profiles from profiles table
     let query = supabaseAdmin
-      .from('users')
-      .select('id, username, full_name, birthday, gender, university_name, faculty, bio, preferences, partner_preferences, verification_status, is_restricted, report_count, created_at')
-      .neq('id', userId) // Exclude current user
-      .eq('is_restricted', false); // Exclude restricted users
+      .from('profiles')
+      .select(`
+        user_id,
+        age,
+        height_cm,
+        university,
+        degree_type,
+        hometown,
+        skin_tone,
+        bio,
+        gender,
+        verified,
+        anonymous_name
+      `)
+      .not('gender', 'is', null);
 
-    // Filter by opposite gender
-    if (currentUserGender) {
-      if (currentUserGender.toLowerCase() === 'male') {
-        query = query.eq('gender', 'Female');
-      } else if (currentUserGender.toLowerCase() === 'female') {
-        query = query.eq('gender', 'Male');
-      }
+    // Apply opposite gender filter only if viewer gender is known
+    if (viewerGender) {
+      query = query.neq('gender', viewerGender);
     }
 
-    // Exclude already interacted users
-    if (interactedUserIds.length > 0) {
-      query = query.not('id', 'in', `(${interactedUserIds.join(',')})`);
+    // Exclude blocked and interacted users
+    if (excludedUserIds.length > 0) {
+      query = query.not('user_id', 'in', `(${excludedUserIds.join(',')})`);
     }
 
-    // Calculate age from birthday and filter
-    // Since we can't calculate age in SQL easily, we'll filter after fetching
-    
-    // Filter by age range - only if minAge or maxAge is provided
-    const ageMin = minAge ?? 18;
-    const ageMax = maxAge ?? 100;
-    
-    if (ageMin > 18 || ageMax < 100) {
-      const today = new Date();
-      const maxBirthday = new Date(today.getFullYear() - ageMin, today.getMonth(), today.getDate());
-      const minBirthday = new Date(today.getFullYear() - ageMax, today.getMonth(), today.getDate());
-      
-      query = query.gte('birthday', minBirthday.toISOString().split('T')[0])
-                   .lte('birthday', maxBirthday.toISOString().split('T')[0]);
+    // Fetch candidates
+    const { data: candidates, error: candidatesError } = await query;
+
+    if (candidatesError) {
+      console.error('Error fetching candidates:', candidatesError);
+      return NextResponse.json({ 
+        error: 'Failed to fetch recommendations' 
+      }, { status: 500 });
     }
 
-    // Optional: Filter by university
-    if (filterUniversity === 'true' && currentUser.university_name) {
-      query = query.eq('university_name', currentUser.university_name);
-    }
-
-    // Optional: Filter by faculty
-    if (filterFaculty === 'true' && currentUser.faculty) {
-      query = query.eq('faculty', currentUser.faculty);
-    }
-
-    // Limit results
-    query = query.limit(limit * 2); // Fetch more to account for filtering
-
-    // Fetch potential matches
-    const { data: potentialMatches, error: matchesError } = await query;
-
-    if (matchesError) {
-      console.error('Error fetching potential matches:', matchesError);
-      return NextResponse.json({ error: 'Failed to fetch recommendations' }, { status: 500 });
-    }
-
-    if (!potentialMatches || potentialMatches.length === 0) {
+    if (!candidates || candidates.length === 0) {
       return NextResponse.json(
         {
           recommendations: [],
@@ -196,108 +275,70 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Step 4: Calculate ages and transform to recommended profiles
-    const calculateAge = (birthday: string) => {
-      const today = new Date();
-      const birthDate = new Date(birthday);
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      return age;
-    };
+    // Step 4: Get user details for candidates
+    const candidateUserIds = candidates.map(c => c.user_id);
+    const { data: candidateUsers } = await supabaseAdmin
+      .from('users')
+      .select('id, username, full_name, is_restricted, verification_status')
+      .in('id', candidateUserIds)
+      .eq('is_restricted', false);
 
-    const currentUserAge = currentUser.birthday ? calculateAge(currentUser.birthday) : 25;
+    const userMap = new Map(candidateUsers?.map(u => [u.id, u]) || []);
 
-    const scoredMatches = potentialMatches.map((user: any) => {
-      const age = user.birthday ? calculateAge(user.birthday) : 25;
+    // Filter out restricted users
+    const validCandidates = candidates.filter(c => userMap.has(c.user_id));
+
+    // Step 5: Calculate match scores using weighted algorithm
+    const scoredMatches = validCandidates.map((candidate: any) => {
+      const user = userMap.get(candidate.user_id);
       
-      // Calculate match score based on preference similarity
-      let matchScore = 50; // Base score
-
-      // Bonus for verified users
-      if (user.verification_status === 'verified') {
-        matchScore += 20;
-      }
-
-      // Bonus for same university
-      if (user.university_name && currentUser.university_name && 
-          user.university_name === currentUser.university_name) {
-        matchScore += 10;
-      }
-
-      // Bonus for same faculty
-      if (user.faculty && currentUser.faculty && 
-          user.faculty === currentUser.faculty) {
-        matchScore += 5;
-      }
-
-      // Preference similarity scoring
-      const userPrefs = user.partner_preferences || user.preferences;
-      const currentUserPrefs = currentUser.partner_preferences || currentUser.preferences;
-      
-      if (userPrefs && currentUserPrefs) {
-        // Simple text similarity for preferences
-        const userPrefsText = (typeof userPrefs === 'string' ? userPrefs : JSON.stringify(userPrefs)).toLowerCase();
-        const currentPrefsText = (typeof currentUserPrefs === 'string' ? currentUserPrefs : JSON.stringify(currentUserPrefs)).toLowerCase();
-        
-        // Count common words as a basic similarity measure
-        const userWords = userPrefsText.split(/\s+/);
-        const currentWords = currentPrefsText.split(/\s+/);
-        const commonWords = userWords.filter(word => currentWords.includes(word) && word.length > 3).length;
-        
-        matchScore += Math.min(commonWords * 2, 15); // Max 15 points from preference similarity
-      }
-
-      // Penalty for reported users
-      if (user.report_count && user.report_count > 0) {
-        matchScore -= user.report_count * 5;
-      }
-
-      // Ensure score doesn't go negative
-      matchScore = Math.max(0, matchScore);
+      // Calculate weighted match score
+      const matchScore = calculateMatchScore(candidate, prefs);
 
       // Generate avatar emoji based on gender
       let avatar = '👤';
-      if (user.gender) {
-        if (user.gender.toLowerCase() === 'male') avatar = '🧑';
-        else if (user.gender.toLowerCase() === 'female') avatar = '👩';
+      if (candidate.gender) {
+        if (candidate.gender.toLowerCase() === 'male') avatar = '🧑';
+        else if (candidate.gender.toLowerCase() === 'female') avatar = '👩';
         else avatar = '🙋';
       }
 
       return {
-        id: user.id,
-        userId: user.id,
-        anonymousName: user.username,
+        id: candidate.user_id,
+        userId: candidate.user_id,
+        anonymousName: candidate.anonymous_name || user?.username || 'Anonymous',
         avatar,
-        age,
-        gender: user.gender || 'Not specified',
-        university: user.university_name || 'University',
-        faculty: user.faculty || 'Not specified',
-        bio: user.bio || 'No bio yet',
+        age: candidate.age,
+        gender: candidate.gender || 'Not specified',
+        university: candidate.university || 'University',
+        faculty: 'Not specified',
+        bio: candidate.bio || 'No bio yet',
+        height: candidate.height_cm,
+        degree: candidate.degree_type,
+        hometown: candidate.hometown,
+        skinTone: candidate.skin_tone,
         interests: [],
-        isVerified: user.verification_status === 'verified',
-        verificationStatus: user.verification_status || 'unverified',
+        isVerified: candidate.verified || user?.verification_status === 'verified',
+        verificationStatus: user?.verification_status || 'unverified',
         matchScore,
         sharedInterests: [],
-        totalReports: user.report_count || 0,
+        totalReports: 0,
         isLiked: false,
         isSkipped: false,
       };
     });
 
+    // Step 6: Sort by match score (highest first)
+    scoredMatches.sort((a, b) => b.matchScore - a.matchScore);
+
     const validMatches = scoredMatches;
 
-    // Step 7: Sort by match score (highest first)
-    validMatches.sort((a, b) => b.matchScore - a.matchScore);
-
-    // Step 8: Apply pagination
+    // Step 7: Apply pagination
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
     const paginatedMatches = validMatches.slice(startIndex, endIndex);
 
-    // Step 9: Check if users were already liked/skipped (in case of cache issues)
+    // Step 8: Check if users were already liked/skipped (in case of cache issues)
     const paginatedUserIds = paginatedMatches.map((match) => match.userId);
 
     if (paginatedUserIds.length > 0) {

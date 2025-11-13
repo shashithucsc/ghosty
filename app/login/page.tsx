@@ -83,6 +83,8 @@ export default function LoginPage() {
             router.push('/restricted');
           } else if (data.user.verificationStatus === 'pending') {
             router.push('/pending-verification');
+          } else if (!data.user.isProfileComplete) {
+            router.push('/setup-profile');
           } else {
             router.push('/dashboard');
           }
@@ -286,12 +288,14 @@ export default function LoginPage() {
               >
                 Quick Join
               </Link>
+              {/* Verified Join temporarily hidden
               <Link
-                href="/register/verified"
-                className="py-3 px-4 text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-semibold rounded-xl hover:bg-green-200 dark:hover:bg-green-900/50 transition-all"
-              >
-                Verified Join
-              </Link>
+                  href="/register/verified"
+                  className="py-3 px-4 text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-semibold rounded-xl hover:bg-green-200 dark:hover:bg-green-900/50 transition-all"
+                >
+                  Verified Join
+                </Link>
+              */}
             </div>
 
             {/* Info Box */}
