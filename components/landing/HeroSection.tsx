@@ -39,7 +39,7 @@ export function HeroSection() {
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 animate-fade-in-delay-2">
           Meet, Chat & Connect{' '}
           <span className="text-purple-600 dark:text-purple-400">
-           කිචි බිචි
+           Ghosty
           </span>
         </h1>
 

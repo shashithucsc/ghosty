@@ -169,21 +169,6 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
           )}
         </div>
 
-        {/* Interests */}
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Interests</h3>
-          <div className="flex flex-wrap gap-2">
-            {profile.interests.map((interest, index) => (
-              <span
-                key={index}
-                className="px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs sm:text-sm font-medium border border-purple-200 dark:border-purple-700 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
-              >
-                {interest}
-              </span>
-            ))}
-          </div>
-        </div>
-
         {/* Action Buttons */}
         <div className="flex items-center justify-center gap-4 sm:gap-6 mt-auto">
           {/* Skip Button */}
