@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
         // Get sender's profile
         const { data: senderProfile } = await supabase
           .from('profiles')
-          .select('anonymous_name, gender, verified, avatar')
+          .select('anonymous_name, real_name, gender, verified, anonymous_avatar_url, dob, age')
           .eq('user_id', req.sender_id)
           .single();
 
@@ -111,15 +111,29 @@ export async function GET(request: NextRequest) {
           .eq('id', req.sender_id)
           .single();
 
+        // Calculate age from dob if available, otherwise use age field
+        let calculatedAge = senderProfile?.age;
+        if (senderProfile?.dob) {
+          const birthDate = new Date(senderProfile.dob);
+          const today = new Date();
+          calculatedAge = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            calculatedAge--;
+          }
+        }
+
         return {
           ...req,
           sender: {
             id: req.sender_id,
             username: senderUser?.username,
             profiles: {
-              full_name: senderProfile?.anonymous_name || 'Anonymous',
-              avatar_url: senderProfile?.avatar || '👤',
+              full_name: senderProfile?.real_name || senderProfile?.anonymous_name || 'Anonymous',
+              avatar_url: senderProfile?.anonymous_avatar_url || '👤',
               verification_status: senderProfile?.verified || false,
+              age: calculatedAge,
+              gender: senderProfile?.gender || senderUser?.gender || 'Unknown',
             },
           },
         };

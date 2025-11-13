@@ -10,6 +10,8 @@ interface ChatHeaderProps {
   showMenu?: boolean;
   onBack?: () => void;
   onBlockReport?: () => void;
+  userId?: string;
+  onProfileClick?: () => void;
 }
 
 export function ChatHeader({
@@ -20,6 +22,8 @@ export function ChatHeader({
   showMenu = false,
   onBack,
   onBlockReport,
+  userId,
+  onProfileClick,
 }: ChatHeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-sm">
@@ -35,13 +39,17 @@ export function ChatHeader({
             </button>
           )}
 
-          {/* Center: Title & Avatar */}
-          <div className="flex-1 flex items-center gap-3 ml-2">
+          {/* Center: Title & Avatar - Clickable for profile */}
+          <div 
+            className={`flex-1 flex items-center gap-3 ml-2 ${onProfileClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+            onClick={onProfileClick}
+            title={onProfileClick ? 'View Profile' : undefined}
+          >
             {avatar && (
               <div className="text-3xl sm:text-4xl">{avatar}</div>
             )}
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white truncate">
+              <h1 className={`text-lg sm:text-xl font-bold text-gray-800 dark:text-white truncate ${onProfileClick ? 'hover:text-purple-600 dark:hover:text-purple-400' : ''}`}>
                 {title}
               </h1>
               {subtitle && (

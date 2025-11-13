@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
         // Get other user's profile
         const { data: profile } = await supabase
           .from('profiles')
-          .select('anonymous_name, avatar, verified')
+          .select('anonymous_name, real_name, anonymous_avatar_url, verified, dob, age, gender')
           .eq('user_id', conv.otherUserId)
           .single();
 
@@ -86,15 +86,28 @@ export async function GET(request: NextRequest) {
           .eq('id', conv.otherUserId)
           .single();
 
+        // Calculate age from dob if available, otherwise use age field
+        let calculatedAge = profile?.age;
+        if (profile?.dob) {
+          const birthDate = new Date(profile.dob);
+          const today = new Date();
+          calculatedAge = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            calculatedAge--;
+          }
+        }
+
         return {
           id: conv.conversationId,
           conversationId: conv.conversationId,
           otherUser: {
             id: conv.otherUserId,
-            anonymousName: profile?.anonymous_name || user?.username || 'Anonymous',
-            avatar: profile?.avatar || '👤',
+            anonymousName: profile?.real_name || profile?.anonymous_name || user?.username || 'Anonymous',
+            avatar: profile?.anonymous_avatar_url || '👤',
             verified: profile?.verified || false,
-            gender: user?.gender || 'Unknown',
+            gender: profile?.gender || user?.gender || 'Unknown',
+            age: calculatedAge,
           },
           lastMessage: conv.lastMessage,
           lastMessageTime: conv.lastMessageTime,

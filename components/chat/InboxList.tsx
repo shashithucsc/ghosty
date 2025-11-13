@@ -32,7 +32,7 @@ export function InboxList({ requests, onAccept, onReject, onBlock, onOpenChat }:
       {requests.map((request) => (
         <div
           key={request.id}
-          className="glassmorphic-card p-4 sm:p-5 animate-slide-up hover:shadow-lg transition-shadow"
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-5 animate-slide-up hover:shadow-xl transition-all"
         >
           <div className="flex items-start gap-3 sm:gap-4">
             {/* Avatar - Click to view profile */}
@@ -115,7 +115,7 @@ export function InboxList({ requests, onAccept, onReject, onBlock, onOpenChat }:
                 <div className="flex gap-2">
                   <button
                     onClick={() => onAccept(request.id)}
-                    className="flex-1 py-2 px-4 bg-linear-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-600 transition-all text-sm sm:text-base flex items-center justify-center gap-2"
+                    className="flex-1 py-2 px-4 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-lg font-semibold transition-all text-sm sm:text-base flex items-center justify-center gap-2"
                   >
                     <Check className="w-4 h-4" />
                     Accept
@@ -133,7 +133,7 @@ export function InboxList({ requests, onAccept, onReject, onBlock, onOpenChat }:
               {request.status === 'accepted' && !request.isBlocked && (
                 <button
                   onClick={() => onOpenChat(request.id)}
-                  className="w-full py-2 px-4 bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all text-sm sm:text-base"
+                  className="w-full py-2 px-4 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white rounded-lg font-semibold transition-all text-sm sm:text-base"
                 >
                   Open Chat
                 </button>

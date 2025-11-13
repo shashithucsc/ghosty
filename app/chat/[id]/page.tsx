@@ -8,6 +8,12 @@ import { ChatInput } from '@/components/chat/ChatInput';
 import { BlockReportModal } from '@/components/chat/BlockReportModal';
 import { UnblockModal } from '@/components/chat/UnblockModal';
 import { Toast } from '@/components/ui/Toast';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export interface Message {
   id: string;
@@ -26,6 +32,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     avatar: '�',
     age: 0,
     gender: '',
+    realName: 'Loading...',
   });
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showUnblockModal, setShowUnblockModal] = useState(false);
@@ -140,26 +147,54 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
     const fetchUserProfile = async () => {
       try {
-        const response = await fetch(`/api/users/${otherUserId}`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch user profile');
+        // Fetch from profiles table for complete info
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('real_name, anonymous_name, anonymous_avatar_url, dob, age, gender')
+          .eq('user_id', otherUserId)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          // Fallback to users table
+          const response = await fetch(`/api/users/${otherUserId}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.user) {
+              const user = data.user;
+              const birthday = new Date(user.birthday);
+              const age = new Date().getFullYear() - birthday.getFullYear();
+              setChatPartner({
+                realName: user.username || 'Anonymous',
+                anonymousName: user.username || 'Anonymous',
+                avatar: user.gender === 'Male' ? '👨' : user.gender === 'Female' ? '👩' : '👤',
+                age: age,
+                gender: user.gender || 'Unknown',
+              });
+            }
+          }
+          return;
         }
 
-        const data = await response.json();
-
-        if (data.success && data.user) {
-          const user = data.user;
-          const birthday = new Date(user.birthday);
-          const age = new Date().getFullYear() - birthday.getFullYear();
-
-          setChatPartner({
-            anonymousName: user.username || 'Anonymous',
-            avatar: user.gender === 'Male' ? '👨' : user.gender === 'Female' ? '👩' : '👤',
-            age: age,
-            gender: user.gender || 'Unknown',
-          });
+        // Calculate age from dob if available
+        let calculatedAge = profile?.age || 0;
+        if (profile?.dob) {
+          const birthDate = new Date(profile.dob);
+          const today = new Date();
+          calculatedAge = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            calculatedAge--;
+          }
         }
+
+        setChatPartner({
+          realName: profile?.real_name || profile?.anonymous_name || 'Anonymous',
+          anonymousName: profile?.real_name || profile?.anonymous_name || 'Anonymous',
+          avatar: profile?.anonymous_avatar_url || '👤',
+          age: calculatedAge,
+          gender: profile?.gender || 'Unknown',
+        });
       } catch (error) {
         console.error('Error fetching user profile:', error);
       }
@@ -498,13 +533,15 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950 dark:via-pink-950 dark:to-blue-950 flex flex-col">
       {/* Header */}
       <ChatHeader
-        title={chatPartner.anonymousName}
+        title={chatPartner.realName}
         subtitle={chatPartner.age > 0 ? `${chatPartner.age} • ${chatPartner.gender}` : chatPartner.gender}
         avatar={chatPartner.avatar}
         showBack={true}
         showMenu={true}
         onBack={() => router.push('/dashboard')}
         onBlockReport={() => setShowBlockModal(true)}
+        userId={otherUserId || undefined}
+        onProfileClick={otherUserId ? () => router.push(`/profile/${otherUserId}`) : undefined}
       />
 
       {/* Block Status Warning Banner */}

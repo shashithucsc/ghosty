@@ -33,6 +33,7 @@ export interface ActiveChat {
     avatar: string;
     verified: boolean;
     gender: string;
+    age?: number;
   };
   lastMessage: string;
   lastMessageTime: string;
@@ -81,7 +82,8 @@ export default function InboxPage() {
           id: req.sender_id,
           anonymousName: req.sender?.profiles?.full_name || req.sender?.username || 'Anonymous',
           avatar: req.sender?.profiles?.avatar_url || '👤',
-          gender: 'Unknown',
+          age: req.sender?.profiles?.age,
+          gender: req.sender?.profiles?.gender || 'Unknown',
           university: 'Unknown',
         },
         message: req.message || 'Would like to chat with you!',
@@ -391,7 +393,7 @@ export default function InboxPage() {
                       {chats.map((chat) => (
                         <div
                           key={chat.id}
-                          className="glassmorphic-card p-4 sm:p-5 animate-slide-up hover:shadow-lg transition-all group"
+                          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-5 animate-slide-up hover:shadow-xl transition-all group"
                         >
                           <div className="flex items-start gap-3 sm:gap-4">
                             {/* Avatar - Click to view profile */}
@@ -420,7 +422,7 @@ export default function InboxPage() {
                                     {chat.otherUser.anonymousName}
                                   </h3>
                                   <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                    {chat.otherUser.gender}
+                                    {chat.otherUser.age ? `${chat.otherUser.age} • ` : ''}{chat.otherUser.gender}
                                     {chat.otherUser.verified && ' • ✓ Verified'}
                                   </p>
                                 </div>
