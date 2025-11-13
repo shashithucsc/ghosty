@@ -63,7 +63,11 @@ const EDUCATION_LEVELS = [
   'Management Degree',
   'Arts Degree',
   'Technology Degree',
+  'Engineering Degree',
+    'IT Degree',
+    'Medicine Degree',
   'Other Degree',
+
 ];
 
 const SKIN_TONES = ['Fair', 'Light Brown', 'Medium Brown', 'Dark'];
