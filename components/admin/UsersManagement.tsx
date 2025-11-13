@@ -16,144 +16,128 @@ import { ConfirmModal } from './ConfirmModal';
 
 interface User {
   id: string;
-  anonymousName: string;
-  avatar: string;
-  isVerified: boolean;
-  totalReports: number;
-  university: string;
-  registrationDate: string;
-  isRestricted: boolean;
+  username: string;
+  email: string | null;
+  registration_type: string;
+  verification_status: string;
+  is_restricted: boolean;
+  report_count: number;
+  created_at: string;
+  university_name?: string | null;
 }
 
 export function UsersManagement() {
   const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [verifiedFilter, setVerifiedFilter] = useState<'all' | 'verified' | 'non-verified'>('all');
+  const [verifiedFilter, setVerifiedFilter] = useState<'all' | 'verified' | 'unverified'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [modalAction, setModalAction] = useState<{ type: string; user: User | null }>({ type: '', user: null });
-  const usersPerPage = 10;
+  const usersPerPage = 20;
 
   useEffect(() => {
-    // Mock data - replace with API call
-    setTimeout(() => {
-      const mockUsers: User[] = [
-        {
-          id: '1',
-          anonymousName: 'CharmingSoul456',
-          avatar: '👩',
-          isVerified: true,
-          totalReports: 0,
-          university: 'Stanford University',
-          registrationDate: '2025-10-15',
-          isRestricted: false,
+    fetchUsers();
+  }, [currentPage, verifiedFilter, searchQuery]);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token found');
+        return;
+      }
+
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: usersPerPage.toString(),
+      });
+
+      if (verifiedFilter !== 'all') {
+        params.append('verificationStatus', verifiedFilter);
+      }
+
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+
+      const response = await fetch(`/api/admin/users?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
         },
-        {
-          id: '2',
-          anonymousName: 'BraveExplorer789',
-          avatar: '🧑',
-          isVerified: false,
-          totalReports: 2,
-          university: 'MIT',
-          registrationDate: '2025-10-28',
-          isRestricted: false,
-        },
-        {
-          id: '3',
-          anonymousName: 'GentleDreamer234',
-          avatar: '🌸',
-          isVerified: true,
-          totalReports: 0,
-          university: 'Harvard University',
-          registrationDate: '2025-11-01',
-          isRestricted: false,
-        },
-        {
-          id: '4',
-          anonymousName: 'SmartVibes567',
-          avatar: '👨',
-          isVerified: false,
-          totalReports: 5,
-          university: 'UC Berkeley',
-          registrationDate: '2025-11-05',
-          isRestricted: true,
-        },
-        // Add more mock users as needed
-      ];
+      });
       
-      // Duplicate for testing pagination
-      const allUsers = [...mockUsers, ...mockUsers.map((u, i) => ({
-        ...u,
-        id: `${parseInt(u.id) + 4 + i}`,
-        anonymousName: u.anonymousName + (i + 1),
-      }))];
+      console.log('Users API response status:', response.status);
+      const data = await response.json();
+      console.log('Users API response data:', data);
       
-      setUsers(allUsers);
-      setFilteredUsers(allUsers);
+      if (response.ok) {
+        setUsers(data.users || []);
+        setTotalUsers(data.pagination?.total || 0);
+      } else {
+        console.error('API error:', data.error);
+        if (data.details) {
+          console.error('Validation details:', data.details);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
       setLoading(false);
-    }, 500);
-  }, []);
+    }
+  };
 
-  // Search and filter
+  // Debounce search
   useEffect(() => {
-    let filtered = users;
-
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (user) =>
-          user.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.university.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Verified filter
-    if (verifiedFilter === 'verified') {
-      filtered = filtered.filter((user) => user.isVerified);
-    } else if (verifiedFilter === 'non-verified') {
-      filtered = filtered.filter((user) => !user.isVerified);
-    }
-
-    setFilteredUsers(filtered);
-    setCurrentPage(1);
-  }, [searchQuery, verifiedFilter, users]);
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * usersPerPage,
-    currentPage * usersPerPage
-  );
+  const totalPages = Math.ceil(totalUsers / usersPerPage);
 
   const handleAction = (type: string, user: User) => {
     setModalAction({ type, user });
     setShowConfirmModal(true);
   };
 
-  const confirmAction = () => {
+  const confirmAction = async () => {
     if (!modalAction.user) return;
 
-    switch (modalAction.type) {
-      case 'approve':
-        setUsers(users.map(u => 
-          u.id === modalAction.user!.id ? { ...u, isVerified: true } : u
-        ));
-        break;
-      case 'reject':
-        setUsers(users.map(u => 
-          u.id === modalAction.user!.id ? { ...u, isVerified: false } : u
-        ));
-        break;
-      case 'restrict':
-        setUsers(users.map(u => 
-          u.id === modalAction.user!.id ? { ...u, isRestricted: true } : u
-        ));
-        break;
-      case 'delete':
-        setUsers(users.filter(u => u.id !== modalAction.user!.id));
-        break;
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      if (!token || !userId) return;
+
+      const response = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          adminId: userId,
+          userId: modalAction.user.id,
+          action: modalAction.type,
+        }),
+      });
+
+      console.log('Action response status:', response.status);
+      const data = await response.json();
+      console.log('Action response data:', data);
+
+      if (response.ok) {
+        // Refresh users list
+        fetchUsers();
+      } else {
+        console.error('Action failed:', data.error);
+      }
+    } catch (error) {
+      console.error('Error performing action:', error);
     }
 
     setShowConfirmModal(false);
@@ -179,7 +163,7 @@ export function UsersManagement() {
           Users Management
         </h2>
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          Total: {filteredUsers.length} users
+          Total: {totalUsers} users
         </div>
       </div>
 
@@ -208,7 +192,7 @@ export function UsersManagement() {
             >
               <option value="all">All Users</option>
               <option value="verified">Verified Only</option>
-              <option value="non-verified">Non-Verified Only</option>
+              <option value="unverified">Non-Verified Only</option>
             </select>
           </div>
         </div>
@@ -243,26 +227,28 @@ export function UsersManagement() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {paginatedUsers.map((user) => (
+                {users.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="text-3xl">{user.avatar}</div>
+                        <div className="w-12 h-12 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                          {user.username.charAt(0).toUpperCase()}
+                        </div>
                         <div>
                           <div className="font-semibold text-gray-800 dark:text-white">
-                            {user.anonymousName}
+                            {user.username}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
-                            ID: {user.id}
+                            {user.email || 'No email'}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                      {user.university}
+                      {user.university_name || 'N/A'}
                     </td>
                     <td className="px-6 py-4">
-                      {user.isVerified ? (
+                      {user.verification_status === 'verified' ? (
                         <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-sm font-semibold">
                           <CheckCircle size={16} />
                           Verified
@@ -273,7 +259,7 @@ export function UsersManagement() {
                           Not Verified
                         </span>
                       )}
-                      {user.isRestricted && (
+                      {user.is_restricted && (
                         <span className="ml-2 inline-flex items-center gap-1 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-sm font-semibold">
                           <Ban size={16} />
                           Restricted
@@ -282,30 +268,29 @@ export function UsersManagement() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
-                        user.totalReports > 3
+                        user.report_count > 3
                           ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                          : user.totalReports > 0
+                          : user.report_count > 0
                           ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400'
                           : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                       }`}>
-                        {user.totalReports}
+                        {user.report_count}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(user.registrationDate).toLocaleDateString()}
+                      {new Date(user.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex justify-end gap-2">
-                        {!user.isVerified && (
+                        {user.is_restricted ? (
                           <button
-                            onClick={() => handleAction('approve', user)}
+                            onClick={() => handleAction('unrestrict', user)}
                             className="p-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
-                            title="Approve Verification"
+                            title="Unrestrict User"
                           >
                             <CheckCircle size={18} />
                           </button>
-                        )}
-                        {!user.isRestricted && (
+                        ) : (
                           <button
                             onClick={() => handleAction('restrict', user)}
                             className="p-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
@@ -332,24 +317,26 @@ export function UsersManagement() {
 
         {/* Mobile Card View */}
         <div className="lg:hidden space-y-4">
-          {paginatedUsers.map((user) => (
+          {users.map((user) => (
             <div key={user.id} className="glassmorphic-card p-4">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="text-4xl">{user.avatar}</div>
+                  <div className="w-12 h-12 bg-linear-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                    {user.username.charAt(0).toUpperCase()}
+                  </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 dark:text-white">
-                      {user.anonymousName}
+                      {user.username}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {user.university}
+                      {user.university_name || 'No university'}
                     </p>
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                {user.isVerified ? (
+                {user.verification_status === 'verified' ? (
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-sm font-semibold">
                     <CheckCircle size={16} />
                     Verified
@@ -361,31 +348,32 @@ export function UsersManagement() {
                   </span>
                 )}
                 <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                  user.totalReports > 3
+                  user.report_count > 3
                     ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}>
-                  {user.totalReports} Reports
+                  {user.report_count} Reports
                 </span>
               </div>
 
               <div className="flex gap-2">
-                {!user.isVerified && (
+                {user.is_restricted ? (
                   <button
-                    onClick={() => handleAction('approve', user)}
+                    onClick={() => handleAction('unrestrict', user)}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors font-semibold"
                   >
                     <CheckCircle size={18} />
-                    Approve
+                    Unrestrict
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleAction('restrict', user)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors font-semibold"
+                  >
+                    <Ban size={18} />
+                    Restrict
                   </button>
                 )}
-                <button
-                  onClick={() => handleAction('restrict', user)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors font-semibold"
-                >
-                  <Ban size={18} />
-                  Restrict
-                </button>
                 <button
                   onClick={() => handleAction('delete', user)}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-semibold"
@@ -428,12 +416,12 @@ export function UsersManagement() {
       {showConfirmModal && modalAction.user && (
         <ConfirmModal
           title={`Confirm ${modalAction.type.charAt(0).toUpperCase() + modalAction.type.slice(1)}`}
-          message={`Are you sure you want to ${modalAction.type} ${modalAction.user.anonymousName}?`}
+          message={`Are you sure you want to ${modalAction.type} user ${modalAction.user.username}?`}
           confirmLabel={modalAction.type.charAt(0).toUpperCase() + modalAction.type.slice(1)}
           cancelLabel="Cancel"
           onConfirm={confirmAction}
           onCancel={() => setShowConfirmModal(false)}
-          type={modalAction.type === 'delete' ? 'danger' : 'warning'}
+          type={modalAction.type === 'delete' ? 'danger' : modalAction.type === 'restrict' ? 'warning' : 'info'}
         />
       )}
     </div>

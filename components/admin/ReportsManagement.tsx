@@ -13,123 +13,140 @@ import { ConfirmModal } from './ConfirmModal';
 
 interface Report {
   id: string;
-  reporterId: string;
-  reporterName: string;
-  reportedUserId: string;
-  reportedUserName: string;
-  reportedUserAvatar: string;
-  reason: string;
-  description: string;
-  date: string;
-  status: 'pending' | 'resolved' | 'ignored';
+  reporter_id: string | null;
+  reported_user_id: string | null;
+  reason: string | null;
+  description: string | null;
+  status: string;
+  admin_notes: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+  updated_at: string;
+  reporter?: {
+    id: string;
+    username: string;
+    email: string | null;
+  };
+  reported_user?: {
+    id: string;
+    username: string;
+    email: string | null;
+    verification_status: string;
+    is_restricted: boolean;
+    report_count: number;
+  };
 }
 
 export function ReportsManagement() {
   const [reports, setReports] = useState<Report[]>([]);
-  const [filteredReports, setFilteredReports] = useState<Report[]>([]);
+  const [totalReports, setTotalReports] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'resolved' | 'ignored'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'reviewed' | 'resolved' | 'dismissed'>('all');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [modalAction, setModalAction] = useState<{ type: string; report: Report | null }>({ type: '', report: null });
+  const [adminNotes, setAdminNotes] = useState('');
 
   useEffect(() => {
-    // Mock data - replace with API call
-    setTimeout(() => {
-      const mockReports: Report[] = [
-        {
-          id: '1',
-          reporterId: '201',
-          reporterName: 'CharmingSoul456',
-          reportedUserId: '101',
-          reportedUserName: 'BraveExplorer789',
-          reportedUserAvatar: '🧑',
-          reason: 'Inappropriate Content',
-          description: 'Sending inappropriate messages in chat.',
-          date: '2025-01-15T14:30:00',
-          status: 'pending',
+    fetchReports();
+  }, [statusFilter]);
+
+  const fetchReports = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token found');
+        return;
+      }
+
+      const params = new URLSearchParams({
+        status: statusFilter,
+        limit: '50',
+      });
+
+      const response = await fetch(`/api/admin/reports?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
         },
-        {
-          id: '2',
-          reporterId: '202',
-          reporterName: 'GentleDreamer234',
-          reportedUserId: '102',
-          reportedUserName: 'SmartVibes567',
-          reportedUserAvatar: '👨',
-          reason: 'Harassment',
-          description: 'Repeatedly messaging after being asked to stop.',
-          date: '2025-01-14T10:15:00',
-          status: 'pending',
-        },
-        {
-          id: '3',
-          reporterId: '203',
-          reporterName: 'BoldAdventurer123',
-          reportedUserId: '103',
-          reportedUserName: 'QuietSoul890',
-          reportedUserAvatar: '🌸',
-          reason: 'Fake Profile',
-          description: 'Profile seems to be using fake information.',
-          date: '2025-01-13T16:45:00',
-          status: 'resolved',
-        },
-        {
-          id: '4',
-          reporterId: '204',
-          reporterName: 'CleverMind321',
-          reportedUserId: '104',
-          reportedUserName: 'CoolBreeze654',
-          reportedUserAvatar: '✨',
-          reason: 'Spam',
-          description: 'Sending spam messages to multiple users.',
-          date: '2025-01-12T09:20:00',
-          status: 'pending',
-        },
-      ];
+      });
       
-      setReports(mockReports);
-      setFilteredReports(mockReports);
+      console.log('Reports API response status:', response.status);
+      const data = await response.json();
+      console.log('Reports API response data:', data);
+      
+      if (response.ok) {
+        setReports(data.reports || []);
+        setTotalReports(data.pagination?.total || 0);
+      } else {
+        console.error('API error:', data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+    } finally {
       setLoading(false);
-    }, 500);
-  }, []);
-
-  // Filter by status
-  useEffect(() => {
-    if (statusFilter === 'all') {
-      setFilteredReports(reports);
-    } else {
-      setFilteredReports(reports.filter(r => r.status === statusFilter));
     }
-  }, [statusFilter, reports]);
+  };
+
+
 
   const handleAction = (type: string, report: Report) => {
     setModalAction({ type, report });
+    setAdminNotes('');
     setShowConfirmModal(true);
   };
 
-  const confirmAction = () => {
+  const confirmAction = async () => {
     if (!modalAction.report) return;
 
-    switch (modalAction.type) {
-      case 'resolve':
-        setReports(reports.map(r => 
-          r.id === modalAction.report!.id ? { ...r, status: 'resolved' as const } : r
-        ));
-        break;
-      case 'ignore':
-        setReports(reports.map(r => 
-          r.id === modalAction.report!.id ? { ...r, status: 'ignored' as const } : r
-        ));
-        break;
-      case 'restrict':
-        setReports(reports.map(r => 
-          r.id === modalAction.report!.id ? { ...r, status: 'resolved' as const } : r
-        ));
-        // In real app: Also restrict the reported user
-        break;
+    try {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      if (!token || !userId) return;
+
+      let status: string;
+      let restrictUser = false;
+
+      switch (modalAction.type) {
+        case 'resolve':
+          status = 'resolved';
+          break;
+        case 'dismiss':
+          status = 'dismissed';
+          break;
+        case 'restrict':
+          status = 'resolved';
+          restrictUser = true;
+          break;
+        default:
+          return;
+      }
+
+      const response = await fetch('/api/admin/reports', {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          adminId: userId,
+          reportId: modalAction.report.id,
+          status,
+          adminNotes: adminNotes || undefined,
+          restrictUser,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh reports
+        fetchReports();
+      }
+    } catch (error) {
+      console.error('Error updating report:', error);
     }
 
     setShowConfirmModal(false);
     setModalAction({ type: '', report: null });
+    setAdminNotes('');
   };
 
   const getStatusColor = (status: string) => {
@@ -199,7 +216,7 @@ export function ReportsManagement() {
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
-              All ({reports.length})
+              All ({totalReports})
             </button>
             <button
               onClick={() => setStatusFilter('pending')}
@@ -209,7 +226,7 @@ export function ReportsManagement() {
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
-              Pending ({reports.filter(r => r.status === 'pending').length})
+              Pending ({statusFilter === 'pending' ? reports.length : '?'})
             </button>
             <button
               onClick={() => setStatusFilter('resolved')}
@@ -219,24 +236,24 @@ export function ReportsManagement() {
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
-              Resolved ({reports.filter(r => r.status === 'resolved').length})
+              Resolved ({statusFilter === 'resolved' ? reports.length : '?'})
             </button>
             <button
-              onClick={() => setStatusFilter('ignored')}
+              onClick={() => setStatusFilter('dismissed')}
               className={`px-4 py-2 rounded-xl font-semibold transition-colors ${
-                statusFilter === 'ignored'
+                statusFilter === 'dismissed'
                   ? 'bg-gray-600 text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
-              Ignored ({reports.filter(r => r.status === 'ignored').length})
+              Dismissed ({statusFilter === 'dismissed' ? reports.length : '?'})
             </button>
           </div>
         </div>
       </div>
 
       {/* Reports List */}
-      {filteredReports.length === 0 ? (
+      {reports.length === 0 ? (
         <div className="flex items-center justify-center min-h-[40vh]">
           <div className="text-center">
             <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -254,7 +271,7 @@ export function ReportsManagement() {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredReports.map((report) => (
+          {reports.map((report) => (
             <div
               key={report.id}
               className="glassmorphic-card p-6 hover:shadow-lg transition-shadow"
@@ -262,19 +279,21 @@ export function ReportsManagement() {
               {/* Report Header */}
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
                 <div className="flex items-start gap-3">
-                  <div className="text-4xl">{report.reportedUserAvatar}</div>
+                  <div className="w-12 h-12 bg-linear-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                    {report.reported_user?.username?.charAt(0).toUpperCase() || '?'}
+                  </div>
                   <div>
                     <h3 className="font-semibold text-gray-800 dark:text-white">
-                      {report.reportedUserName}
+                      {report.reported_user?.username || 'Unknown User'}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Reported by: {report.reporterName}
+                      Reported by: {report.reporter?.username || 'Unknown'}
                     </p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getReasonColor(report.reason)}`}>
-                    {report.reason}
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getReasonColor(report.reason || '')}`}>
+                    {report.reason || 'No reason'}
                   </span>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(report.status)}`}>
                     {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
@@ -292,8 +311,8 @@ export function ReportsManagement() {
               {/* Report Meta */}
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-4">
                 <Calendar size={16} />
-                {new Date(report.date).toLocaleDateString()} at{' '}
-                {new Date(report.date).toLocaleTimeString([], {
+                {new Date(report.created_at).toLocaleDateString()} at{' '}
+                {new Date(report.created_at).toLocaleTimeString([], {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}
@@ -317,11 +336,11 @@ export function ReportsManagement() {
                     Restrict User
                   </button>
                   <button
-                    onClick={() => handleAction('ignore', report)}
+                    onClick={() => handleAction('dismiss', report)}
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors font-semibold"
                   >
                     <XCircle size={18} />
-                    Ignore
+                    Dismiss
                   </button>
                 </div>
               )}
@@ -334,7 +353,7 @@ export function ReportsManagement() {
       {showConfirmModal && modalAction.report && (
         <ConfirmModal
           title={`Confirm ${modalAction.type.charAt(0).toUpperCase() + modalAction.type.slice(1)}`}
-          message={`Are you sure you want to ${modalAction.type} this report against ${modalAction.report.reportedUserName}?`}
+          message={`Are you sure you want to ${modalAction.type} this report against ${modalAction.report.reported_user?.username || 'this user'}?`}
           confirmLabel={modalAction.type.charAt(0).toUpperCase() + modalAction.type.slice(1)}
           cancelLabel="Cancel"
           onConfirm={confirmAction}

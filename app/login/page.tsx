@@ -68,11 +68,18 @@ export default function LoginPage() {
           localStorage.setItem('verificationStatus', data.user.verificationStatus);
         }
 
+        // Store admin flag
+        if (data.user.isAdmin) {
+          localStorage.setItem('isAdmin', 'true');
+        }
+
         setToast({ message: 'Login successful! Redirecting...', type: 'success' });
         
-        // Redirect based on account status
+        // Redirect based on account status and role
         setTimeout(() => {
-          if (data.user.isRestricted) {
+          if (data.user.isAdmin) {
+            router.push('/admin');
+          } else if (data.user.isRestricted) {
             router.push('/restricted');
           } else if (data.user.verificationStatus === 'pending') {
             router.push('/pending-verification');

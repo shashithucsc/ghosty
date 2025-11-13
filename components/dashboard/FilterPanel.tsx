@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Sliders } from 'lucide-react';
+import { X, Sliders, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { FilterOptions } from '@/app/dashboard/page';
 
 interface FilterPanelProps {
@@ -11,6 +12,7 @@ interface FilterPanelProps {
 }
 
 export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelProps) {
+  const router = useRouter();
   const [ageRange, setAgeRange] = useState<[number, number]>(currentFilters.ageRange);
   const [selectedUniversities, setSelectedUniversities] = useState<string[]>(currentFilters.universities);
   const [selectedInterests, setSelectedInterests] = useState<string[]>(currentFilters.interests);
@@ -59,12 +61,27 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
       universities: selectedUniversities,
       interests: selectedInterests,
     });
+    onClose(); // Close the panel after applying
   };
 
   const handleReset = () => {
     setAgeRange([18, 30]);
     setSelectedUniversities([]);
     setSelectedInterests([]);
+  };
+
+  const handleLogout = () => {
+    // Clear all localStorage items
+    localStorage.removeItem('userId');
+    localStorage.removeItem('username');
+    localStorage.removeItem('token');
+    localStorage.removeItem('fullName');
+    localStorage.removeItem('verificationStatus');
+    localStorage.removeItem('anonymousName');
+    localStorage.removeItem('avatar');
+    
+    // Redirect to login
+    router.push('/login');
   };
 
   return (
@@ -93,10 +110,10 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-8 pb-32">
-            {/* Age Range */}
+          <div className="p-6 space-y-8 pb-48">
+            {/* Age Filter */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Age Range</h3>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Age Filter</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Minimum: {ageRange[0]}</span>
@@ -128,58 +145,17 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
               </div>
             </div>
 
-            {/* Universities */}
+            {/* Logout Button */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-                Universities
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {universities.map((uni) => (
-                  <button
-                    key={uni}
-                    onClick={() => toggleUniversity(uni)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                      selectedUniversities.includes(uni)
-                        ? 'bg-linear-to-r from-purple-600 to-pink-600 text-white shadow-md scale-105'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    {uni}
-                  </button>
-                ))}
-              </div>
-              {selectedUniversities.length > 0 && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  {selectedUniversities.length} selected
-                </p>
-              )}
-            </div>
-
-            {/* Interests */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">
-                Interests
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {interests.map((interest) => (
-                  <button
-                    key={interest}
-                    onClick={() => toggleInterest(interest)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                      selectedInterests.includes(interest)
-                        ? 'bg-linear-to-r from-purple-600 to-pink-600 text-white shadow-md scale-105'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    {interest}
-                  </button>
-                ))}
-              </div>
-              {selectedInterests.length > 0 && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  {selectedInterests.length} selected
-                </p>
-              )}
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border-2 border-red-200 dark:border-red-800 rounded-xl transition-all group"
+              >
+                <LogOut className="w-5 h-5 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform" />
+                <span className="text-base font-semibold text-red-600 dark:text-red-400">
+                  Logout
+                </span>
+              </button>
             </div>
           </div>
 
@@ -189,13 +165,13 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
               onClick={handleApply}
               className="w-full btn-primary py-4 text-lg font-semibold"
             >
-              Apply Filters
+              Apply Age Filter
             </button>
             <button
               onClick={handleReset}
               className="w-full btn-secondary py-3 text-base font-semibold"
             >
-              Reset All
+              Reset Filter
             </button>
           </div>
         </div>

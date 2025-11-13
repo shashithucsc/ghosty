@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { verifyAdminFromRequest } from '@/lib/adminMiddleware';
 
 // Initialize Supabase client with service role
 const supabase = createClient(
@@ -62,36 +63,41 @@ async function logAdminAction(
 // GET /api/admin/users - List users with filters
 // =============================================
 export async function GET(request: NextRequest) {
+  // Verify admin authentication
+  const admin = await verifyAdminFromRequest(request);
+  if (!admin) {
+    return NextResponse.json(
+      { error: 'Unauthorized: Admin access required' },
+      { status: 403 }
+    );
+  }
+
   try {
     // Parse and validate query parameters
     const { searchParams } = new URL(request.url);
-    const adminId = searchParams.get('adminId');
-
-    if (!adminId) {
-      return NextResponse.json({ error: 'Admin ID required' }, { status: 400 });
-    }
-
-    // Verify admin status
-    const isAdmin = await verifyAdmin(adminId);
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
-      );
-    }
 
     const queryData = {
       verificationStatus: searchParams.get('verificationStatus') || 'all',
-      isRestricted: searchParams.get('isRestricted'),
-      minReports: searchParams.get('minReports'),
-      search: searchParams.get('search'),
+      isRestricted: searchParams.get('isRestricted') || undefined,
+      minReports: searchParams.get('minReports') || undefined,
+      search: searchParams.get('search') || undefined,
       page: searchParams.get('page') || '1',
       limit: searchParams.get('limit') || '50',
       sortBy: searchParams.get('sortBy') || 'created_at',
       sortOrder: searchParams.get('sortOrder') || 'desc',
     };
 
-    const validatedQuery = GetUsersQuerySchema.parse(queryData);
+    let validatedQuery;
+    try {
+      validatedQuery = GetUsersQuerySchema.parse(queryData);
+    } catch (validationError) {
+      console.error('Validation error:', validationError);
+      if (validationError instanceof z.ZodError) {
+        console.error('Validation details:', JSON.stringify(validationError.issues, null, 2));
+      }
+      throw validationError;
+    }
+    
     const {
       verificationStatus,
       isRestricted,
@@ -117,16 +123,10 @@ export async function GET(request: NextRequest) {
         registration_type,
         verification_status,
         report_count,
-        total_reports,
         is_restricted,
-        admin_role,
+        is_admin,
         created_at,
-        updated_at,
-        profiles(
-          verified,
-          avatar_url,
-          bio
-        )
+        updated_at
       `,
       { count: 'exact' }
     );
@@ -165,13 +165,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 });
     }
 
-    // Get dashboard stats
-    const { data: stats } = await supabase.rpc('get_admin_dashboard_stats');
-
     return NextResponse.json({
       success: true,
       users,
-      stats: stats?.[0] || null,
       pagination: {
         page,
         limit,
@@ -196,24 +192,24 @@ export async function GET(request: NextRequest) {
 // PATCH /api/admin/users - Update user status
 // =============================================
 export async function PATCH(request: NextRequest) {
+  // Verify admin authentication
+  const admin = await verifyAdminFromRequest(request);
+  if (!admin) {
+    return NextResponse.json(
+      { error: 'Unauthorized: Admin access required' },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await request.json();
     const validatedData = UpdateUserSchema.parse(body);
     const { adminId, userId, action, notes } = validatedData;
 
-    // Verify admin status
-    const isAdmin = await verifyAdmin(adminId);
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
-      );
-    }
-
     // Get user details
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, username, verification_status, is_restricted, admin_role')
+      .select('id, username, verification_status, is_restricted, is_admin')
       .eq('id', userId)
       .single();
 
@@ -222,7 +218,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Prevent admin from modifying another admin
-    if (user.admin_role && action === 'delete') {
+    if (user.is_admin && action === 'delete') {
       return NextResponse.json(
         { error: 'Cannot delete another admin account' },
         { status: 403 }
@@ -260,16 +256,16 @@ export async function PATCH(request: NextRequest) {
       case 'restrict':
         // Restrict user account
         actionType = 'restrict_user';
-        const { data: restrictData, error: restrictError } = await supabase.rpc(
-          'restrict_user_account',
-          {
-            user_uuid: userId,
-            admin_uuid: adminId,
-            reason: notes || null,
-          }
-        );
+        const { error: restrictError } = await supabase
+          .from('users')
+          .update({
+            is_restricted: true,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId);
 
         if (restrictError) {
+          console.error('Error restricting user:', restrictError);
           throw restrictError;
         }
 
@@ -279,15 +275,16 @@ export async function PATCH(request: NextRequest) {
       case 'unrestrict':
         // Unrestrict user account
         actionType = 'unrestrict_user';
-        const { data: unrestrictData, error: unrestrictError } = await supabase.rpc(
-          'unrestrict_user_account',
-          {
-            user_uuid: userId,
-            admin_uuid: adminId,
-          }
-        );
+        const { error: unrestrictError } = await supabase
+          .from('users')
+          .update({
+            is_restricted: false,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId);
 
         if (unrestrictError) {
+          console.error('Error unrestricting user:', unrestrictError);
           throw unrestrictError;
         }
 
@@ -320,7 +317,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Log admin action
-    await logAdminAction(adminId, actionType, userId, {
+    await logAdminAction(admin.userId, actionType, userId, {
       action,
       notes,
       timestamp: new Date().toISOString(),

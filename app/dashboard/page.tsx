@@ -51,12 +51,12 @@ export default function DashboardPage() {
   useEffect(() => {
     // Get user ID from localStorage (set during login)
     const userId = localStorage.getItem('userId');
-    const anonymousName = localStorage.getItem('anonymousName');
+    const username = localStorage.getItem('username');
     const avatar = localStorage.getItem('avatar');
     
     if (userId) {
       setCurrentUser({
-        anonymousName: anonymousName || 'MysteriousGhost',
+        anonymousName: username || 'User',
         avatar: avatar || '👤',
         userId,
       });

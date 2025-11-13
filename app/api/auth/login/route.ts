@@ -64,12 +64,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate JWT token
+    // Generate JWT token with admin flag
     const token = sign(
       { 
         userId: user.id, 
         username: user.username,
         verificationStatus: user.verification_status,
+        isAdmin: user.is_admin || false,
+        registrationType: user.registration_type,
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
@@ -93,6 +95,7 @@ export async function POST(request: NextRequest) {
       partnerPreferences: user.partner_preferences,
       reportCount: user.report_count,
       isRestricted: user.is_restricted,
+      isAdmin: user.is_admin || false,
       createdAt: user.created_at,
     };
 

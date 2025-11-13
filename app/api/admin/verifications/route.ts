@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { verifyAdminFromRequest } from '@/lib/adminMiddleware';
 
 // Initialize Supabase client with service role key for admin operations
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -9,9 +10,13 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
 
 // GET: List all verifications (admin only)
 export async function GET(request: NextRequest) {
+  // Verify admin authentication
+  const admin = await verifyAdminFromRequest(request);
+  if (!admin) {
+    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  }
+
   try {
-    // TODO: Add admin authentication check here
-    // For now, this is open - you should add JWT verification
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status'); // 'pending', 'approved', 'rejected', or null for all
@@ -58,9 +63,13 @@ export async function GET(request: NextRequest) {
 
 // POST: Approve or reject a verification
 export async function POST(request: NextRequest) {
+  // Verify admin authentication
+  const admin = await verifyAdminFromRequest(request);
+  if (!admin) {
+    return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+  }
+
   try {
-    // TODO: Add admin authentication check here
-    // Verify that the user making this request has admin role
 
     const body = await request.json();
     const { action, verificationId, userId, reason } = body;

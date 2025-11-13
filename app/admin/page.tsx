@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardStats } from '@/components/admin/DashboardStats';
 import { UsersManagement } from '@/components/admin/UsersManagement';
 import { VerificationRequests } from '@/components/admin/VerificationRequests';
@@ -10,14 +11,30 @@ import {
   LayoutDashboard, 
   Users, 
   ShieldCheck, 
-  AlertTriangle 
+  AlertTriangle,
+  Shield
 } from 'lucide-react';
 
 type AdminTab = 'dashboard' | 'users' | 'verifications' | 'reports';
 
 export default function AdminPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [darkMode, setDarkMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Check admin authentication
+  useEffect(() => {
+    const isAdmin = localStorage.getItem('isAdmin');
+    const token = localStorage.getItem('token');
+
+    if (!isAdmin || isAdmin !== 'true' || !token) {
+      router.push('/login');
+      return;
+    }
+
+    setLoading(false);
+  }, [router]);
 
   // Load theme preference
   useEffect(() => {
@@ -27,6 +44,17 @@ export default function AdminPage() {
       document.documentElement.classList.add('dark');
     }
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="w-16 h-16 text-purple-600 animate-pulse mx-auto mb-4" />
+          <p className="text-gray-600">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
 
   const toggleTheme = () => {
     const newMode = !darkMode;

@@ -1,8 +1,9 @@
 'use client';
 
-import { Check, X, Lock, MoreVertical } from 'lucide-react';
+import { Check, X, Lock, MoreVertical, User } from 'lucide-react';
 import { ChatRequest } from '@/app/inbox/page';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface InboxListProps {
   requests: ChatRequest[];
@@ -13,6 +14,7 @@ interface InboxListProps {
 }
 
 export function InboxList({ requests, onAccept, onReject, onBlock, onOpenChat }: InboxListProps) {
+  const router = useRouter();
   const [showMenuId, setShowMenuId] = useState<string | null>(null);
 
   const getTimeAgo = (date: Date) => {
@@ -33,8 +35,17 @@ export function InboxList({ requests, onAccept, onReject, onBlock, onOpenChat }:
           className="glassmorphic-card p-4 sm:p-5 animate-slide-up hover:shadow-lg transition-shadow"
         >
           <div className="flex items-start gap-3 sm:gap-4">
-            {/* Avatar */}
-            <div className="text-4xl sm:text-5xl shrink-0">{request.from.avatar}</div>
+            {/* Avatar - Click to view profile */}
+            <div 
+              className="text-4xl sm:text-5xl shrink-0 cursor-pointer hover:scale-110 transition-transform relative group/avatar"
+              onClick={() => router.push(`/profile/${request.from.id}`)}
+              title="View Profile"
+            >
+              {request.from.avatar}
+              <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-1 opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                <User className="w-3 h-3" />
+              </div>
+            </div>
 
             {/* Content */}
             <div className="flex-1 min-w-0">

@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { verifyAdminFromRequest } from '@/lib/adminMiddleware';
 
 // Initialize Supabase client with service role
 const supabase = createClient(
@@ -70,27 +71,22 @@ async function logAdminAction(
 // GET /api/admin/reports - List all reports
 // =============================================
 export async function GET(request: NextRequest) {
+  // Verify admin authentication
+  const admin = await verifyAdminFromRequest(request);
+  if (!admin) {
+    return NextResponse.json(
+      { error: 'Unauthorized: Admin access required' },
+      { status: 403 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
-    const adminId = searchParams.get('adminId');
-
-    if (!adminId) {
-      return NextResponse.json({ error: 'Admin ID required' }, { status: 400 });
-    }
-
-    // Verify admin status
-    const isAdmin = await verifyAdmin(adminId);
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
-      );
-    }
 
     const queryData = {
       status: searchParams.get('status') || 'all',
       reason: searchParams.get('reason') || 'all',
-      reportedUserId: searchParams.get('reportedUserId'),
+      reportedUserId: searchParams.get('reportedUserId') || undefined,
       page: searchParams.get('page') || '1',
       limit: searchParams.get('limit') || '50',
     };
@@ -98,41 +94,10 @@ export async function GET(request: NextRequest) {
     const validatedQuery = GetReportsQuerySchema.parse(queryData);
     const { status, reason, reportedUserId, page, limit } = validatedQuery;
 
-    // Build query
+    // Build query - fetch reports first, then enrich with user data
     let query = supabase.from('reports').select(
       `
-        id,
-        reporter_id,
-        reported_user_id,
-        reason,
-        description,
-        status,
-        admin_notes,
-        reviewed_by,
-        reviewed_at,
-        created_at,
-        updated_at,
-        reporter:users!reports_reporter_id_fkey(
-          id,
-          username,
-          full_name,
-          email,
-          profiles(avatar_url)
-        ),
-        reported_user:users!reports_reported_user_id_fkey(
-          id,
-          username,
-          full_name,
-          email,
-          report_count,
-          total_reports,
-          is_restricted,
-          profiles(avatar_url, verified)
-        ),
-        reviewer:users!reports_reviewed_by_fkey(
-          id,
-          username
-        )
+        *
       `,
       { count: 'exact' }
     );
@@ -162,6 +127,49 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('Error fetching reports:', error);
       return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });
+    }
+
+    // Enrich reports with user data
+    if (reports && reports.length > 0) {
+      const userIds = new Set<string>();
+      reports.forEach(r => {
+        if (r.reporter_id) userIds.add(r.reporter_id);
+        if (r.reported_user_id) userIds.add(r.reported_user_id);
+      });
+
+      const { data: users } = await supabase
+        .from('users')
+        .select('id, username, email, report_count, is_restricted, verification_status')
+        .in('id', Array.from(userIds));
+
+      const usersMap = new Map(users?.map(u => [u.id, u]) || []);
+
+      // Add user data to reports
+      reports.forEach(report => {
+        if (report.reporter_id) {
+          const reporter = usersMap.get(report.reporter_id);
+          if (reporter) {
+            (report as any).reporter = {
+              id: reporter.id,
+              username: reporter.username,
+              email: reporter.email,
+            };
+          }
+        }
+        if (report.reported_user_id) {
+          const reportedUser = usersMap.get(report.reported_user_id);
+          if (reportedUser) {
+            (report as any).reported_user = {
+              id: reportedUser.id,
+              username: reportedUser.username,
+              email: reportedUser.email,
+              report_count: reportedUser.report_count,
+              is_restricted: reportedUser.is_restricted,
+              verification_status: reportedUser.verification_status,
+            };
+          }
+        }
+      });
     }
 
     // Get report stats
@@ -212,19 +220,19 @@ export async function GET(request: NextRequest) {
 // PATCH /api/admin/reports - Update report status
 // =============================================
 export async function PATCH(request: NextRequest) {
+  // Verify admin authentication
+  const admin = await verifyAdminFromRequest(request);
+  if (!admin) {
+    return NextResponse.json(
+      { error: 'Unauthorized: Admin access required' },
+      { status: 403 }
+    );
+  }
+
   try {
     const body = await request.json();
     const validatedData = UpdateReportSchema.parse(body);
     const { adminId, reportId, status, adminNotes, restrictUser } = validatedData;
-
-    // Verify admin status
-    const isAdmin = await verifyAdmin(adminId);
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
-      );
-    }
 
     // Get report details
     const { data: report, error: fetchError } = await supabase
@@ -251,7 +259,6 @@ export async function PATCH(request: NextRequest) {
       .update({
         status,
         admin_notes: adminNotes || null,
-        reviewed_by: adminId,
         reviewed_at: new Date().toISOString(),
       })
       .eq('id', reportId);
@@ -265,7 +272,7 @@ export async function PATCH(request: NextRequest) {
     if (status === 'resolved' && restrictUser) {
       const { error: restrictError } = await supabase.rpc('restrict_user_account', {
         user_uuid: report.reported_user_id,
-        admin_uuid: adminId,
+        admin_uuid: admin.userId,
         reason: `User restricted due to report: ${adminNotes || 'No notes provided'}`,
       });
 
@@ -276,7 +283,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Log admin action
-    await logAdminAction(adminId, 'review_report', report.reported_user_id, reportId, {
+    await logAdminAction(admin.userId, 'review_report', report.reported_user_id, reportId, {
       status,
       adminNotes,
       restrictUser,
@@ -307,31 +314,29 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/admin/reports - Delete report
 // =============================================
 export async function DELETE(request: NextRequest) {
+  // Verify admin authentication
+  const admin = await verifyAdminFromRequest(request);
+  if (!admin) {
+    return NextResponse.json(
+      { error: 'Unauthorized: Admin access required' },
+      { status: 403 }
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
-    const adminId = searchParams.get('adminId');
     const reportId = searchParams.get('reportId');
 
-    if (!adminId || !reportId) {
+    if (!reportId) {
       return NextResponse.json(
-        { error: 'Missing adminId or reportId' },
+        { error: 'Missing reportId' },
         { status: 400 }
       );
     }
 
-    // Validate UUIDs
+    // Validate UUID
     const uuidSchema = z.string().uuid();
-    uuidSchema.parse(adminId);
     uuidSchema.parse(reportId);
-
-    // Verify admin status
-    const isAdmin = await verifyAdmin(adminId);
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Admin access required' },
-        { status: 403 }
-      );
-    }
 
     // Get report details for logging
     const { data: report } = await supabase
@@ -353,7 +358,7 @@ export async function DELETE(request: NextRequest) {
 
     // Log admin action
     if (report) {
-      await logAdminAction(adminId, 'dismiss_report', report.reported_user_id, reportId, {
+      await logAdminAction(admin.userId, 'dismiss_report', report.reported_user_id, reportId, {
         action: 'delete',
         timestamp: new Date().toISOString(),
       });

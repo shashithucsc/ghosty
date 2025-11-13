@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -49,6 +50,7 @@ interface Verification {
 }
 
 export default function AdminVerificationsPage() {
+  const router = useRouter();
   const [verifications, setVerifications] = useState<Verification[]>([]);
   const [filteredVerifications, setFilteredVerifications] = useState<Verification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,8 +62,30 @@ export default function AdminVerificationsPage() {
   const [showFileModal, setShowFileModal] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [darkMode, setDarkMode] = useState(false);
 
   const itemsPerPage = 10;
+
+  // Load theme preference
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('adminTheme');
+    if (savedTheme === 'dark') {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    if (newMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('adminTheme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('adminTheme', 'light');
+    }
+  };
 
   // Fetch verifications from Supabase
   useEffect(() => {
@@ -260,7 +284,7 @@ export default function AdminVerificationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <AdminHeader />
+      <AdminHeader darkMode={darkMode} onToggleTheme={toggleTheme} />
 
       {/* Toast Notification */}
       {toast && (
@@ -434,7 +458,7 @@ export default function AdminVerificationsPage() {
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            <div className="w-10 h-10 bg-linear-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold">
                               {verification.user?.username?.charAt(0).toUpperCase() || 'U'}
                             </div>
                             <div className="ml-4">
@@ -522,7 +546,7 @@ export default function AdminVerificationsPage() {
                   <div key={verification.id} className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold">
+                        <div className="w-12 h-12 bg-linear-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold">
                           {verification.user?.username?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         <div>
@@ -654,7 +678,7 @@ export default function AdminVerificationsPage() {
 
               <div className="space-y-4">
                 <div className="flex items-center gap-4 pb-4 border-b dark:border-gray-700">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  <div className="w-16 h-16 bg-linear-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
                     {selectedVerification.user?.username?.charAt(0).toUpperCase() || 'U'}
                   </div>
                   <div>

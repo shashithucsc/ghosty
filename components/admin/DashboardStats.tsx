@@ -6,43 +6,47 @@ import {
   UserCheck, 
   UserX, 
   AlertTriangle,
-  TrendingUp,
-  TrendingDown,
-  ShieldCheck
+  ShieldCheck,
+  ShieldOff,
+  MessageCircle
 } from 'lucide-react';
 import { StatsCard } from './StatsCard';
-import { MiniChart } from './MiniChart';
 
 export function DashboardStats() {
   const [stats, setStats] = useState({
     totalUsers: 0,
     verifiedUsers: 0,
-    nonVerifiedUsers: 0,
+    pendingVerifications: 0,
+    restrictedUsers: 0,
     totalReports: 0,
-    newUsersThisWeek: 0,
-    verificationsThisWeek: 0,
+    activeChats: 0,
   });
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Mock data - replace with API call
-    setTimeout(() => {
-      setStats({
-        totalUsers: 1247,
-        verifiedUsers: 532,
-        nonVerifiedUsers: 715,
-        totalReports: 23,
-        newUsersThisWeek: 89,
-        verificationsThisWeek: 34,
-      });
-      setLoading(false);
-    }, 500);
+    fetchStats();
   }, []);
 
-  // Mock chart data
-  const registrationData = [45, 52, 61, 73, 68, 89, 95];
-  const verificationData = [12, 18, 15, 22, 28, 34, 31];
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/stats', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data.stats);
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -62,28 +66,31 @@ export function DashboardStats() {
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
           Overview
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatsCard
             title="Total Users"
             value={stats.totalUsers.toLocaleString()}
             icon={Users}
             color="purple"
-            trend={stats.newUsersThisWeek}
-            trendLabel="new this week"
           />
           <StatsCard
             title="Verified Users"
             value={stats.verifiedUsers.toLocaleString()}
             icon={UserCheck}
             color="green"
-            percentage={Math.round((stats.verifiedUsers / stats.totalUsers) * 100)}
+            percentage={stats.totalUsers > 0 ? Math.round((stats.verifiedUsers / stats.totalUsers) * 100) : 0}
           />
           <StatsCard
-            title="Non-Verified"
-            value={stats.nonVerifiedUsers.toLocaleString()}
+            title="Pending Verifications"
+            value={stats.pendingVerifications.toLocaleString()}
             icon={UserX}
             color="orange"
-            percentage={Math.round((stats.nonVerifiedUsers / stats.totalUsers) * 100)}
+          />
+          <StatsCard
+            title="Restricted Users"
+            value={stats.restrictedUsers.toLocaleString()}
+            icon={ShieldOff}
+            color="red"
           />
           <StatsCard
             title="Total Reports"
@@ -92,60 +99,12 @@ export function DashboardStats() {
             color="red"
             urgent={stats.totalReports > 20}
           />
-        </div>
-      </div>
-
-      {/* Trends */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
-          Trends
-        </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* New Registrations Chart */}
-          <div className="glassmorphic-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                  New Registrations
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Last 7 days</p>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full">
-                <TrendingUp size={16} />
-                <span className="text-sm font-semibold">+12%</span>
-              </div>
-            </div>
-            <MiniChart data={registrationData} color="purple" />
-            <div className="mt-4 text-center">
-              <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                {stats.newUsersThisWeek}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">users this week</p>
-            </div>
-          </div>
-
-          {/* Verification Approvals Chart */}
-          <div className="glassmorphic-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                  Verification Approvals
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Last 7 days</p>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
-                <TrendingUp size={16} />
-                <span className="text-sm font-semibold">+8%</span>
-              </div>
-            </div>
-            <MiniChart data={verificationData} color="blue" />
-            <div className="mt-4 text-center">
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {stats.verificationsThisWeek}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">approved this week</p>
-            </div>
-          </div>
+          <StatsCard
+            title="Active Chats"
+            value={stats.activeChats.toLocaleString()}
+            icon={MessageCircle}
+            color="purple"
+          />
         </div>
       </div>
 

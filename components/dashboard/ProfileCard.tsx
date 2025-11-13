@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Send, X, Eye, MapPin, CheckCircle, XCircle, GraduationCap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { UserProfile } from '@/app/dashboard/page';
 
@@ -14,6 +15,7 @@ interface ProfileCardProps {
 }
 
 export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isActive, hasPrevious = false }: ProfileCardProps) {
+  const router = useRouter();
   const [showFullBio, setShowFullBio] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -172,7 +174,7 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
 
           {/* View Profile Button */}
           <button
-            onClick={() => alert('Profile view coming soon!')}
+            onClick={() => router.push(`/profile/${profile.id}`)}
             className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white dark:bg-gray-800 border-2 border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center group"
             title="View Full Profile"
           >

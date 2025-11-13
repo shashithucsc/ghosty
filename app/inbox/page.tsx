@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { InboxList } from '@/components/chat/InboxList';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { Toast } from '@/components/ui/Toast';
-import { MessageSquare, Inbox } from 'lucide-react';
+import { MessageSquare, Inbox, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export interface ChatRequest {
@@ -391,15 +391,29 @@ export default function InboxPage() {
                       {chats.map((chat) => (
                         <div
                           key={chat.id}
-                          onClick={() => handleOpenActiveChat(chat.conversationId, chat.otherUser.id)}
-                          className="glassmorphic-card p-4 sm:p-5 animate-slide-up hover:shadow-lg transition-all cursor-pointer group"
+                          className="glassmorphic-card p-4 sm:p-5 animate-slide-up hover:shadow-lg transition-all group"
                         >
                           <div className="flex items-start gap-3 sm:gap-4">
-                            {/* Avatar */}
-                            <div className="text-4xl sm:text-5xl shrink-0">{chat.otherUser.avatar}</div>
+                            {/* Avatar - Click to view profile */}
+                            <div 
+                              className="text-4xl sm:text-5xl shrink-0 cursor-pointer hover:scale-110 transition-transform relative group/avatar"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/profile/${chat.otherUser.id}`);
+                              }}
+                              title="View Profile"
+                            >
+                              {chat.otherUser.avatar}
+                              <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-1 opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                                <User className="w-3 h-3" />
+                              </div>
+                            </div>
 
-                            {/* Content */}
-                            <div className="flex-1 min-w-0">
+                            {/* Content - Click to open chat */}
+                            <div 
+                              className="flex-1 min-w-0 cursor-pointer"
+                              onClick={() => handleOpenActiveChat(chat.conversationId, chat.otherUser.id)}
+                            >
                               <div className="flex items-start justify-between mb-2">
                                 <div className="flex-1 min-w-0">
                                   <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white truncate group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">

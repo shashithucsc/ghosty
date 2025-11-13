@@ -286,7 +286,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       {/* Progress Indicator */}
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          {currentIndex + 1} of {profiles.length} profiles • Use arrow keys: ↑ Previous | ← ↓ Skip | → Send Request
+          {currentIndex + 1} of {profiles.length} profiles
         </p>
         <div className="mt-2 w-full max-w-md mx-auto h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
