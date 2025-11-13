@@ -8,13 +8,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 // Validation schema
 const SetupProfileSchema = z.object({
   qualifications: z.object({
-    height_cm: z.number().min(100).max(250),
-    university: z.string().min(1),
-    degree: z.string().min(1),
-    hometown: z.string().min(1),
+    height_cm: z.number().min(100).max(250).nullable(),
+    university: z.string().nullable(),
+    degree: z.string().nullable(),
+    hometown: z.string().nullable(),
     age: z.number().min(18).max(100),
-    skin_tone: z.enum(['Fair', 'Light Brown', 'Medium Brown', 'Dark']),
-    bio: z.string().min(20).max(500),
+    skin_tone: z.string().nullable(),
   }),
   partner_preferences: z.object({
     age_min: z.number().min(18).max(100),
@@ -123,17 +122,18 @@ export async function POST(request: NextRequest) {
       .single();
 
     // Upsert profile (insert or update)
-    const profileData = {
+    const profileData: any = {
       user_id: userId,
       anonymous_name: userData?.username || `User${userId.slice(0, 8)}`,
-      height_cm: qualifications.height_cm,
-      university: qualifications.university,
-      degree_type: qualifications.degree,
-      hometown: qualifications.hometown,
       age: qualifications.age,
-      skin_tone: qualifications.skin_tone,
-      bio: qualifications.bio,
     };
+    
+    // Add optional fields only if provided
+    if (qualifications.height_cm) profileData.height_cm = qualifications.height_cm;
+    if (qualifications.university) profileData.university = qualifications.university;
+    if (qualifications.degree) profileData.degree_type = qualifications.degree;
+    if (qualifications.hometown) profileData.hometown = qualifications.hometown;
+    if (qualifications.skin_tone) profileData.skin_tone = qualifications.skin_tone;
 
     const { data: profile, error: profileError } = await (supabaseAdmin as any)
       .from('profiles')

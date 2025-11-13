@@ -167,6 +167,58 @@ export default function ProfileView({
                   </div>
                 )}
 
+                {/* University */}
+                {(profile as any).university && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">University</p>
+                      <p className="text-base font-semibold text-gray-800">{(profile as any).university}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Degree */}
+                {(profile as any).degree_type && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Degree</p>
+                      <p className="text-base font-semibold text-gray-800">{(profile as any).degree_type}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Height */}
+                {(profile as any).height_cm && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                      <User className="w-5 h-5 text-teal-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Height</p>
+                      <p className="text-base font-semibold text-gray-800">{(profile as any).height_cm} cm</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Hometown */}
+                {(profile as any).hometown && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                      <MapPin className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Hometown</p>
+                      <p className="text-base font-semibold text-gray-800">{(profile as any).hometown}</p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Report Count */}
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -309,6 +361,19 @@ export default function ProfileView({
               </div>
             )}
 
+            {/* Degree */}
+            {(fullProfile as any).degree_type && (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                  <BookOpen className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Degree</p>
+                  <p className="text-sm font-medium text-gray-800">{(fullProfile as any).degree_type}</p>
+                </div>
+              </div>
+            )}
+
             {/* Faculty */}
             {fullProfile.faculty && (
               <div className="flex items-center gap-3">
@@ -318,6 +383,32 @@ export default function ProfileView({
                 <div className="flex-1">
                   <p className="text-xs text-gray-500">Faculty</p>
                   <p className="text-sm font-medium text-gray-800">{fullProfile.faculty}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Height */}
+            {(fullProfile as any).height_cm && (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-teal-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Height</p>
+                  <p className="text-sm font-medium text-gray-800">{(fullProfile as any).height_cm} cm</p>
+                </div>
+              </div>
+            )}
+
+            {/* Hometown */}
+            {(fullProfile as any).hometown && (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-orange-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Hometown</p>
+                  <p className="text-sm font-medium text-gray-800">{(fullProfile as any).hometown}</p>
                 </div>
               </div>
             )}

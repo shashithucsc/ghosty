@@ -43,10 +43,10 @@ export async function GET(
       );
     }
 
-    // Get profile data
+    // Get profile data with new fields
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('*')
+      .select('*, height_cm, degree_type, hometown, skin_tone')
       .eq('user_id', userId)
       .single();
 
@@ -87,6 +87,11 @@ export async function GET(
       registrationType: user.registration_type,
       avatar: profile?.anonymous_avatar_url || '👤',
       anonymousName: profile?.anonymous_name || user.username,
+      // Include optional details so limited profiles can display them
+      university: profile?.university || user.university_name || null,
+      degree_type: profile?.degree_type || null,
+      height_cm: profile?.height_cm || null,
+      hometown: profile?.hometown || null,
     };
 
     // If user is unverified (simple registration), return limited data
@@ -109,6 +114,12 @@ export async function GET(
       // Education info
       university: user.university_name || profile?.university,
       faculty: user.faculty || profile?.faculty,
+      degree_type: profile?.degree_type,
+      
+      // Physical info
+      height_cm: profile?.height_cm,
+      hometown: profile?.hometown,
+      skin_tone: profile?.skin_tone,
       
       // Preferences (parsed if JSON string)
       preferences: user.preferences ? 

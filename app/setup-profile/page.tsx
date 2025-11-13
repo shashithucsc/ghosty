@@ -98,7 +98,6 @@ export default function SetupProfilePage() {
     hometown: '',
     age: '',
     skin_tone: '',
-    bio: '',
   });
 
   // Partner preferences state
@@ -153,27 +152,14 @@ export default function SetupProfilePage() {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Validate qualifications
-    if (!qualifications.height_cm || Number(qualifications.height_cm) < 100 || Number(qualifications.height_cm) > 250) {
-      newErrors.height_cm = 'Height must be between 100-250 cm';
-    }
-    if (!qualifications.university) {
-      newErrors.university = 'University is required';
-    }
-    if (!qualifications.degree) {
-      newErrors.degree = 'Degree is required';
-    }
-    if (!qualifications.hometown) {
-      newErrors.hometown = 'Hometown is required';
-    }
+    // Validate qualifications - only age is required
     if (!qualifications.age || Number(qualifications.age) < 18 || Number(qualifications.age) > 100) {
       newErrors.age = 'Age must be between 18-100';
     }
-    if (!qualifications.skin_tone) {
-      newErrors.skin_tone = 'Skin tone is required';
-    }
-    if (!qualifications.bio || qualifications.bio.length < 20) {
-      newErrors.bio = 'Bio must be at least 20 characters';
+    
+    // Optional validations
+    if (qualifications.height_cm && (Number(qualifications.height_cm) < 100 || Number(qualifications.height_cm) > 250)) {
+      newErrors.height_cm = 'Height must be between 100-250 cm';
     }
 
     // Validate partner preferences
@@ -193,13 +179,7 @@ export default function SetupProfilePage() {
 
   const isFormComplete = (): boolean => {
     return !!(
-      qualifications.height_cm &&
-      qualifications.university &&
-      qualifications.degree &&
-      qualifications.hometown &&
       qualifications.age &&
-      qualifications.skin_tone &&
-      qualifications.bio &&
       partnerPreferences.education_levels.length > 0
     );
   };
@@ -219,13 +199,12 @@ export default function SetupProfilePage() {
 
       const payload = {
         qualifications: {
-          height_cm: Number(qualifications.height_cm),
-          university: qualifications.university,
-          degree: qualifications.degree,
-          hometown: qualifications.hometown,
+          height_cm: qualifications.height_cm ? Number(qualifications.height_cm) : null,
+          university: qualifications.university || null,
+          degree: qualifications.degree || null,
+          hometown: qualifications.hometown || null,
           age: Number(qualifications.age),
-          skin_tone: qualifications.skin_tone,
-          bio: qualifications.bio,
+          skin_tone: qualifications.skin_tone || null,
         },
         partner_preferences: {
           age_min: Number(partnerPreferences.age_min),
@@ -336,7 +315,7 @@ export default function SetupProfilePage() {
           {/* Height */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Height (cm) <span className="text-red-500">*</span>
+              Height (cm)
             </label>
             <div className="relative">
               <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -359,7 +338,7 @@ export default function SetupProfilePage() {
           {/* University */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              University <span className="text-red-500">*</span>
+              University
             </label>
             <div className="relative">
               <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -384,7 +363,7 @@ export default function SetupProfilePage() {
           {/* Degree */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Degree <span className="text-red-500">*</span>
+              Degree
             </label>
             <select
               value={qualifications.degree}
@@ -406,7 +385,7 @@ export default function SetupProfilePage() {
           {/* Hometown */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Hometown <span className="text-red-500">*</span>
+              Hometown
             </label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -431,7 +410,7 @@ export default function SetupProfilePage() {
           {/* Skin Tone */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Skin Tone <span className="text-red-500">*</span>
+              Skin Tone
             </label>
             <div className="relative">
               <Palette className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -453,28 +432,6 @@ export default function SetupProfilePage() {
             {errors.skin_tone && <p className="mt-1 text-sm text-red-500">{errors.skin_tone}</p>}
           </div>
 
-          {/* Bio */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Short Bio <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <FileText className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-              <textarea
-                value={qualifications.bio}
-                onChange={(e) => handleQualificationChange('bio', e.target.value)}
-                placeholder="Tell us a bit about yourself..."
-                rows={4}
-                className={`w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border ${
-                  errors.bio ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white resize-none`}
-              />
-            </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Minimum 20 characters ({qualifications.bio.length}/20)
-            </p>
-            {errors.bio && <p className="mt-1 text-sm text-red-500">{errors.bio}</p>}
-          </div>
         </motion.div>
 
         {/* Section B: Partner Preferences */}
