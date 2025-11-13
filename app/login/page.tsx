@@ -284,7 +284,7 @@ export default function LoginPage() {
             <div className="grid grid-cols-2 gap-3">
               <Link
                 href="/register/simple"
-                className="py-3 px-4 text-center bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-semibold rounded-xl hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all"
+                className="col-span-2 w-full py-4 px-4 text-center bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-semibold rounded-xl hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all"
               >
                 Quick Join
               </Link>
