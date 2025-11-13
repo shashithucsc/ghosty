@@ -60,7 +60,7 @@ export function DashboardHeader({
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400">
               Ghosty 👻
             </h1>
           </div>
@@ -124,7 +124,7 @@ export function DashboardHeader({
           </div>
 
           {/* User Info */}
-          <div className="hidden sm:flex items-center gap-2 glassmorphic-card px-4 py-2">
+          <div className="hidden sm:flex items-center gap-2 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 px-4 py-2">
             <span className="text-2xl">{user.avatar}</span>
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               {user.anonymousName}
@@ -177,7 +177,7 @@ export function DashboardHeader({
         </div>
 
         {/* Mobile User Info */}
-        <div className="sm:hidden mt-3 flex items-center justify-center gap-2 glassmorphic-card px-4 py-2">
+        <div className="sm:hidden mt-3 flex items-center justify-center gap-2 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 px-4 py-2">
           <span className="text-xl">{user.avatar}</span>
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
             {user.anonymousName}

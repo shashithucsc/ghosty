@@ -290,7 +290,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
         </p>
         <div className="mt-2 w-full max-w-md mx-auto h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-linear-to-r from-purple-600 to-pink-600 transition-all duration-300"
+            className="h-full bg-purple-600 transition-all duration-300 rounded-full"
             style={{ width: `${((currentIndex + 1) / profiles.length) * 100}%` }}
           ></div>
         </div>

@@ -72,7 +72,7 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
 
   return (
     <div
-      className="glassmorphic-card h-full overflow-hidden relative animate-scale-in"
+      className="bg-white dark:bg-gray-800 rounded-3xl h-full overflow-hidden relative animate-scale-in shadow-2xl border border-gray-100 dark:border-gray-700"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -153,7 +153,7 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
             {profile.interests.map((interest, index) => (
               <span
                 key={index}
-                className="px-3 py-1 bg-linear-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs sm:text-sm font-medium border border-purple-200 dark:border-purple-700"
+                className="px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs sm:text-sm font-medium border border-purple-200 dark:border-purple-700 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
               >
                 {interest}
               </span>
@@ -184,7 +184,7 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
           {/* Send Message Request Button */}
           <button
             onClick={onMessageRequest}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-linear-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center group"
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center group"
             title="Send Message Request"
           >
             <Send className="w-6 h-6 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform" />

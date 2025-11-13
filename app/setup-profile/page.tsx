@@ -50,6 +50,9 @@ const DEGREE_OPTIONS = [
   'Management Degree',
   'Arts Degree',
   'Technology Degree',
+  'Engineering Degree',
+  'IT Degree',
+  'Medicine Degree',
   'Other Degree',
 ];
 
@@ -589,7 +592,7 @@ export default function SetupProfilePage() {
           transition={{ delay: 0.2 }}
           type="submit"
           disabled={!isFormComplete() || isLoading}
-          className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-4 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>

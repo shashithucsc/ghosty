@@ -22,14 +22,14 @@ export function HeroSection() {
       <div className="relative z-10 max-w-5xl mx-auto text-center">
         {/* Ghost Icon */}
         <div className="mb-6 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 glassmorphic-card rounded-full">
+          <div className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 bg-purple-100 dark:bg-purple-900/30 shadow-xl rounded-full">
             <span className="text-6xl sm:text-7xl animate-bounce-gentle">👻</span>
           </div>
         </div>
 
         {/* Badge */}
         <div className="mb-6 animate-fade-in-delay">
-          <span className="inline-flex items-center gap-2 px-4 py-2 glassmorphic-card rounded-full text-sm sm:text-base font-medium text-purple-800 dark:text-purple-200">
+          <span className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 shadow-md rounded-full text-sm sm:text-base font-medium text-purple-800 dark:text-purple-200">
             <Sparkles className="w-4 h-4" />
             Anonymous Dating for Students
           </span>
@@ -38,7 +38,7 @@ export function HeroSection() {
         {/* Main Heading */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 animate-fade-in-delay-2">
           Meet, Chat & Connect{' '}
-          <span className="bg-clip-text text-transparent bg-linear-to-r from-purple-600 via-pink-600 to-blue-600 animate-gradient-shift">
+          <span className="text-purple-600 dark:text-purple-400">
             Anonymously
           </span>
         </h1>
@@ -52,13 +52,10 @@ export function HeroSection() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-delay-4">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="group relative w-full sm:w-auto px-8 py-4 bg-linear-to-r from-purple-600 via-pink-600 to-blue-600 text-white font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95"
+            className="w-full sm:w-auto px-8 py-4 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
           >
-            <span className="relative z-10 flex items-center justify-center gap-2">
-              <Heart className="w-5 h-5" />
-              Sign Up Free
-            </span>
-            <div className="absolute inset-0 rounded-full bg-linear-to-r from-purple-700 via-pink-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <Heart className="w-5 h-5" />
+            Sign Up Free
           </button>
 
           <button
@@ -66,7 +63,7 @@ export function HeroSection() {
               const featuresSection = document.getElementById('features');
               featuresSection?.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="w-full sm:w-auto px-8 py-4 glassmorphic-card text-gray-800 dark:text-white font-semibold rounded-full hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+            className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-gray-800 border-2 border-purple-600 dark:border-purple-400 text-gray-800 dark:text-white font-semibold rounded-full shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
           >
             Learn More
           </button>
@@ -74,7 +71,7 @@ export function HeroSection() {
 
         {/* Stats */}
         <div className="mt-16 grid grid-cols-3 gap-6 sm:gap-8 max-w-2xl mx-auto animate-fade-in-delay-5">
-          <div className="glassmorphic-card p-4 sm:p-6 rounded-2xl">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg p-4 sm:p-6 rounded-2xl">
             <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">
               10K+
             </div>
@@ -82,7 +79,7 @@ export function HeroSection() {
               Active Users
             </div>
           </div>
-          <div className="glassmorphic-card p-4 sm:p-6 rounded-2xl">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg p-4 sm:p-6 rounded-2xl">
             <div className="text-2xl sm:text-3xl font-bold text-pink-600 dark:text-pink-400 mb-1">
               5K+
             </div>
@@ -90,7 +87,7 @@ export function HeroSection() {
               Matches Made
             </div>
           </div>
-          <div className="glassmorphic-card p-4 sm:p-6 rounded-2xl">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg p-4 sm:p-6 rounded-2xl">
             <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
               98%
             </div>

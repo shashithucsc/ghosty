@@ -136,18 +136,21 @@ export default function ProfileView({
         <div className="max-w-2xl mx-auto px-4 py-6">
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             {/* Avatar Section */}
-            <div className="bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 p-8 text-center">
-              <div className="w-28 h-28 mx-auto bg-white rounded-full flex items-center justify-center text-5xl shadow-xl">
-                {profile.avatar}
-              </div>
-              <h2 className="text-2xl font-bold text-white mt-4">
-                {profile.username}
-              </h2>
-              
-              {/* Unverified Badge */}
-              <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full mt-3 shadow-md">
-                <ShieldAlert className="w-4 h-4 text-orange-500" />
-                <span className="text-sm font-medium text-orange-700">Unverified User</span>
+            <div className="bg-purple-600 p-8 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-700 opacity-90"></div>
+              <div className="relative z-10">
+                <div className="w-28 h-28 mx-auto bg-white rounded-full flex items-center justify-center text-5xl shadow-xl">
+                  {profile.avatar}
+                </div>
+                <h2 className="text-2xl font-bold text-white mt-4">
+                  {profile.username}
+                </h2>
+                
+                {/* Unverified Badge */}
+                <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full mt-3 shadow-md">
+                  <ShieldAlert className="w-4 h-4 text-orange-500" />
+                  <span className="text-sm font-medium text-orange-700">Unverified User</span>
+                </div>
               </div>
             </div>
 
@@ -257,7 +260,7 @@ export default function ProfileView({
                 <button
                   onClick={handleSendMessageRequest}
                   disabled={sendingRequest}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white py-4 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <MessageCircle className="w-5 h-5" />
                   {sendingRequest ? 'Sending...' : 'Send Message Request'}
@@ -307,7 +310,9 @@ export default function ProfileView({
         {/* Main Profile Card */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           {/* Avatar & Header Section */}
-          <div className="bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 p-8 text-center relative">
+          <div className="bg-purple-600 p-8 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-700 opacity-90"></div>
+            <div className="relative z-10">
             <div className="w-28 h-28 mx-auto bg-white rounded-full flex items-center justify-center text-5xl shadow-xl">
               {fullProfile.avatar}
             </div>
@@ -317,11 +322,12 @@ export default function ProfileView({
             {fullProfile.anonymousName && fullProfile.anonymousName !== fullProfile.username && (
               <p className="text-white/90 text-sm mt-1">@{fullProfile.anonymousName}</p>
             )}
-            
-            {/* Verified Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full mt-3 shadow-md">
+              
+              {/* Verified Badge */}
+              <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full mt-3 shadow-md">
               <Shield className="w-4 h-4 text-green-600" />
-              <span className="text-sm font-medium text-green-700">Verified User</span>
+                <span className="text-sm font-medium text-green-700">Verified User</span>
+              </div>
             </div>
           </div>
 
@@ -481,7 +487,7 @@ export default function ProfileView({
           <button
             onClick={handleSendMessageRequest}
             disabled={sendingRequest}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white py-4 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <MessageCircle className="w-5 h-5" />
             {sendingRequest ? 'Sending...' : 'Send Message Request'}
