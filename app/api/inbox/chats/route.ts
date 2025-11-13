@@ -44,6 +44,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log(`📬 Fetched ${allChats?.length || 0} chat records for user ${userId}`);
+    if (allChats && allChats.length > 0) {
+      console.log('First chat record:', allChats[0]);
+    }
+
     // Group by conversation_id and get latest message for each
     const conversationsMap = new Map();
 

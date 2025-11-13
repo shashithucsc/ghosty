@@ -1,17 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Send, X, Eye, MapPin, CheckCircle, XCircle, GraduationCap } from 'lucide-react';
+import { Send, X, Eye, MapPin, CheckCircle, XCircle, GraduationCap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { UserProfile } from '@/app/dashboard/page';
 
 interface ProfileCardProps {
   profile: UserProfile;
   onMessageRequest: () => void;
   onSkip: () => void;
+  onPrevious?: () => void;
   isActive: boolean;
+  hasPrevious?: boolean;
 }
 
-export function ProfileCard({ profile, onMessageRequest, onSkip, isActive }: ProfileCardProps) {
+export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isActive, hasPrevious = false }: ProfileCardProps) {
   const [showFullBio, setShowFullBio] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -187,8 +189,33 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, isActive }: Pro
           </button>
         </div>
 
+        {/* Navigation Buttons */}
+        <div className="flex items-center justify-center gap-3 mt-4">
+          <button
+            onClick={onPrevious}
+            disabled={!hasPrevious}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+              hasPrevious
+                ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 active:scale-95'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+            }`}
+            title="Previous Profile"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </button>
+          <button
+            onClick={onSkip}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all active:scale-95"
+            title="Next Profile"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
         {/* Swipe Hint */}
-        <p className="text-center text-xs text-gray-500 dark:text-gray-500 mt-4 sm:hidden">
+        <p className="text-center text-xs text-gray-500 dark:text-gray-500 mt-3 sm:hidden">
           Swipe right to send message request, left to skip
         </p>
       </div>

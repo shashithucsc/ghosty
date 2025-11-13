@@ -370,7 +370,7 @@ export async function PATCH(request: NextRequest) {
       conversationId = crypto.randomUUID();
 
       // Create a system message to mark the start of the conversation
-      const { error: chatError } = await supabase
+      const { data: chatData, error: chatError } = await supabase
         .from('chats')
         .insert({
           conversation_id: conversationId,
@@ -378,11 +378,20 @@ export async function PATCH(request: NextRequest) {
           receiver_id: inboxRequest.receiver_id,
           message: '🎉 Chat request accepted! Start your conversation here.',
           created_at: new Date().toISOString(),
-        });
+        })
+        .select()
+        .single();
 
       if (chatError) {
-        console.error('Error creating chat record:', chatError);
+        console.error('❌ FAILED TO CREATE CHAT RECORD:', chatError);
+        console.error('Chat data attempted:', {
+          conversation_id: conversationId,
+          sender_id: inboxRequest.sender_id,
+          receiver_id: inboxRequest.receiver_id,
+        });
         // Don't fail the request, just log the error
+      } else {
+        console.log('✅ Chat record created successfully:', chatData);
       }
     }
 

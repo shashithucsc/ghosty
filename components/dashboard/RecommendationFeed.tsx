@@ -18,6 +18,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
   const [error, setError] = useState<string | null>(null);
   const [sendingRequest, setSendingRequest] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
+  const [viewedProfiles, setViewedProfiles] = useState<string[]>([]);
 
   // Fetch real profiles from API
   useEffect(() => {
@@ -101,15 +102,18 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       if (e.key === 'ArrowRight') {
         e.preventDefault();
         handleMessageRequest();
-      } else if (e.key === 'ArrowLeft') {
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
         e.preventDefault();
         handleSkip();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        handlePrevious();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, profiles, sendingRequest, loading]);
+  }, [currentIndex, profiles, sendingRequest, loading, viewedProfiles]);
 
   const handleMessageRequest = async () => {
     if (sendingRequest) return;
@@ -163,15 +167,48 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
   };
 
   const handleSkip = () => {
+    recordSwipe('skip');
     handleNext();
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
   };
 
   const handleNext = () => {
     if (currentIndex < profiles.length - 1) {
+      // Track viewed profile
+      if (!viewedProfiles.includes(profiles[currentIndex].id)) {
+        setViewedProfiles([...viewedProfiles, profiles[currentIndex].id]);
+      }
       setCurrentIndex(currentIndex + 1);
     } else {
       // All profiles viewed
       setProfiles([]);
+    }
+  };
+
+  const recordSwipe = async (action: 'skip' | 'like') => {
+    const currentProfile = profiles[currentIndex];
+    const currentUserId = localStorage.getItem('userId');
+
+    if (!currentUserId || !currentProfile) return;
+
+    try {
+      await fetch('/api/swipes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUserId,
+          targetUserId: currentProfile.id,
+          action,
+        }),
+      });
+    } catch (error) {
+      console.error('Error recording swipe:', error);
+      // Non-critical error, continue
     }
   };
 
@@ -238,7 +275,9 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
               profile={profile}
               onMessageRequest={handleMessageRequest}
               onSkip={handleSkip}
+              onPrevious={handlePrevious}
               isActive={index === 0}
+              hasPrevious={currentIndex > 0}
             />
           </div>
         ))}
@@ -247,7 +286,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       {/* Progress Indicator */}
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          {currentIndex + 1} of {profiles.length} profiles • Use arrow keys ← →
+          {currentIndex + 1} of {profiles.length} profiles • Use arrow keys: ↑ Previous | ← ↓ Skip | → Send Request
         </p>
         <div className="mt-2 w-full max-w-md mx-auto h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
