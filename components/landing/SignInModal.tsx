@@ -106,15 +106,15 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                       
                       <div className="flex-1 text-left">
                         <h3 className="text-lg font-bold text-white mb-1">
-                          Quick Join (Simple)
+                          Quick Join
                         </h3>
-                        <p className="text-white/80 text-sm">
+                        {/* <p className="text-white/80 text-sm">
                           Get started in seconds with just username and password
                         </p>
                         <div className="mt-2 inline-flex items-center gap-1 text-xs text-white/60">
                           <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
                           Unverified • Limited features
-                        </div>
+                        </div> */}
                       </div>
                       
                       <div className="flex-shrink-0 text-white/60 group-hover:text-white transition-colors">

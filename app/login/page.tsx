@@ -299,7 +299,7 @@ export default function LoginPage() {
             </div>
 
             {/* Info Box */}
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
@@ -308,7 +308,7 @@ export default function LoginPage() {
               <p className="text-sm text-purple-800 dark:text-purple-300">
                 <strong>🔒 Secure Login:</strong> Your data is encrypted and protected.
               </p>
-            </motion.div>
+            </motion.div> */}
           </form>
         </div>
 
