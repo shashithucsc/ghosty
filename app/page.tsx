@@ -28,9 +28,9 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950 dark:via-pink-950 dark:to-blue-950">
       <HeroSection />
-      <FeaturesSection />
+      {/* <FeaturesSection />
       <HowItWorksSection />
-      <Footer />
+      <Footer /> */}
     </div>
   );
 }

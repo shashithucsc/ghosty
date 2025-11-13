@@ -31,7 +31,7 @@ export function HeroSection() {
         <div className="mb-6 animate-fade-in-delay">
           <span className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 shadow-md rounded-full text-sm sm:text-base font-medium text-purple-800 dark:text-purple-200">
             <Sparkles className="w-4 h-4" />
-            Anonymous Dating for Students
+            Anonymous Dating for university Students
           </span>
         </div>
 
@@ -39,13 +39,13 @@ export function HeroSection() {
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 animate-fade-in-delay-2">
           Meet, Chat & Connect{' '}
           <span className="text-purple-600 dark:text-purple-400">
-            Anonymously
+           කිචි බිචි
           </span>
         </h1>
 
         {/* Subheading */}
         <p className="text-lg sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-10 max-w-3xl mx-auto animate-fade-in-delay-3">
-          Find your perfect match while staying anonymous. Connect with fellow students in a safe, verified environment.
+          Find your perfect match while staying anonymous.
         </p>
 
         {/* CTA Buttons */}
@@ -70,7 +70,7 @@ export function HeroSection() {
         </div>
 
         {/* Stats */}
-        <div className="mt-16 grid grid-cols-3 gap-6 sm:gap-8 max-w-2xl mx-auto animate-fade-in-delay-5">
+        {/* <div className="mt-16 grid grid-cols-3 gap-6 sm:gap-8 max-w-2xl mx-auto animate-fade-in-delay-5">
           <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg p-4 sm:p-6 rounded-2xl">
             <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">
               10K+
@@ -95,7 +95,7 @@ export function HeroSection() {
               Satisfaction
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Scroll Indicator */}
