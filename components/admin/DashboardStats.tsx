@@ -122,7 +122,7 @@ export function DashboardStats() {
               Review Verifications
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {stats.verificationsThisWeek} pending requests
+              {stats.pendingVerifications} pending requests
             </p>
           </button>
 

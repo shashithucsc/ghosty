@@ -173,7 +173,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user has any approved verifications
-    const hasApprovedVerification = verifications?.some(v => v.status === 'approved') || false;
+    const hasApprovedVerification = verifications?.some((v: any) => v.status === 'approved') || false;
 
     // If user has approved verification, update profile
     if (hasApprovedVerification) {

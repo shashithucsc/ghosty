@@ -9,7 +9,7 @@ interface ConfirmModalProps {
   cancelLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
-  type?: 'warning' | 'danger';
+  type?: 'warning' | 'danger' | 'info';
 }
 
 export function ConfirmModal({

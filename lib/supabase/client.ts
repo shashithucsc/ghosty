@@ -17,4 +17,4 @@ export const supabaseAdmin = createClient<Database>(
       persistSession: false,
     },
   }
-);
+) as any;

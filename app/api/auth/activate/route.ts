@@ -13,11 +13,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Find user with this activation token
-    const { data: user, error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('users')
       .select('*')
       .eq('activation_token', token)
       .single();
+
+    const user: any = data;
 
     if (error || !user) {
       return NextResponse.redirect(
@@ -43,13 +45,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Activate the account
-    const { error: updateError } = await supabaseAdmin
+    const updatePayload: any = {
+      email_verified: true,
+      activation_token: null,
+      activation_token_expires: null,
+    };
+
+    const { error: updateError } = await (supabaseAdmin as any)
       .from('users')
-      .update({
-        email_verified: true,
-        activation_token: null,
-        activation_token_expires: null,
-      })
+      .update(updatePayload)
       .eq('id', user.id);
 
     if (updateError) {

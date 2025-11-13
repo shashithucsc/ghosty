@@ -44,11 +44,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const { data: existingUser } = await supabaseAdmin
+    const { data } = await supabaseAdmin
       .from('users')
       .select('id, email_verified')
       .eq('email', sanitizedEmail)
       .single();
+
+    const existingUser: any = data;
 
     if (existingUser) {
       if (existingUser.email_verified) {
@@ -61,12 +63,14 @@ export async function POST(request: NextRequest) {
         const activationToken = generateActivationToken();
         const tokenExpires = getTokenExpiration();
 
-        await supabaseAdmin
+        const updatePayload: any = {
+          activation_token: activationToken,
+          activation_token_expires: tokenExpires,
+        };
+
+        await (supabaseAdmin as any)
           .from('users')
-          .update({
-            activation_token: activationToken,
-            activation_token_expires: tokenExpires,
-          })
+          .update(updatePayload)
           .eq('email', sanitizedEmail);
 
         await sendActivationEmail({
@@ -92,15 +96,17 @@ export async function POST(request: NextRequest) {
     const tokenExpires = getTokenExpiration();
 
     // Create user
-    const { data: newUser, error: createError } = await supabaseAdmin
+    const insertPayload: any = {
+      email: sanitizedEmail,
+      password_hash: passwordHash,
+      email_verified: false,
+      activation_token: activationToken,
+      activation_token_expires: tokenExpires,
+    };
+
+    const { data: newUser, error: createError } = await (supabaseAdmin as any)
       .from('users')
-      .insert({
-        email: sanitizedEmail,
-        password_hash: passwordHash,
-        email_verified: false,
-        activation_token: activationToken,
-        activation_token_expires: tokenExpires,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 
