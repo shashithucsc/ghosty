@@ -16,6 +16,7 @@ const SimpleRegistrationSchema = z.object({
     .max(20, 'Username must be less than 20 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  gender: z.enum(['Male', 'Female'], { message: 'Please select your gender' }),
 });
 
 export async function POST(request: NextRequest) {
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: firstError }, { status: 400 });
     }
 
-    const { username, password } = validation.data;
+    const { username, password, gender } = validation.data;
 
     // Sanitize username (lowercase)
     const sanitizedUsername = username.toLowerCase().trim();
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
         email_verified: false,
         registration_type: 'simple',
         verification_status: 'unverified',
+        gender: gender,
       })
       .select()
       .single();
@@ -72,6 +74,22 @@ export async function POST(request: NextRequest) {
         { error: 'Failed to create user account' },
         { status: 500 }
       );
+    }
+
+    // Create profile record
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .insert({
+        user_id: newUser.id,
+        anonymous_name: sanitizedUsername,
+        gender: gender,
+        verified: false,
+        public: true,
+      });
+
+    if (profileError) {
+      console.error('Error creating profile:', profileError);
+      // Don't fail registration if profile creation fails, just log it
     }
 
     return NextResponse.json(

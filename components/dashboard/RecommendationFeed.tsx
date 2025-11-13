@@ -4,17 +4,20 @@ import { useState, useEffect } from 'react';
 import { UserProfile, FilterOptions } from '@/app/dashboard/page';
 import { ProfileCard } from './ProfileCard';
 import { EmptyState } from './EmptyState';
+import { Toast } from '@/components/ui/Toast';
 
 interface RecommendationFeedProps {
   filters: FilterOptions;
-  onMatch: (user: UserProfile) => void;
+  onRequestSent?: (user: UserProfile) => void;
 }
 
-export function RecommendationFeed({ filters, onMatch }: RecommendationFeedProps) {
+export function RecommendationFeed({ filters, onRequestSent }: RecommendationFeedProps) {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sendingRequest, setSendingRequest] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
 
   // Fetch real profiles from API
   useEffect(() => {
@@ -90,15 +93,73 @@ export function RecommendationFeed({ filters, onMatch }: RecommendationFeedProps
     fetchProfiles();
   }, [filters]);
 
-  const handleLike = () => {
+  // Arrow key navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (sendingRequest || loading || profiles.length === 0) return;
+
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleMessageRequest();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handleSkip();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, profiles, sendingRequest, loading]);
+
+  const handleMessageRequest = async () => {
+    if (sendingRequest) return;
+
     const currentProfile = profiles[currentIndex];
-    
-    // Simulate match (50% chance)
-    if (Math.random() > 0.5) {
-      onMatch(currentProfile);
+    const currentUserId = localStorage.getItem('userId');
+
+    if (!currentUserId) {
+      setToast({ message: 'Please log in to send message requests', type: 'error' });
+      return;
     }
 
-    handleNext();
+    setSendingRequest(true);
+
+    try {
+      const response = await fetch('/api/inbox/requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUserId,
+          recipientId: currentProfile.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle 409 conflict - request already exists
+        if (response.status === 409) {
+          setToast({ message: 'You already sent a request to this user', type: 'info' });
+          return;
+        }
+        throw new Error(data.error || 'Failed to send request');
+      }
+
+      // Show success message
+      setToast({ message: '✅ Message request sent successfully!', type: 'success' });
+
+      // Notify parent component
+      if (onRequestSent) {
+        onRequestSent(currentProfile);
+      }
+
+      // Card stays visible - don't move to next automatically
+    } catch (error: any) {
+      console.error('Error sending message request:', error);
+      setToast({ message: error.message || 'Failed to send message request. Please try again.', type: 'error' });
+    } finally {
+      setSendingRequest(false);
+    }
   };
 
   const handleSkip = () => {
@@ -151,6 +212,15 @@ export function RecommendationFeed({ filters, onMatch }: RecommendationFeedProps
 
   return (
     <div className="relative">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       {/* Card Stack Preview */}
       <div className="relative h-[calc(100vh-200px)] sm:h-[600px] max-w-md mx-auto">
         {profiles.slice(currentIndex, currentIndex + 3).map((profile, index) => (
@@ -166,7 +236,7 @@ export function RecommendationFeed({ filters, onMatch }: RecommendationFeedProps
           >
             <ProfileCard
               profile={profile}
-              onLike={handleLike}
+              onMessageRequest={handleMessageRequest}
               onSkip={handleSkip}
               isActive={index === 0}
             />
@@ -177,7 +247,7 @@ export function RecommendationFeed({ filters, onMatch }: RecommendationFeedProps
       {/* Progress Indicator */}
       <div className="mt-6 text-center">
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          {currentIndex + 1} of {profiles.length} profiles
+          {currentIndex + 1} of {profiles.length} profiles • Use arrow keys ← →
         </p>
         <div className="mt-2 w-full max-w-md mx-auto h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div

@@ -12,6 +12,7 @@ export default function SimpleRegisterPage() {
     username: '',
     password: '',
     confirmPassword: '',
+    gender: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -47,6 +48,11 @@ export default function SimpleRegisterPage() {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    // Gender validation
+    if (!formData.gender) {
+      newErrors.gender = 'Please select your gender';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -68,6 +74,7 @@ export default function SimpleRegisterPage() {
         body: JSON.stringify({
           username: formData.username,
           password: formData.password,
+          gender: formData.gender,
         }),
       });
 
@@ -227,11 +234,49 @@ export default function SimpleRegisterPage() {
               )}
             </motion.div>
 
-            {/* Confirm Password Field */}
+            {/* Gender Field */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
+            >
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Gender
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleChange('gender', 'Male')}
+                  className={`py-3 px-4 rounded-xl border-2 font-semibold transition-all ${
+                    formData.gender === 'Male'
+                      ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
+                      : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-purple-400'
+                  }`}
+                >
+                  👨 Male
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChange('gender', 'Female')}
+                  className={`py-3 px-4 rounded-xl border-2 font-semibold transition-all ${
+                    formData.gender === 'Female'
+                      ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
+                      : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-purple-400'
+                  }`}
+                >
+                  👩 Female
+                </button>
+              </div>
+              {errors.gender && (
+                <p className="mt-2 text-sm text-red-500">{errors.gender}</p>
+              )}
+            </motion.div>
+
+            {/* Confirm Password Field */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 }}
             >
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Confirm Password
@@ -268,7 +313,7 @@ export default function SimpleRegisterPage() {
             <motion.button
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
+              transition={{ delay: 0.7 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"

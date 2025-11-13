@@ -59,32 +59,20 @@ export async function GET(request: NextRequest) {
       .select(`
         id,
         sender_id,
-        recipient_id,
+        receiver_id,
         status,
-        message,
-        created_at,
-        updated_at,
-        sender:users!inbox_requests_sender_id_fkey(
-          id,
-          username,
-          profiles(full_name, avatar_url, verification_status)
-        ),
-        recipient:users!inbox_requests_recipient_id_fkey(
-          id,
-          username,
-          profiles(full_name, avatar_url, verification_status)
-        )
+        created_at
       `)
       .order('created_at', { ascending: false });
 
     // Filter by type
     if (type === 'received') {
-      query = query.eq('recipient_id', userId);
+      query = query.eq('receiver_id', userId);
     } else if (type === 'sent') {
       query = query.eq('sender_id', userId);
     } else {
-      // all - requests where user is either sender or recipient
-      query = query.or(`sender_id.eq.${userId},recipient_id.eq.${userId}`);
+      // all - requests where user is either sender or receiver
+      query = query.or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
     }
 
     // Filter by status
@@ -106,17 +94,49 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Enrich with sender profile data
+    const enrichedRequests = await Promise.all(
+      (requests || []).map(async (req) => {
+        // Get sender's profile
+        const { data: senderProfile } = await supabase
+          .from('profiles')
+          .select('anonymous_name, gender, verified, avatar')
+          .eq('user_id', req.sender_id)
+          .single();
+
+        // Get sender's user data
+        const { data: senderUser } = await supabase
+          .from('users')
+          .select('username, gender, university_name')
+          .eq('id', req.sender_id)
+          .single();
+
+        return {
+          ...req,
+          sender: {
+            id: req.sender_id,
+            username: senderUser?.username,
+            profiles: {
+              full_name: senderProfile?.anonymous_name || 'Anonymous',
+              avatar_url: senderProfile?.avatar || '👤',
+              verification_status: senderProfile?.verified || false,
+            },
+          },
+        };
+      })
+    );
+
     // Get total count for pagination
     let countQuery = supabase
       .from('inbox_requests')
       .select('id', { count: 'exact', head: true });
 
     if (type === 'received') {
-      countQuery = countQuery.eq('recipient_id', userId);
+      countQuery = countQuery.eq('receiver_id', userId);
     } else if (type === 'sent') {
       countQuery = countQuery.eq('sender_id', userId);
     } else {
-      countQuery = countQuery.or(`sender_id.eq.${userId},recipient_id.eq.${userId}`);
+      countQuery = countQuery.or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
     }
 
     if (status !== 'all') {
@@ -127,7 +147,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      requests,
+      requests: enrichedRequests,
       pagination: {
         page,
         limit,
@@ -216,7 +236,7 @@ export async function POST(request: NextRequest) {
     const { data: existingRequest } = await supabase
       .from('inbox_requests')
       .select('id, status')
-      .or(`and(sender_id.eq.${userId},recipient_id.eq.${recipientId}),and(sender_id.eq.${recipientId},recipient_id.eq.${userId})`)
+      .or(`and(sender_id.eq.${userId},receiver_id.eq.${recipientId}),and(sender_id.eq.${recipientId},receiver_id.eq.${userId})`)
       .single();
 
     if (existingRequest) {
@@ -244,18 +264,15 @@ export async function POST(request: NextRequest) {
       .from('inbox_requests')
       .insert({
         sender_id: userId,
-        recipient_id: recipientId,
+        receiver_id: recipientId,
         status: 'pending',
-        message: message || null,
       })
       .select(`
         id,
         sender_id,
-        recipient_id,
+        receiver_id,
         status,
-        message,
-        created_at,
-        updated_at
+        created_at
       `)
       .single();
 
@@ -303,7 +320,7 @@ export async function PATCH(request: NextRequest) {
     // Get the request
     const { data: inboxRequest, error: fetchError } = await supabase
       .from('inbox_requests')
-      .select('id, sender_id, recipient_id, status')
+      .select('id, sender_id, receiver_id, status')
       .eq('id', requestId)
       .single();
 
@@ -314,10 +331,10 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Verify user is the recipient
-    if (inboxRequest.recipient_id !== userId) {
+    // Verify user is the receiver
+    if (inboxRequest.receiver_id !== userId) {
       return NextResponse.json(
-        { error: 'Only the recipient can accept or reject this request' },
+        { error: 'Only the receiver can accept or reject this request' },
         { status: 403 }
       );
     }
@@ -347,21 +364,25 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // If accepted, create conversation
+    // If accepted, create initial chat record
     let conversationId = null;
     if (action === 'accept') {
-      const { data, error: convError } = await supabase
-        .rpc('create_conversation', {
-          user_a: inboxRequest.sender_id,
-          user_b: inboxRequest.recipient_id,
+      conversationId = crypto.randomUUID();
+
+      // Create a system message to mark the start of the conversation
+      const { error: chatError } = await supabase
+        .from('chats')
+        .insert({
+          conversation_id: conversationId,
+          sender_id: inboxRequest.sender_id,
+          receiver_id: inboxRequest.receiver_id,
+          message: '🎉 Chat request accepted! Start your conversation here.',
+          created_at: new Date().toISOString(),
         });
 
-      if (convError) {
-        console.error('Error creating conversation:', convError);
-        // Request is still accepted, but conversation failed
-        // This is a non-critical error
-      } else {
-        conversationId = data;
+      if (chatError) {
+        console.error('Error creating chat record:', chatError);
+        // Don't fail the request, just log the error
       }
     }
 

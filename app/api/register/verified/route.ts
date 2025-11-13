@@ -178,6 +178,28 @@ export async function POST(request: NextRequest) {
       // Non-critical error, continue
     }
 
+    // Create profile record
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .insert({
+        user_id: newUser.id,
+        anonymous_name: sanitizedUsername,
+        real_name: validatedData.fullName,
+        dob: validatedData.birthday,
+        gender: validatedData.gender,
+        university: validatedData.university,
+        faculty: validatedData.faculty,
+        bio: validatedData.bio,
+        verified: false, // Will be set to true after admin approval
+        verification_type: validatedData.proofType,
+        public: true,
+      });
+
+    if (profileError) {
+      console.error('Error creating profile:', profileError);
+      // Don't fail registration if profile creation fails, just log it
+    }
+
     // Create verification record (if verifications table exists)
     const { error: verificationError } = await supabaseAdmin.from('verifications').insert({
       user_id: newUser.id,

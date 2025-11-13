@@ -5,7 +5,6 @@ import { RecommendationFeed } from '@/components/dashboard/RecommendationFeed';
 import { FilterPanel } from '@/components/dashboard/FilterPanel';
 import { NotificationBar } from '@/components/dashboard/NotificationBar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { MatchModal } from '@/components/dashboard/MatchModal';
 
 export interface UserProfile {
   id: string;
@@ -43,13 +42,10 @@ export default function DashboardPage() {
 
   const [notifications, setNotifications] = useState<Array<{
     id: string;
-    type: 'match' | 'message';
+    type: 'match' | 'message' | 'request';
     message: string;
     from?: string;
   }>>([]);
-
-  const [showMatchModal, setShowMatchModal] = useState(false);
-  const [matchedUser, setMatchedUser] = useState<UserProfile | null>(null);
 
   // Load user data from localStorage
   useEffect(() => {
@@ -70,14 +66,12 @@ export default function DashboardPage() {
     }
   }, []);
 
-  const handleNewMatch = (user: UserProfile) => {
-    setMatchedUser(user);
-    setShowMatchModal(true);
+  const handleRequestSent = (user: UserProfile) => {
     setNotifications([
       {
         id: Date.now().toString(),
-        type: 'match',
-        message: `You matched with ${user.anonymousName}!`,
+        type: 'request',
+        message: `Message request sent to ${user.anonymousName}!`,
         from: user.anonymousName,
       },
       ...notifications,
@@ -120,7 +114,7 @@ export default function DashboardPage() {
         {currentUser.userId ? (
           <RecommendationFeed
             filters={filters}
-            onMatch={handleNewMatch}
+            onRequestSent={handleRequestSent}
           />
         ) : (
           <div className="flex items-center justify-center min-h-[60vh]">
@@ -138,14 +132,6 @@ export default function DashboardPage() {
           currentFilters={filters}
           onApply={handleApplyFilters}
           onClose={() => setShowFilters(false)}
-        />
-      )}
-
-      {/* Match Modal */}
-      {showMatchModal && matchedUser && (
-        <MatchModal
-          user={matchedUser}
-          onClose={() => setShowMatchModal(false)}
         />
       )}
     </div>

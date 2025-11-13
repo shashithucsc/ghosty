@@ -117,13 +117,29 @@ export async function GET(request: NextRequest) {
       console.log('Swipes table not found, skipping interaction filter');
     }
 
+    // Get current user's gender for opposite gender filtering
+    const currentUserGender = currentUser.gender;
+
     // Step 3: Build query for potential matches from users table
+    // Recommendation logic:
+    // - Show only users with opposite gender
+    // - Exclude restricted users
+    // - Exclude current user
+    // - Sort by preference similarity later
     let query = supabaseAdmin
       .from('users')
-      .select('id, username, full_name, birthday, gender, university_name, faculty, bio, preferences, verification_status, is_restricted, report_count, created_at')
+      .select('id, username, full_name, birthday, gender, university_name, faculty, bio, preferences, partner_preferences, verification_status, is_restricted, report_count, created_at')
       .neq('id', userId) // Exclude current user
-      .eq('is_restricted', false) // Exclude restricted users
-      .in('verification_status', ['verified', 'unverified']); // Include verified and unverified users
+      .eq('is_restricted', false); // Exclude restricted users
+
+    // Filter by opposite gender
+    if (currentUserGender) {
+      if (currentUserGender.toLowerCase() === 'male') {
+        query = query.eq('gender', 'Female');
+      } else if (currentUserGender.toLowerCase() === 'female') {
+        query = query.eq('gender', 'Male');
+      }
+    }
 
     // Exclude already interacted users
     if (interactedUserIds.length > 0) {
@@ -154,14 +170,6 @@ export async function GET(request: NextRequest) {
     // Optional: Filter by faculty
     if (filterFaculty === 'true' && currentUser.faculty) {
       query = query.eq('faculty', currentUser.faculty);
-    }
-
-    // Filter by gender preference if specified
-    const currentUserPreferences = currentUser.preferences ? 
-      (typeof currentUser.preferences === 'string' ? JSON.parse(currentUser.preferences) : currentUser.preferences) : {};
-    
-    if (currentUserPreferences.gender && currentUserPreferences.gender !== 'all') {
-      query = query.eq('gender', currentUserPreferences.gender);
     }
 
     // Limit results
@@ -205,7 +213,7 @@ export async function GET(request: NextRequest) {
     const scoredMatches = potentialMatches.map((user: any) => {
       const age = user.birthday ? calculateAge(user.birthday) : 25;
       
-      // Calculate match score
+      // Calculate match score based on preference similarity
       let matchScore = 50; // Base score
 
       // Bonus for verified users
@@ -223,6 +231,23 @@ export async function GET(request: NextRequest) {
       if (user.faculty && currentUser.faculty && 
           user.faculty === currentUser.faculty) {
         matchScore += 5;
+      }
+
+      // Preference similarity scoring
+      const userPrefs = user.partner_preferences || user.preferences;
+      const currentUserPrefs = currentUser.partner_preferences || currentUser.preferences;
+      
+      if (userPrefs && currentUserPrefs) {
+        // Simple text similarity for preferences
+        const userPrefsText = (typeof userPrefs === 'string' ? userPrefs : JSON.stringify(userPrefs)).toLowerCase();
+        const currentPrefsText = (typeof currentUserPrefs === 'string' ? currentUserPrefs : JSON.stringify(currentUserPrefs)).toLowerCase();
+        
+        // Count common words as a basic similarity measure
+        const userWords = userPrefsText.split(/\s+/);
+        const currentWords = currentPrefsText.split(/\s+/);
+        const commonWords = userWords.filter(word => currentWords.includes(word) && word.length > 3).length;
+        
+        matchScore += Math.min(commonWords * 2, 15); // Max 15 points from preference similarity
       }
 
       // Penalty for reported users

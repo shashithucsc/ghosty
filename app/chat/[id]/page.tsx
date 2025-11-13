@@ -6,6 +6,8 @@ import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatMessage } from '@/components/chat/ChatMessage';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { BlockReportModal } from '@/components/chat/BlockReportModal';
+import { UnblockModal } from '@/components/chat/UnblockModal';
+import { Toast } from '@/components/ui/Toast';
 
 export interface Message {
   id: string;
@@ -26,7 +28,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     gender: '',
   });
   const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showUnblockModal, setShowUnblockModal] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' | 'info' } | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [otherUserId, setOtherUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -212,7 +216,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       const message = blockStatus.blockedBy === 'you'
         ? 'You have blocked this user. Unblock them to send messages.'
         : 'This user has blocked you. You cannot send messages.';
-      alert(message);
+      setToast({ message, type: 'warning' });
       return;
     }
 
@@ -290,7 +294,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       
       // Show user-friendly error message
       const errorMessage = error instanceof Error ? error.message : 'Failed to send message. Please try again.';
-      alert(errorMessage);
+      setToast({ message: errorMessage, type: 'error' });
     } finally {
       setSending(false);
     }
@@ -317,11 +321,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         if (response.ok) {
           setIsBlocked(true);
           setShowBlockModal(false);
+          setToast({ message: 'User blocked successfully.', type: 'success' });
           setTimeout(() => {
             router.push('/dashboard');
           }, 2000);
         } else {
-          alert(data.error || 'Failed to block user');
+          setToast({ message: data.error || 'Failed to block user', type: 'error' });
         }
       } else {
         // Report user
@@ -339,15 +344,58 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const data = await response.json();
 
         if (response.ok) {
-          alert(data.message || 'Report submitted successfully. Our team will review it shortly.');
+          setToast({ 
+            message: data.message || 'Report submitted successfully. Our team will review it shortly.', 
+            type: 'success' 
+          });
           setShowBlockModal(false);
         } else {
-          alert(data.error || 'Failed to submit report');
+          setToast({ message: data.error || 'Failed to submit report', type: 'error' });
         }
       }
     } catch (error) {
       console.error(`Error ${action}ing user:`, error);
-      alert(`Failed to ${action} user. Please try again.`);
+      setToast({ message: `Failed to ${action} user. Please try again.`, type: 'error' });
+    }
+  };
+
+  const handleUnblock = async () => {
+    if (!currentUserId || !otherUserId) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/blocks?blockerId=${currentUserId}&blockedId=${otherUserId}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update block status
+        setBlockStatus({ isBlocked: false });
+        setIsBlocked(false);
+        setShowUnblockModal(false);
+        
+        // Show success message
+        setToast({ 
+          message: data.message || 'User unblocked successfully. You can now send messages.', 
+          type: 'success' 
+        });
+        
+        // Refresh the page to update UI after a short delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        setToast({ message: data.error || 'Failed to unblock user', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error unblocking user:', error);
+      setToast({ message: 'Failed to unblock user. Please try again.', type: 'error' });
     }
   };
 
@@ -405,13 +453,43 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               </p>
             </div>
           )}
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="btn-primary py-3 px-8"
-          >
-            Back to Dashboard
-          </button>
+          <div className="flex gap-3 w-full">
+            {blockedByYou && (
+              <button
+                type="button"
+                onClick={() => setShowUnblockModal(true)}
+                className="flex-1 px-6 py-3 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
+              >
+                Unblock User
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard')}
+              className={`${blockedByYou ? 'flex-1' : 'w-full'} px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200 cursor-pointer`}
+            >
+              Back to Dashboard
+            </button>
+          </div>
         </div>
+
+        {/* Unblock Modal for Blocked Screen */}
+        {showUnblockModal && (
+          <UnblockModal
+            userName={chatPartner.anonymousName}
+            onUnblock={handleUnblock}
+            onClose={() => setShowUnblockModal(false)}
+          />
+        )}
+
+        {/* Toast Notification */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
       </div>
     );
   }
@@ -447,6 +525,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   : 'You cannot send messages to this user.'}
               </p>
             </div>
+            {blockStatus.blockedBy === 'you' && (
+              <button
+                onClick={() => setShowUnblockModal(true)}
+                className="px-4 py-2 bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 border-2 border-green-600 dark:border-green-400 rounded-lg text-sm font-semibold hover:bg-green-50 dark:hover:bg-gray-700 transition-all duration-200"
+              >
+                Unblock
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -492,6 +578,24 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           userName={chatPartner.anonymousName}
           onBlock={handleBlockOrReport}
           onClose={() => setShowBlockModal(false)}
+        />
+      )}
+
+      {/* Unblock Modal */}
+      {showUnblockModal && (
+        <UnblockModal
+          userName={chatPartner.anonymousName}
+          onUnblock={handleUnblock}
+          onClose={() => setShowUnblockModal(false)}
+        />
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
         />
       )}
     </div>

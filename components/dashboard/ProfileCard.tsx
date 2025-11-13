@@ -1,17 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, X, Eye, MapPin, CheckCircle, XCircle, GraduationCap } from 'lucide-react';
+import { Send, X, Eye, MapPin, CheckCircle, XCircle, GraduationCap } from 'lucide-react';
 import { UserProfile } from '@/app/dashboard/page';
 
 interface ProfileCardProps {
   profile: UserProfile;
-  onLike: () => void;
+  onMessageRequest: () => void;
   onSkip: () => void;
   isActive: boolean;
 }
 
-export function ProfileCard({ profile, onLike, onSkip, isActive }: ProfileCardProps) {
+export function ProfileCard({ profile, onMessageRequest, onSkip, isActive }: ProfileCardProps) {
   const [showFullBio, setShowFullBio] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -46,7 +46,7 @@ export function ProfileCard({ profile, onLike, onSkip, isActive }: ProfileCardPr
     if (isLeftSwipe) {
       onSkip();
     } else if (isRightSwipe) {
-      onLike();
+      onMessageRequest();
     }
 
     setSwipeDirection(null);
@@ -76,8 +76,8 @@ export function ProfileCard({ profile, onLike, onSkip, isActive }: ProfileCardPr
     >
       {/* Swipe Indicators */}
       {swipeDirection === 'right' && (
-        <div className="absolute top-8 right-8 z-20 bg-green-500 text-white px-6 py-3 rounded-lg font-bold text-xl rotate-12 animate-scale-in">
-          LIKE ❤️
+        <div className="absolute top-8 right-8 z-20 bg-blue-500 text-white px-6 py-3 rounded-lg font-bold text-xl rotate-12 animate-scale-in">
+          MESSAGE 💌
         </div>
       )}
       {swipeDirection === 'left' && (
@@ -177,19 +177,19 @@ export function ProfileCard({ profile, onLike, onSkip, isActive }: ProfileCardPr
             <Eye className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
           </button>
 
-          {/* Like Button */}
+          {/* Send Message Request Button */}
           <button
-            onClick={onLike}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-linear-to-r from-pink-500 to-red-500 text-white hover:from-pink-600 hover:to-red-600 transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center group"
-            title="Like"
+            onClick={onMessageRequest}
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-linear-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center group"
+            title="Send Message Request"
           >
-            <Heart className="w-6 h-6 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform fill-current" />
+            <Send className="w-6 h-6 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform" />
           </button>
         </div>
 
         {/* Swipe Hint */}
         <p className="text-center text-xs text-gray-500 dark:text-gray-500 mt-4 sm:hidden">
-          Swipe right to like, left to skip
+          Swipe right to send message request, left to skip
         </p>
       </div>
     </div>

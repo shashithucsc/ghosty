@@ -19,21 +19,20 @@ const CreateReportSchema = z.object({
     ['inappropriate_content', 'harassment', 'fake_profile', 'spam', 'underage', 'other'],
     { message: 'Invalid report reason' }
   ),
-  description: z
-    .string()
-    .max(1000, 'Description too long (max 1000 characters)')
-    .optional()
-    .refine(
-      (val, ctx) => {
-        const reason = (ctx as any).parent?.reason;
-        if (reason === 'other' && (!val || val.trim().length === 0)) {
-          return false;
-        }
-        return true;
-      },
-      { message: 'Description is required when reason is "other"' }
-    ),
-});
+  description: z.string().max(1000, 'Description too long (max 1000 characters)').optional(),
+}).refine(
+  (data) => {
+    // If reason is 'other', description is required
+    if (data.reason === 'other' && (!data.description || data.description.trim().length === 0)) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: 'Description is required when reason is "other"',
+    path: ['description'],
+  }
+);
 
 const GetReportsQuerySchema = z.object({
   userId: z.string().uuid('Invalid user ID format'),
