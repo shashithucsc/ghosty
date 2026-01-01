@@ -47,8 +47,12 @@ const UpdateReportSchema = z.object({
 // =============================================
 
 async function verifyAdmin(adminId: string): Promise<boolean> {
-  const { data } = await supabase.rpc('is_user_admin', { user_uuid: adminId });
-  return data === true;
+  const { data } = await supabase
+    .from('users')
+    .select('is_admin')
+    .eq('id', adminId)
+    .single();
+  return data?.is_admin === true;
 }
 
 async function logAdminAction(
@@ -269,16 +273,35 @@ export async function PATCH(request: NextRequest) {
     }
 
     // If report is resolved and restrictUser is true, restrict the reported user
-    if (status === 'resolved' && restrictUser) {
-      const { error: restrictError } = await supabase.rpc('restrict_user_account', {
-        user_uuid: report.reported_user_id,
-        admin_uuid: admin.userId,
-        reason: `User restricted due to report: ${adminNotes || 'No notes provided'}`,
-      });
+    if (status === 'resolved' && restrictUser && report.reported_user_id) {
+      // Direct update to restrict user
+      const { error: restrictError } = await supabase
+        .from('users')
+        .update({
+          is_restricted: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', report.reported_user_id);
 
       if (restrictError) {
         console.error('Error restricting user:', restrictError);
         // Non-critical error, continue
+      }
+
+      // Increment report count
+      const { data: userData } = await supabase
+        .from('users')
+        .select('report_count')
+        .eq('id', report.reported_user_id)
+        .single();
+
+      if (userData) {
+        await supabase
+          .from('users')
+          .update({
+            report_count: (userData.report_count || 0) + 1,
+          })
+          .eq('id', report.reported_user_id);
       }
     }
 

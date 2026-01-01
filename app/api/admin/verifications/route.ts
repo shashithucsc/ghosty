@@ -17,44 +17,101 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status'); // 'pending', 'approved', 'rejected', or null for all
 
-    let query = supabaseAdmin
+    // First, get verifications from verifications table
+    let verificationsQuery = supabaseAdmin
       .from('verifications')
-      .select(
-        `
-        *,
-        user:users!verifications_user_id_fkey (
-          id,
-          username,
-          full_name,
-          email,
-          university,
-          faculty,
-          bio,
-          partner_preferences,
-          birthday,
-          gender
-        )
-      `
-      )
+      .select('*')
       .order('submitted_at', { ascending: false });
 
     // Filter by status if provided
     if (status && ['pending', 'approved', 'rejected'].includes(status)) {
-      query = query.eq('status', status);
+      verificationsQuery = verificationsQuery.eq('status', status);
     }
 
-    const { data, error } = await query;
+    const { data: verifications, error: verificationsError } = await verificationsQuery;
 
-    if (error) {
-      console.error('Error fetching verifications:', error);
+    if (verificationsError) {
+      console.error('Error fetching verifications:', verificationsError);
       return NextResponse.json({ error: 'Failed to fetch verifications' }, { status: 500 });
     }
 
-    return NextResponse.json({ verifications: data || [] }, { status: 200 });
+    // Get unique user IDs from verifications
+    const userIds = [...new Set(verifications?.map(v => v.user_id).filter(Boolean))] as string[];
+
+    // Fetch user details for all verification requests
+    let users: Record<string, any> = {};
+    if (userIds.length > 0) {
+      const { data: usersData, error: usersError } = await supabaseAdmin
+        .from('users')
+        .select('id, username, full_name, email, university_name, faculty, bio, partner_preferences, birthday, gender, proof_type, proof_url, verification_status, registration_type, created_at')
+        .in('id', userIds);
+
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+      } else if (usersData) {
+        users = usersData.reduce((acc, user) => {
+          acc[user.id] = user;
+          return acc;
+        }, {} as Record<string, any>);
+      }
+    }
+
+    // Also get verification_files for additional file info
+    let verificationFiles: Record<string, any[]> = {};
+    if (userIds.length > 0) {
+      const { data: filesData, error: filesError } = await supabaseAdmin
+        .from('verification_files')
+        .select('*')
+        .in('user_id', userIds);
+
+      if (!filesError && filesData) {
+        verificationFiles = filesData.reduce((acc, file) => {
+          if (!acc[file.user_id]) acc[file.user_id] = [];
+          acc[file.user_id].push(file);
+          return acc;
+        }, {} as Record<string, any[]>);
+      }
+    }
+
+    // Combine verification data with user data
+    const enrichedVerifications = verifications?.map(verification => {
+      const user = users[verification.user_id] || null;
+      const files = verificationFiles[verification.user_id] || [];
+      
+      return {
+        id: verification.id,
+        userId: verification.user_id,
+        proofType: verification.proof_type,
+        fileUrl: verification.file_url,
+        status: verification.status,
+        submittedAt: verification.submitted_at,
+        reviewedAt: verification.reviewed_at,
+        // User details
+        username: user?.username || 'Unknown',
+        fullName: user?.full_name || null,
+        email: user?.email || null,
+        university: user?.university_name || 'Unknown University',
+        faculty: user?.faculty || null,
+        bio: user?.bio || null,
+        partnerPreferences: user?.partner_preferences || null,
+        birthday: user?.birthday || null,
+        gender: user?.gender || null,
+        userCreatedAt: user?.created_at || null,
+        // Additional verification files
+        additionalFiles: files,
+      };
+    }) || [];
+
+    return NextResponse.json({ 
+      verifications: enrichedVerifications,
+      total: enrichedVerifications.length,
+      pending: enrichedVerifications.filter(v => v.status === 'pending').length,
+      approved: enrichedVerifications.filter(v => v.status === 'approved').length,
+      rejected: enrichedVerifications.filter(v => v.status === 'rejected').length,
+    }, { status: 200 });
   } catch (error) {
     console.error('Unexpected error in GET /api/admin/verifications:', error);
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
@@ -139,6 +196,7 @@ async function approveVerification(verificationId: string, userId: string) {
       .from('users')
       .update({
         verification_status: 'verified',
+        updated_at: new Date().toISOString(),
       })
       .eq('id', userId);
 
@@ -149,7 +207,20 @@ async function approveVerification(verificationId: string, userId: string) {
       return NextResponse.json({ error: 'Failed to update user verification status' }, { status: 500 });
     }
 
-    // Step 4: Delete file from Supabase Storage
+    // Step 4: Update verification_files table status
+    const { error: updateFilesError } = await supabaseAdmin
+      .from('verification_files')
+      .update({
+        status: 'approved',
+      })
+      .eq('user_id', userId);
+
+    if (updateFilesError) {
+      console.error('Error updating verification files:', updateFilesError);
+      // Non-critical, continue
+    }
+
+    // Step 5: Delete file from Supabase Storage (optional - keep for audit)
     // Extract file path from URL
     const filePath = extractFilePathFromUrl(verification.file_url);
 
@@ -223,6 +294,7 @@ async function rejectVerification(verificationId: string, userId: string, reason
       .from('users')
       .update({
         verification_status: 'rejected',
+        updated_at: new Date().toISOString(),
       })
       .eq('id', userId);
 
@@ -231,6 +303,19 @@ async function rejectVerification(verificationId: string, userId: string, reason
       // Rollback verification status
       await supabaseAdmin.from('verifications').update({ status: 'pending' }).eq('id', verificationId);
       return NextResponse.json({ error: 'Failed to update user verification status' }, { status: 500 });
+    }
+
+    // Step 4: Update verification_files table status
+    const { error: updateFilesError } = await supabaseAdmin
+      .from('verification_files')
+      .update({
+        status: 'rejected',
+      })
+      .eq('user_id', userId);
+
+    if (updateFilesError) {
+      console.error('Error updating verification files:', updateFilesError);
+      // Non-critical, continue
     }
 
     // Note: File is NOT deleted on rejection - user might want to see why it was rejected

@@ -68,21 +68,37 @@ export default function LoginPage() {
           localStorage.setItem('verificationStatus', data.user.verificationStatus);
         }
 
-        // Store admin flag
-        if (data.user.isAdmin) {
-          localStorage.setItem('isAdmin', 'true');
+        if (data.user.registrationType) {
+          localStorage.setItem('registrationType', data.user.registrationType);
         }
 
-        setToast({ message: 'Login successful! Redirecting...', type: 'success' });
+        // Store admin flag and role
+        const isAdmin = data.user.isAdmin || false;
+        localStorage.setItem('isAdmin', isAdmin.toString());
+        localStorage.setItem('userRole', isAdmin ? 'admin' : 'user');
+
+        // Different success messages for admin vs user
+        const successMessage = isAdmin 
+          ? 'Welcome back, Admin! Redirecting to admin panel...' 
+          : 'Login successful! Redirecting...';
         
-        // Redirect based on account status and role
+        setToast({ message: successMessage, type: 'success' });
+        
+        // Redirect based on user role and account status
         setTimeout(() => {
-          if (data.user.isAdmin) {
+          // ADMIN FLOW - Admins always go to admin panel
+          if (isAdmin) {
             router.push('/admin');
-          } else if (data.user.isRestricted) {
+            return;
+          }
+
+          // NORMAL USER FLOW - Check various statuses
+          if (data.user.isRestricted) {
             router.push('/restricted');
-          } else if (data.user.verificationStatus === 'pending') {
+          } else if (data.user.isPending || data.user.verificationStatus === 'pending') {
             router.push('/pending-verification');
+          } else if (data.user.verificationStatus === 'rejected') {
+            router.push('/login'); // Stay on login with error message
           } else if (!data.user.isProfileComplete) {
             router.push('/setup-profile');
           } else {
@@ -90,7 +106,20 @@ export default function LoginPage() {
           }
         }, 1500);
       } else {
-        setToast({ message: data.error || 'Login failed', type: 'error' });
+        // Handle specific error cases
+        if (data.isRestricted) {
+          setToast({ 
+            message: 'Your account has been restricted. Please contact support.', 
+            type: 'error' 
+          });
+        } else if (data.isRejected) {
+          setToast({ 
+            message: 'Your verification was rejected. Please contact support.', 
+            type: 'error' 
+          });
+        } else {
+          setToast({ message: data.error || 'Login failed', type: 'error' });
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -288,14 +317,14 @@ export default function LoginPage() {
               >
                 Quick Join
               </Link>
-              {/* Verified Join temporarily hidden
+              Verified Join temporarily hidden
               <Link
                   href="/register/verified"
                   className="py-3 px-4 text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-semibold rounded-xl hover:bg-green-200 dark:hover:bg-green-900/50 transition-all"
                 >
                   Verified Join
                 </Link>
-              */}
+             
             </div>
 
             {/* Info Box */}

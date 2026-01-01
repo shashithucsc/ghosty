@@ -157,6 +157,7 @@ export default function SimpleRegisterPage() {
             <p className="text-gray-600 dark:text-gray-400">
               Get started in seconds
             </p>
+            
 
             {/* Status Badge */}
             <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-sm">

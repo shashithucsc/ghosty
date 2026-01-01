@@ -145,6 +145,7 @@ export async function POST(request: NextRequest) {
         registration_type: 'verified',
         verification_status: 'pending',
         proof_type: validatedData.proofType,
+        proof_url: publicUrl,
         full_name: validatedData.fullName,
         birthday: validatedData.birthday,
         gender: validatedData.gender,
@@ -153,7 +154,11 @@ export async function POST(request: NextRequest) {
         bio: validatedData.bio,
         preferences: validatedData.partnerPreferences,
         partner_preferences: validatedData.partnerPreferences,
+        report_count: 0,
+        is_restricted: false,
+        is_admin: false,
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
       .select('id, username')
       .single();
@@ -167,18 +172,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create account. Please try again.' }, { status: 500 });
     }
 
-    // Store proof_url in users table
-    const { error: updateError } = await supabaseAdmin
-      .from('users')
-      .update({ proof_url: publicUrl })
-      .eq('id', newUser.id);
+    // Create verification record in verifications table
+    const { error: verificationError } = await supabaseAdmin.from('verifications').insert({
+      user_id: newUser.id,
+      proof_type: validatedData.proofType,
+      file_url: publicUrl,
+      status: 'pending',
+      submitted_at: new Date().toISOString(),
+      reviewed_at: null,
+    });
 
-    if (updateError) {
-      console.error('Error updating proof URL:', updateError);
+    if (verificationError) {
+      console.error('Error creating verification record:', verificationError);
+
+      // Clean up user and file if verification record creation failed
+      await supabaseAdmin.from('users').delete().eq('id', newUser.id);
+      await supabaseAdmin.storage.from('proof_uploads').remove([filePath]);
+
+      return NextResponse.json(
+        { error: 'Failed to create verification record. Please try again.' },
+        { status: 500 }
+      );
+    }
+
+    // Create verification file record in verification_files table
+    const { error: verificationFileError } = await supabaseAdmin.from('verification_files').insert({
+      user_id: newUser.id,
+      file_url: publicUrl,
+      type: validatedData.proofType,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    });
+
+    if (verificationFileError) {
+      console.error('Error creating verification file record:', verificationFileError);
       // Non-critical error, continue
     }
 
-    // Create profile record
+    // Create profile record (if profiles table exists)
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .insert({
@@ -198,28 +229,6 @@ export async function POST(request: NextRequest) {
     if (profileError) {
       console.error('Error creating profile:', profileError);
       // Don't fail registration if profile creation fails, just log it
-    }
-
-    // Create verification record (if verifications table exists)
-    const { error: verificationError } = await supabaseAdmin.from('verifications').insert({
-      user_id: newUser.id,
-      file_url: publicUrl,
-      proof_type: validatedData.proofType,
-      status: 'pending',
-      submitted_at: new Date().toISOString(),
-    });
-
-    if (verificationError) {
-      console.error('Error creating verification record:', verificationError);
-
-      // Clean up user and file if verification record creation failed
-      await supabaseAdmin.from('users').delete().eq('id', newUser.id);
-      await supabaseAdmin.storage.from('proof_uploads').remove([filePath]);
-
-      return NextResponse.json(
-        { error: 'Failed to create verification record. Please try again.' },
-        { status: 500 }
-      );
     }
 
     // Success response

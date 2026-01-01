@@ -2,111 +2,174 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Heart, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Heart, Sparkles, Ghost, ArrowRight, Stars, Globe } from 'lucide-react';
 import { SignInModal } from './SignInModal';
 
 export function HeroSection() {
-  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden px-4 sm:px-6 lg:px-8">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+    <div className="relative min-h-[100dvh] w-full flex items-center justify-center overflow-hidden bg-[#030014]">
+      {/* Background Gradients & Ambient Effects */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden">
+        {/* Deep atmospheric glow */}
+        <div className="absolute top-[-20%] left-[-10%] w-[80%] h-[60%] bg-purple-900/20 blur-[120px] rounded-full mix-blend-screen animate-pulse-slow pointer-events-none" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[80%] h-[60%] bg-indigo-900/20 blur-[120px] rounded-full mix-blend-screen animate-pulse-slow animation-delay-2000 pointer-events-none" />
+        <div className="absolute top-[40%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-fuchsia-900/15 blur-[100px] rounded-full mix-blend-screen pointer-events-none" />
+        
+        {/* Subtle Grid */}
+        <div 
+          className="absolute inset-0 opacity-[0.03]" 
+          style={{ 
+            backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`, 
+            backgroundSize: '50px 50px' 
+          }}
+        />
+        
+        {/* Floating Particles/Stars */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+           {[...Array(5)].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ y: 0, opacity: 0.1 }}
+                animate={{ 
+                  y: [0, -100, 0], 
+                  opacity: [0.1, 0.3, 0.1],
+                  scale: [1, 1.2, 1]
+                }}
+                transition={{ 
+                  duration: 10 + i * 2, 
+                  repeat: Infinity, 
+                  ease: "easeInOut",
+                  delay: i * 1.5
+                }}
+                className="absolute text-purple-200/20"
+                style={{
+                  left: `${20 + i * 15}%`,
+                  top: `${30 + (i % 3) * 20}%`
+                }}
+              >
+                <Stars className="w-4 h-4" />
+              </motion.div>
+           ))}
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 max-w-5xl mx-auto text-center">
-        {/* Ghost Icon */}
-        <div className="mb-6 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-24 h-24 sm:w-32 sm:h-32 bg-purple-100 dark:bg-purple-900/30 shadow-xl rounded-full">
-            <span className="text-6xl sm:text-7xl animate-bounce-gentle">👻</span>
-          </div>
-        </div>
-
+      {/* Main Content */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col items-center justify-center text-center">
+        
         {/* Badge */}
-        <div className="mb-6 animate-fade-in-delay">
-          <span className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 shadow-md rounded-full text-sm sm:text-base font-medium text-purple-800 dark:text-purple-200">
-            <Sparkles className="w-4 h-4" />
-            Anonymous Dating for university Students
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "backOut" }}
+          className="group relative inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mb-10 hover:bg-white/10 transition-all cursor-default overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-linear-to-r from-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+          <span className="text-sm font-medium text-purple-100/90 tracking-wide">
+            The #1 Anonymous Campus Dating App
           </span>
-        </div>
+        </motion.div>
 
-        {/* Main Heading */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 animate-fade-in-delay-2">
-          Meet, Chat & Connect{' '}
-          <span className="text-purple-600 dark:text-purple-400">
-           Ghosty
-          </span>
-        </h1>
+        {/* Hero Title */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="relative mb-8"
+        >
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight">
+            <span className="block text-white mb-2 drop-shadow-2xl">
+              Connect
+            </span>
+            <span className="relative inline-block">
+              {/* Glow effect behind text */}
+              <span className="absolute -inset-4 bg-purple-600/30 blur-3xl rounded-full opacity-50" />
+              <span className="relative bg-clip-text text-transparent bg-linear-to-r from-purple-400 via-pink-400 to-indigo-400 font-extrabold drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                Ghosty
+              </span>
+            </span>
+          </h1>
+        </motion.div>
 
-        {/* Subheading */}
-        <p className="text-lg sm:text-xl md:text-2xl text-gray-700 dark:text-gray-300 mb-10 max-w-3xl mx-auto animate-fade-in-delay-3">
-          Find your perfect match while staying anonymous.
-        </p>
+        {/* Subtitle */}
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="max-w-2xl text-lg sm:text-xl md:text-2xl text-gray-400 mb-12 leading-relaxed font-light"
+        >
+          Experience dating without the bias.
+          <span className="block sm:inline text-gray-200 font-normal"> Find your soulmate through conversation first.</span>
+        </motion.p>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-delay-4">
+        {/* Buttons */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto px-4 sm:px-0"
+        >
           <button
             onClick={() => setIsModalOpen(true)}
-            className="w-full sm:w-auto px-8 py-4 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+            className="group relative w-full sm:w-auto px-8 py-4 bg-white text-black font-bold rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
           >
-            <Heart className="w-5 h-5" />
-            Sign Up Free
+            <div className="absolute inset-0 bg-linear-to-r from-purple-100 to-pink-100 opacity-0 group-hover:opacity-20 transition-opacity" />
+            <Heart className="w-5 h-5 text-purple-600 fill-purple-600 group-hover:animate-bounce-gentle" />
+            <span>Start Dating Now</span>
           </button>
 
           <button
-            onClick={() => {
-              const featuresSection = document.getElementById('features');
-              featuresSection?.scrollIntoView({ behavior: 'smooth' });
-            }}
-            className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-gray-800 border-2 border-purple-600 dark:border-purple-400 text-gray-800 dark:text-white font-semibold rounded-full shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95"
+             onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+             className="w-full sm:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 text-white font-semibold rounded-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 group"
           >
-            Learn More
+            <Globe className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+            <span>Explore Features</span>
           </button>
-        </div>
-
-        {/* Stats */}
-        {/* <div className="mt-16 grid grid-cols-3 gap-6 sm:gap-8 max-w-2xl mx-auto animate-fade-in-delay-5">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg p-4 sm:p-6 rounded-2xl">
-            <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">
-              10K+
-            </div>
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              Active Users
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg p-4 sm:p-6 rounded-2xl">
-            <div className="text-2xl sm:text-3xl font-bold text-pink-600 dark:text-pink-400 mb-1">
-              5K+
-            </div>
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              Matches Made
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg p-4 sm:p-6 rounded-2xl">
-            <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-              98%
-            </div>
-            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-              Satisfaction
-            </div>
-          </div>
-        </div> */}
+        </motion.div>
       </div>
+
+      {/* Floating 3D Elements (Decorative) */}
+      <motion.div 
+        animate={{ 
+          y: [0, -30, 0],
+          rotate: [0, 5, 0]
+        }} 
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-1/4 left-[5%] lg:left-[15%] hidden md:block opacity-60 pointer-events-none"
+      >
+        <div className="w-20 h-20 bg-linear-to-br from-purple-500/20 to-indigo-500/20 rounded-3xl backdrop-blur-xl border border-white/10 flex items-center justify-center transform -rotate-12 shadow-2xl">
+           <Ghost className="w-10 h-10 text-purple-300" />
+        </div>
+      </motion.div>
+
+      <motion.div 
+        animate={{ 
+          y: [0, 40, 0],
+          rotate: [0, -5, 0]
+        }} 
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute bottom-1/3 right-[5%] lg:right-[15%] hidden md:block opacity-60 pointer-events-none"
+      >
+        <div className="w-16 h-16 bg-linear-to-br from-pink-500/20 to-rose-500/20 rounded-full backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-2xl">
+           <Heart className="w-8 h-8 text-pink-300" />
+        </div>
+      </motion.div>
 
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <div className="w-6 h-10 border-2 border-gray-400 dark:border-gray-600 rounded-full p-1">
-          <div className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-600 rounded-full mx-auto animate-scroll-down"></div>
-        </div>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5, duration: 1 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/30 pointer-events-none"
+      >
+        <span className="text-xs uppercase tracking-widest font-light">Scroll</span>
+        <div className="w-[1px] h-12 bg-linear-to-b from-white/0 via-white/50 to-white/0" />
+      </motion.div>
 
-      {/* Sign In Modal */}
       <SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-    </section>
+    </div>
   );
 }

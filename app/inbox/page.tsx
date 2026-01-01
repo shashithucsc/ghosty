@@ -2,9 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { InboxList } from '@/components/chat/InboxList';
-import { ChatHeader } from '@/components/chat/ChatHeader';
 import { Toast } from '@/components/ui/Toast';
-import { MessageSquare, Inbox, User } from 'lucide-react';
+import { 
+  MessageSquare, 
+  Inbox, 
+  User, 
+  Trash2, 
+  ArrowLeft, 
+  Bell, 
+  Search,
+  Clock,
+  CheckCircle,
+  ShieldCheck,
+  Loader2,
+  UserCircle,
+  ChevronRight,
+  Sparkles
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export interface ChatRequest {
@@ -16,6 +30,7 @@ export interface ChatRequest {
     age?: number;
     gender: string;
     university?: string;
+    verified?: boolean;
   };
   message: string;
   timestamp: Date;
@@ -247,8 +262,63 @@ export default function InboxPage() {
     router.push(`/chat/${conversationId}?userId=${otherUserId}`);
   };
 
+  const handleDeleteChat = async (conversationId: string, chatName: string) => {
+    if (!currentUserId) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete your conversation with ${chatName}? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(
+        `/api/conversations?userId=${currentUserId}&conversationId=${conversationId}`,
+        {
+          method: 'DELETE',
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete conversation');
+      }
+
+      // Remove from local state
+      setChats(chats.filter(chat => chat.conversationId !== conversationId));
+
+      setToast({ message: 'Conversation deleted successfully', type: 'success' });
+    } catch (error: any) {
+      console.error('Error deleting conversation:', error);
+      setToast({ message: error.message || 'Failed to delete conversation', type: 'error' });
+    }
+  };
+
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+    
+    if (seconds < 60) return 'now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const getGenderIcon = (gender: string) => {
+    const g = gender?.toLowerCase();
+    if (g === 'male') return <User className="w-full h-full text-blue-400" />;
+    if (g === 'female') return <User className="w-full h-full text-pink-400" />;
+    return <User className="w-full h-full text-purple-400" />;
+  };
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950 dark:via-pink-950 dark:to-blue-950">
+    <div className="min-h-screen bg-slate-950">
+      {/* Background Pattern */}
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black"></div>
+      <div className="fixed inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%239C92AC%22%20fill-opacity%3D%220.03%22%3E%3Cpath%20d%3D%22M36%2034v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6%2034v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6%204V0H4v4H0v2h4v4h2V6h4V4H6z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E')] opacity-40"></div>
+
       {/* Toast Notification */}
       {toast && (
         <Toast
@@ -258,80 +328,106 @@ export default function InboxPage() {
         />
       )}
 
-      {/* Header */}
-      <ChatHeader
-        title="Inbox"
-        showBack={true}
-        onBack={() => router.push('/dashboard')}
-      />
-
-      {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm sticky top-16 z-10">
-        <div className="container mx-auto px-4 max-w-2xl">
-          <div className="flex gap-4">
+      {/* Header - Mobile First */}
+      <header className="relative z-20 sticky top-0 bg-slate-900/80 backdrop-blur-xl border-b border-white/5">
+        <div className="px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between max-w-2xl mx-auto">
+            {/* Back Button */}
             <button
-              onClick={() => setActiveTab('requests')}
-              className={`flex items-center gap-2 px-4 py-3 font-semibold transition-all relative ${
-                activeTab === 'requests'
-                  ? 'text-purple-600 dark:text-purple-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-              }`}
+              onClick={() => router.push('/dashboard')}
+              className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all"
             >
-              <Inbox className="w-5 h-5" />
-              Requests
-              {pendingRequests.length > 0 && (
-                <span className="bg-yellow-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {pendingRequests.length}
-                </span>
-              )}
-              {activeTab === 'requests' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 dark:bg-purple-400"></div>
-              )}
+              <ArrowLeft className="w-5 h-5 text-white" />
             </button>
-            <button
-              onClick={() => setActiveTab('chats')}
-              className={`flex items-center gap-2 px-4 py-3 font-semibold transition-all relative ${
-                activeTab === 'chats'
-                  ? 'text-purple-600 dark:text-purple-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-              }`}
-            >
-              <MessageSquare className="w-5 h-5" />
-              Chats
-              {chats.length > 0 && (
-                <span className="bg-green-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                  {chats.length}
+
+            {/* Title */}
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <Inbox className="w-4 h-4 text-purple-400" />
+              </div>
+              <h1 className="text-lg font-bold text-white">Inbox</h1>
+            </div>
+
+            {/* Notification Bell */}
+            <button className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all">
+              <Bell className="w-5 h-5 text-white/70" />
+              {(pendingRequests.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)) > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
+                  {pendingRequests.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)}
                 </span>
-              )}
-              {activeTab === 'chats' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 dark:bg-purple-400"></div>
               )}
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <main className="container mx-auto px-4 py-6 max-w-2xl pb-24">
-        {loading ? (
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center">
-              <div className="spinner-large mx-auto mb-4"></div>
-              <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        {/* Tabs - Pill Style */}
+        <div className="px-4 pb-3">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex gap-2 p-1 bg-white/5 rounded-2xl">
+              <button
+                onClick={() => setActiveTab('requests')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all ${
+                  activeTab === 'requests'
+                    ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Inbox className="w-4 h-4" />
+                <span>Requests</span>
+                {pendingRequests.length > 0 && (
+                  <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold flex items-center justify-center ${
+                    activeTab === 'requests' ? 'bg-white/20 text-white' : 'bg-amber-500 text-white'
+                  }`}>
+                    {pendingRequests.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('chats')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all ${
+                  activeTab === 'chats'
+                    ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Chats</span>
+                {chats.length > 0 && (
+                  <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold flex items-center justify-center ${
+                    activeTab === 'chats' ? 'bg-white/20 text-white' : 'bg-emerald-500 text-white'
+                  }`}>
+                    {chats.length}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="relative z-10 px-4 py-4 pb-24 max-w-2xl mx-auto">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-white/5 backdrop-blur-sm flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+            </div>
+            <p className="text-white/50 text-sm">Loading conversations...</p>
+          </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Requests Tab */}
             {activeTab === 'requests' && (
               <>
-                {/* Pending Requests */}
                 {pendingRequests.length > 0 && (
-                  <section>
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                      <span className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></span>
-                      Pending Requests ({pendingRequests.length})
-                    </h2>
+                  <section className="space-y-3">
+                    {/* Section Header */}
+                    <div className="flex items-center gap-2 px-1">
+                      <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">
+                        Pending · {pendingRequests.length}
+                      </span>
+                    </div>
                     <InboxList
                       requests={pendingRequests}
                       onAccept={handleAccept}
@@ -342,13 +438,14 @@ export default function InboxPage() {
                   </section>
                 )}
 
-                {/* Blocked Users */}
                 {blockedRequests.length > 0 && (
-                  <section>
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                      <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                      Blocked ({blockedRequests.length})
-                    </h2>
+                  <section className="space-y-3 mt-6">
+                    <div className="flex items-center gap-2 px-1">
+                      <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                      <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">
+                        Blocked · {blockedRequests.length}
+                      </span>
+                    </div>
                     <InboxList
                       requests={blockedRequests}
                       onAccept={handleAccept}
@@ -361,19 +458,22 @@ export default function InboxPage() {
 
                 {/* Empty State */}
                 {pendingRequests.length === 0 && blockedRequests.length === 0 && (
-                  <div className="text-center py-16">
-                    <div className="text-6xl mb-4">📬</div>
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-                      No Pending Requests
+                  <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-6">
+                    <div className="w-20 h-20 rounded-3xl bg-white/5 backdrop-blur-sm flex items-center justify-center mb-6">
+                      <Inbox className="w-10 h-10 text-white/20" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      No Requests Yet
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6">
-                      When someone sends you a message request, it will appear here.
+                    <p className="text-white/40 text-sm mb-8 max-w-[280px]">
+                      When someone wants to connect with you, their request will appear here.
                     </p>
                     <button
                       onClick={() => router.push('/dashboard')}
-                      className="btn-primary py-3 px-8 max-w-xs mx-auto"
+                      className="flex items-center gap-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 active:scale-95 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
                     >
-                      Browse Profiles
+                      <Sparkles className="w-4 h-4" />
+                      Discover People
                     </button>
                   </div>
                 )}
@@ -384,81 +484,113 @@ export default function InboxPage() {
             {activeTab === 'chats' && (
               <>
                 {chats.length > 0 ? (
-                  <section>
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
-                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                      Active Conversations ({chats.length})
-                    </h2>
-                    <div className="space-y-3">
+                  <section className="space-y-2">
+                    {/* Section Header */}
+                    <div className="flex items-center gap-2 px-1 mb-3">
+                      <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                      <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">
+                        Active · {chats.length}
+                      </span>
+                    </div>
+
+                    {/* Chat List */}
+                    <div className="space-y-2">
                       {chats.map((chat) => (
                         <div
                           key={chat.id}
-                          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-5 animate-slide-up hover:shadow-xl transition-all group"
+                          className="group relative bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-sm border border-white/[0.05] hover:border-white/[0.1] rounded-2xl p-3 sm:p-4 transition-all duration-200 active:scale-[0.98]"
                         >
-                          <div className="flex items-start gap-3 sm:gap-4">
-                            {/* Avatar - Click to view profile */}
-                            <div 
-                              className="text-4xl sm:text-5xl shrink-0 cursor-pointer hover:scale-110 transition-transform relative group/avatar"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(`/profile/${chat.otherUser.id}`);
-                              }}
-                              title="View Profile"
-                            >
-                              {chat.otherUser.avatar}
-                              <div className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-1 opacity-0 group-hover/avatar:opacity-100 transition-opacity">
-                                <User className="w-3 h-3" />
+                          <div 
+                            className="flex items-center gap-3 cursor-pointer"
+                            onClick={() => handleOpenActiveChat(chat.conversationId, chat.otherUser.id)}
+                          >
+                            {/* Avatar */}
+                            <div className="relative shrink-0">
+                              <div 
+                                className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-800 border border-white/10 flex items-center justify-center overflow-hidden cursor-pointer hover:scale-105 transition-transform"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/profile/${chat.otherUser.id}`);
+                                }}
+                              >
+                                {getGenderIcon(chat.otherUser.gender)}
                               </div>
+                              {/* Online indicator */}
+                              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-500 rounded-full border-2 border-slate-950"></div>
                             </div>
 
-                            {/* Content - Click to open chat */}
-                            <div 
-                              className="flex-1 min-w-0 cursor-pointer"
-                              onClick={() => handleOpenActiveChat(chat.conversationId, chat.otherUser.id)}
-                            >
-                              <div className="flex items-start justify-between mb-2">
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white truncate group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <h3 className="font-semibold text-white truncate text-sm sm:text-base">
                                     {chat.otherUser.anonymousName}
                                   </h3>
-                                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                    {chat.otherUser.age ? `${chat.otherUser.age} • ` : ''}{chat.otherUser.gender}
-                                    {chat.otherUser.verified && ' • ✓ Verified'}
-                                  </p>
+                                  {chat.otherUser.verified && (
+                                    <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                                  )}
                                 </div>
-                                <span className="text-xs text-gray-500 dark:text-gray-500 whitespace-nowrap ml-2">
-                                  {new Date(chat.lastMessageTime).toLocaleDateString()}
+                                <span className="text-[11px] text-white/30 shrink-0">
+                                  {getTimeAgo(chat.lastMessageTime)}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
-                                {chat.lastMessage}
-                              </p>
-                              {chat.unreadCount > 0 && (
-                                <div className="mt-2">
-                                  <span className="bg-purple-600 text-white text-xs font-bold rounded-full px-2 py-1">
-                                    {chat.unreadCount} new
+
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-sm text-white/40 truncate">
+                                  {chat.lastMessage || 'Start a conversation'}
+                                </p>
+                                {chat.unreadCount > 0 && (
+                                  <span className="shrink-0 min-w-[20px] h-5 px-1.5 bg-purple-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
+                                    {chat.unreadCount}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Age & Gender Tag */}
+                              {chat.otherUser.age && (
+                                <div className="flex items-center gap-1.5 mt-2">
+                                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-white/30">
+                                    {chat.otherUser.age} · {chat.otherUser.gender}
                                   </span>
                                 </div>
                               )}
                             </div>
+
+                            {/* Arrow */}
+                            <ChevronRight className="w-5 h-5 text-white/20 group-hover:text-white/40 shrink-0 transition-colors" />
                           </div>
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteChat(chat.conversationId, chat.otherUser.anonymousName);
+                            }}
+                            className="absolute top-3 right-3 p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-105 sm:top-4 sm:right-4"
+                            title="Delete conversation"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       ))}
                     </div>
                   </section>
                 ) : (
-                  <div className="text-center py-16">
-                    <div className="text-6xl mb-4">💬</div>
-                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
-                      No Active Chats
+                  <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-6">
+                    <div className="w-20 h-20 rounded-3xl bg-white/5 backdrop-blur-sm flex items-center justify-center mb-6">
+                      <MessageSquare className="w-10 h-10 text-white/20" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      No Chats Yet
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6">
-                      Accept a request to start chatting!
+                    <p className="text-white/40 text-sm mb-8 max-w-[280px]">
+                      Accept a message request to start your first conversation.
                     </p>
                     <button
                       onClick={() => setActiveTab('requests')}
-                      className="btn-primary py-3 px-8 max-w-xs mx-auto"
+                      className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/15 active:scale-95 text-white font-semibold rounded-xl transition-all border border-white/10"
                     >
+                      <Inbox className="w-4 h-4" />
                       View Requests
                     </button>
                   </div>

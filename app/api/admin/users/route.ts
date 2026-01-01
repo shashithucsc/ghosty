@@ -41,8 +41,12 @@ const UpdateUserSchema = z.object({
 // =============================================
 
 async function verifyAdmin(adminId: string): Promise<boolean> {
-  const { data } = await supabase.rpc('is_user_admin', { user_uuid: adminId });
-  return data === true;
+  const { data } = await supabase
+    .from('users')
+    .select('is_admin')
+    .eq('id', adminId)
+    .single();
+  return data?.is_admin === true;
 }
 
 async function logAdminAction(

@@ -281,13 +281,14 @@ export async function GET(request: NextRequest) {
     const candidateUserIds = candidates.map(c => c.user_id);
     const { data: candidateUsers } = await supabaseAdmin
       .from('users')
-      .select('id, username, full_name, is_restricted, verification_status')
+      .select('id, username, full_name, is_restricted, verification_status, is_admin')
       .in('id', candidateUserIds)
-      .eq('is_restricted', false);
+      .eq('is_restricted', false)
+      .eq('is_admin', false); // Exclude admin users from recommendations
 
     const userMap = new Map(candidateUsers?.map(u => [u.id, u]) || []);
 
-    // Filter out restricted users
+    // Filter out restricted users and admins
     const validCandidates = candidates.filter(c => userMap.has(c.user_id));
 
     // Step 5: Calculate match scores using weighted algorithm
