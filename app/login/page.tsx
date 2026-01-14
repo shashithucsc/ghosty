@@ -160,15 +160,6 @@ export default function LoginPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        {/* Back Button */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Home
-        </Link>
-
         {/* Card */}
         <div className="glassmorphic-card p-8 rounded-3xl shadow-2xl">
           {/* Header */}
@@ -264,14 +255,15 @@ export default function LoginPage() {
             </motion.div>
 
             {/* Forgot Password Link */}
-            <div className="text-right">
+
+            {/* <div className="text-right">
               <Link
                 href="/forgot-password"
                 className="text-sm text-purple-600 dark:text-purple-400 hover:underline"
               >
                 Forgot password?
               </Link>
-            </div>
+            </div> */}
 
             {/* Submit Button */}
             <motion.button
@@ -313,17 +305,17 @@ export default function LoginPage() {
             <div className="grid grid-cols-2 gap-3">
               <Link
                 href="/register/simple"
-                className="col-span-2 w-full py-4 px-4 text-center bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-semibold rounded-xl hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all"
+                className="py-4 px-4 text-center bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 font-semibold rounded-xl hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-all"
               >
                 Quick Join
               </Link>
-              Verified Join temporarily hidden
+           
               <Link
-                  href="/register/verified"
-                  className="py-3 px-4 text-center bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-semibold rounded-xl hover:bg-green-200 dark:hover:bg-green-900/50 transition-all"
-                >
-                  Verified Join
-                </Link>
+                href="/register/verified"
+                className="py-4 px-4 text-center bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400 font-semibold rounded-xl hover:bg-pink-200 dark:hover:bg-pink-900/50 transition-all"
+              >
+                Verified Join
+              </Link>
              
             </div>
 

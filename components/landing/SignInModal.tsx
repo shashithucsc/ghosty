@@ -27,7 +27,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-50"
             onClick={onClose}
           />
 
@@ -42,7 +42,7 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Glass Card */}
-              <div className="glassmorphic-card p-8 rounded-3xl shadow-2xl">
+              <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 p-8 rounded-3xl shadow-2xl">
                 {/* Close Button */}
                 <button
                   onClick={onClose}
@@ -60,8 +60,8 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     transition={{ delay: 0.2, type: 'spring', bounce: 0.5 }}
                     className="inline-block mb-4"
                   >
-                    <div className="w-16 h-16 bg-linear-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto">
-                      <span className="text-3xl">👻</span>
+                    <div className="w-20 h-20 bg-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg rotate-3 hover:rotate-0 transition-transform">
+                      <span className="text-5xl">👻</span>
                     </div>
                   </motion.div>
 
@@ -69,9 +69,9 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="text-2xl font-bold text-gray-800 dark:text-white mb-2"
+                    className="text-4xl font-bold text-gray-900 dark:text-white mb-2"
                   >
-                    Choose Your Registration Type
+                    Choose Your Path
                   </motion.h2>
 
                   <motion.p
@@ -94,36 +94,24 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleNavigate('/register/simple')}
-                    className="w-full group relative overflow-hidden"
+                    className="w-full p-6 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-xl transition-all flex items-center gap-4"
                   >
-                    <div className="absolute inset-0 bg-linear-to-r from-blue-600 to-purple-600 rounded-2xl"></div>
-                    <div className="absolute inset-0 bg-linear-to-r from-blue-700 to-purple-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="flex-shrink-0 w-12 h-12 bg-purple-600 dark:bg-purple-500 rounded-xl flex items-center justify-center">
+                      <Zap className="w-6 h-6 text-white" />
+                    </div>
                     
-                    <div className="relative p-6 flex items-start gap-4">
-                      <div className="flex-shrink-0 w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                        <Zap className="w-6 h-6 text-white" />
-                      </div>
-                      
-                      <div className="flex-1 text-left">
-                        <h3 className="text-lg font-bold text-white mb-1">
-                          Quick Join
-                        </h3>
-                        {/* <p className="text-white/80 text-sm">
-                          Get started in seconds with just username and password
-                        </p>
-                        <div className="mt-2 inline-flex items-center gap-1 text-xs text-white/60">
-                          <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
-                          Unverified • Limited features
-                        </div> */}
-                      </div>
-                      
-                      <div className="flex-shrink-0 text-white/60 group-hover:text-white transition-colors">
-                        →
-                      </div>
+                    <div className="flex-1 text-left">
+                      <h3 className="text-lg font-bold text-purple-700 dark:text-purple-400">
+                        Quick Join
+                      </h3>
+                    </div>
+                    
+                    <div className="flex-shrink-0 text-purple-600 dark:text-purple-400">
+                      →
                     </div>
                   </motion.button>
 
-                  {/* Verified Join temporarily hidden */}
+                  {/* Verified Join Button */}
                   <motion.button
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -131,35 +119,23 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleNavigate('/register/verified')}
-                    className="w-full group relative overflow-hidden"
+                    className="w-full p-6 bg-pink-100 dark:bg-pink-900/30 hover:bg-pink-200 dark:hover:bg-pink-900/50 rounded-xl transition-all flex items-center gap-4"
                   >
-                    <div className="absolute inset-0 bg-linear-to-r from-purple-600 to-pink-600 rounded-2xl"></div>
-                    <div className="absolute inset-0 bg-linear-to-r from-purple-700 to-pink-700 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="flex-shrink-0 w-12 h-12 bg-pink-600 dark:bg-pink-500 rounded-xl flex items-center justify-center">
+                      <ShieldCheck className="w-6 h-6 text-white" />
+                    </div>
                     
-                    <div className="relative p-6 flex items-start gap-4">
-                      <div className="flex-shrink-0 w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                        <ShieldCheck className="w-6 h-6 text-white" />
-                      </div>
-                      
-                      <div className="flex-1 text-left">
-                        <h3 className="text-lg font-bold text-white mb-1">
-                          Verified Join
-                          <span className="ml-2 px-2 py-0.5 bg-green-500 text-xs rounded-full">
-                            Recommended
-                          </span>
-                        </h3>
-                        <p className="text-white/80 text-sm">
-                          Full access with identity verification and profile details
-                        </p>
-                        <div className="mt-2 inline-flex items-center gap-1 text-xs text-white/60">
-                          <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                          Verified • Full features
-                        </div>
-                      </div>
-                      
-                      <div className="flex-shrink-0 text-white/60 group-hover:text-white transition-colors">
-                        →
-                      </div>
+                    <div className="flex-1 text-left">
+                      <h3 className="text-lg font-bold text-pink-700 dark:text-pink-400">
+                        Verified Join
+                        <span className="ml-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">
+                          Recommended
+                        </span>
+                      </h3>
+                    </div>
+                    
+                    <div className="flex-shrink-0 text-pink-600 dark:text-pink-400">
+                      →
                     </div>
                   </motion.button>
                  

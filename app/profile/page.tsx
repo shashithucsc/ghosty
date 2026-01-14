@@ -72,7 +72,7 @@ export default function MyProfilePage() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative page-container">
       <ProfileView
         profile={profile}
         isLimited={isLimited}
@@ -83,7 +83,7 @@ export default function MyProfilePage() {
       {/* Floating Edit Button */}
       <button
         onClick={() => setToast({ message: '✏️ Profile editing coming soon!', type: 'info' })}
-        className="fixed bottom-24 right-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all z-20"
+        className="fixed bottom-24 right-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all z-20 md:bottom-8"
       >
         <Edit className="w-6 h-6" />
       </button>

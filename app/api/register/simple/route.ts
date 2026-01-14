@@ -99,6 +99,14 @@ export async function POST(request: NextRequest) {
         username: newUser.username,
         registrationType: 'simple',
         verificationStatus: 'unverified',
+        token: `simple_${newUser.id}_${Date.now()}`, // Simple token for session management
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          registrationType: 'simple',
+          verificationStatus: 'unverified',
+          isProfileComplete: false,
+        },
       },
       { status: 201 }
     );

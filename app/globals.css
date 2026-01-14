@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #030014;
+  --foreground: #ffffff;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-surface: rgba(255, 255, 255, 0.03);
+  --primary-glow: rgba(147, 51, 234, 0.5);
 }
 
 @theme inline {
@@ -10,346 +13,93 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  
+  /* Custom Animations */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Glassmorphic Card */
-.glassmorphic-card {
-  @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 dark:border-gray-700/30 transition-all duration-300 hover:shadow-xl;
+/* --- Dark Glass Utilities --- */
+
+/* The base glass effect */
+.glass-panel {
+  @apply bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
 }
 
-/* Input Field */
-.input-field {
-  @apply w-full px-4 py-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200;
+/* A more intense glass effect for cards/modals */
+.glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
 }
 
-/* Primary Button */
-.btn-primary {
-  @apply w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white rounded-xl font-semibold transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+/* Neon text glow */
+.text-glow {
+  text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
 }
 
-/* Secondary Button */
-.btn-secondary {
-  @apply w-full bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 border-2 border-purple-600 dark:border-purple-400 rounded-xl font-semibold hover:bg-purple-50 dark:hover:bg-gray-700 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-md hover:shadow-lg;
+/* Primary Button with Glass feel */
+.btn-glass-primary {
+  @apply relative overflow-hidden rounded-2xl bg-white text-black font-bold transition-all duration-300;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+}
+.btn-glass-primary:hover {
+  box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);
+  transform: translateY(-2px);
 }
 
-/* Upload Box */
-.upload-box {
-  @apply flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-purple-500 dark:hover:border-purple-400 bg-gray-50 dark:bg-gray-800/50 transition-all duration-200;
+/* Secondary Button with Glass feel */
+.btn-glass-secondary {
+  @apply relative rounded-2xl bg-white/5 border border-white/10 text-white font-medium backdrop-blur-md transition-all duration-300;
+}
+.btn-glass-secondary:hover {
+  @apply bg-white/10 border-white/20;
+  transform: translateY(-2px);
 }
 
-/* Spinner */
-.spinner {
-  @apply w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin;
-}
-
-/* Animations */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes bounce-gentle {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.5s ease-out;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.5s ease-out;
-}
-
-.animate-bounce-gentle {
-  animation: bounce-gentle 2s ease-in-out infinite;
-}
-
-/* Smooth Scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Custom Scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #030014;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #9333ea, #ec4899);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #7e22ce, #db2777);
-}
-
-/* Custom Scrollbar for specific elements */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 2px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-
-/* Range Slider */
-.range-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 6px;
-  background: linear-gradient(to right, #9333ea, #ec4899);
+  background: #333;
   border-radius: 3px;
-  outline: none;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4c1d95;
 }
 
-.range-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  background: white;
-  border: 3px solid #9333ea;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.range-slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  background: white;
-  border: 3px solid #9333ea;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Line Clamp */
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Spinner Large */
-.spinner-large {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #e5e7eb;
-  border-top: 4px solid #9333ea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-/* Slide Down Animation */
-@keyframes slide-down {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+/* Mobile bottom nav spacing */
+@media (max-width: 768px) {
+  .page-container {
+    padding-bottom: 5rem; /* Space for bottom nav */
   }
 }
 
-.animate-slide-down {
-  animation: slide-down 0.3s ease-out;
-}
-
-/* Slide Left Animation for Filter Panel */
-@keyframes slide-left {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.animate-slide-left {
-  animation: slide-left 0.3s ease-out;
-}
-
-/* Landing Page Animations */
-@keyframes blob {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  25% {
-    transform: translate(20px, -20px) scale(1.1);
-  }
-  50% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  75% {
-    transform: translate(10px, 10px) scale(1.05);
-  }
-}
-
-.animate-blob {
-  animation: blob 7s ease-in-out infinite;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4s;
-}
-
-@keyframes float-particle {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-100vh) rotate(360deg);
-    opacity: 0;
-  }
-}
-
-.animate-float-particle {
-  animation: float-particle 8s linear infinite;
-}
-
-@keyframes pulse-slow {
-  0%, 100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 3s ease-in-out infinite;
-}
-
-@keyframes gradient-shift {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-.animate-gradient-shift {
-  background-size: 200% 200%;
-  animation: gradient-shift 3s ease infinite;
-}
-
-@keyframes fade-in-delay {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-delay {
-  animation: fade-in-delay 0.6s ease-out 0.2s both;
-}
-
-.animate-fade-in-delay-2 {
-  animation: fade-in-delay 0.6s ease-out 0.4s both;
-}
-
-.animate-fade-in-delay-3 {
-  animation: fade-in-delay 0.6s ease-out 0.6s both;
-}
-
-.animate-fade-in-delay-4 {
-  animation: fade-in-delay 0.6s ease-out 0.8s both;
-}
-
-.animate-fade-in-delay-5 {
-  animation: fade-in-delay 0.6s ease-out 1s both;
-}
-
-@keyframes scroll-down {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(8px);
-  }
-}
-
-.animate-scroll-down {
-  animation: scroll-down 1.5s ease-in-out infinite;
+/* Safe area for iOS devices */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }

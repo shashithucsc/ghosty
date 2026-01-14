@@ -81,10 +81,21 @@ export default function SimpleRegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setToast({ message: 'Account created successfully! Redirecting to login...', type: 'success' });
+        // Store user data in localStorage for auto-login
+        localStorage.setItem('userId', data.userId);
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('registrationType', data.registrationType || 'simple');
+        localStorage.setItem('verificationStatus', data.verificationStatus || 'unverified');
+        localStorage.setItem('isAdmin', 'false');
+        localStorage.setItem('userRole', 'user');
+
+        setToast({ message: 'Account created successfully! Redirecting...', type: 'success' });
+        
         setTimeout(() => {
-          router.push('/login');
-        }, 2000);
+          // Redirect to setup-profile for profile completion
+          router.push('/setup-profile');
+        }, 1500);
       } else {
         setToast({ message: data.error || 'Registration failed', type: 'error' });
       }
@@ -104,7 +115,7 @@ export default function SimpleRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-blue-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex items-center justify-center p-4">
       {/* Toast Notification */}
       {toast && (
         <motion.div
@@ -127,15 +138,6 @@ export default function SimpleRegisterPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        {/* Back Button */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Home
-        </Link>
-
         {/* Card */}
         <div className="glassmorphic-card p-8 rounded-3xl shadow-2xl">
           {/* Header */}
@@ -146,12 +148,12 @@ export default function SimpleRegisterPage() {
               transition={{ delay: 0.2, type: 'spring', bounce: 0.5 }}
               className="inline-block mb-4"
             >
-              <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg rotate-3 hover:rotate-0 transition-transform">
-                <Zap className="w-8 h-8 text-white" />
+              <div className="w-20 h-20 bg-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg rotate-3 hover:rotate-0 transition-transform">
+                <span className="text-5xl">👻</span>
               </div>
             </motion.div>
 
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
               Quick Join
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
@@ -235,11 +237,48 @@ export default function SimpleRegisterPage() {
               )}
             </motion.div>
 
-            {/* Gender Field */}
+            {/* Confirm Password Field */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
+            >
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleChange('confirmPassword', e.target.value)}
+                  placeholder="Confirm your password"
+                  className={`w-full pl-12 pr-12 py-3 bg-white dark:bg-gray-800 border ${
+                    errors.confirmPassword
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
+                  } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="mt-2 text-sm text-red-500">{errors.confirmPassword}</p>
+              )}
+            </motion.div>
+
+            {/* Gender Field */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 }}
             >
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Gender
@@ -273,43 +312,6 @@ export default function SimpleRegisterPage() {
               )}
             </motion.div>
 
-            {/* Confirm Password Field */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  value={formData.confirmPassword}
-                  onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                  placeholder="Confirm your password"
-                  className={`w-full pl-12 pr-12 py-3 bg-white dark:bg-gray-800 border ${
-                    errors.confirmPassword
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                  } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="mt-2 text-sm text-red-500">{errors.confirmPassword}</p>
-              )}
-            </motion.div>
-
             {/* Submit Button */}
             <motion.button
               initial={{ opacity: 0, y: 20 }}
@@ -319,7 +321,7 @@ export default function SimpleRegisterPage() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">

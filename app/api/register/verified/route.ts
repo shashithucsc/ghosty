@@ -240,6 +240,16 @@ export async function POST(request: NextRequest) {
         userId: newUser.id,
         username: newUser.username,
         verificationStatus: 'pending',
+        registrationType: 'verified',
+        token: `verified_${newUser.id}_${Date.now()}`, // Simple token for session management
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+          fullName: validatedData.fullName,
+          registrationType: 'verified',
+          verificationStatus: 'pending',
+          isPending: true,
+        },
       },
       { status: 201 }
     );

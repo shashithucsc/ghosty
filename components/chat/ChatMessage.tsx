@@ -19,7 +19,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
     return (
       <div className="flex justify-end animate-slide-up">
         <div className="max-w-[75%] sm:max-w-[60%]">
-          <div className="bg-linear-to-r from-purple-600 to-pink-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-md">
+          <div className="bg-purple-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-lg">
             <p className="text-sm sm:text-base wrap-break-word">{message.text}</p>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-500 mt-1 text-right">
@@ -33,7 +33,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div className="flex justify-start animate-slide-up">
       <div className="max-w-[75%] sm:max-w-[60%]">
-        <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-md border border-gray-200 dark:border-gray-700">
+        <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl text-gray-900 dark:text-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-lg border border-gray-200 dark:border-gray-700/50">
           <p className="text-sm sm:text-base wrap-break-word">{message.text}</p>
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">

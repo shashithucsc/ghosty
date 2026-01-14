@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { RecommendationFeed } from '@/components/dashboard/RecommendationFeed';
 import { FilterPanel } from '@/components/dashboard/FilterPanel';
 import { NotificationBar } from '@/components/dashboard/NotificationBar';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { useUser } from '@/lib/contexts/UserContext';
+import { SlidersHorizontal } from 'lucide-react';
 
 export interface UserProfile {
   id: string;
@@ -32,12 +33,7 @@ export interface FilterOptions {
 }
 
 export default function DashboardPage() {
-  const [currentUser, setCurrentUser] = useState({
-    anonymousName: 'MysteriousGhost123',
-    avatar: '👤',
-    userId: '',
-  });
-
+  const { user, setUser } = useUser();
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     ageRange: [18, 30],
@@ -52,15 +48,14 @@ export default function DashboardPage() {
     from?: string;
   }>>([]);
 
-  // Load user data from localStorage
+  // Load user data from localStorage and update context
   useEffect(() => {
-    // Get user ID from localStorage (set during login)
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
     const avatar = localStorage.getItem('avatar');
     
     if (userId) {
-      setCurrentUser({
+      setUser({
         anonymousName: username || 'User',
         avatar: avatar || '👤',
         userId,
@@ -69,7 +64,7 @@ export default function DashboardPage() {
       // Redirect to login if no user ID found
       window.location.href = '/login';
     }
-  }, []);
+  }, [setUser]);
 
   const handleRequestSent = (user: UserProfile) => {
     setNotifications([
@@ -93,14 +88,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950 dark:via-pink-950 dark:to-blue-950">
-      {/* Header */}
-      <DashboardHeader
-        user={currentUser}
-        onShowFilters={() => setShowFilters(true)}
-        notificationCount={notifications.length}
-      />
-
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 page-container">
       {/* Notifications */}
       {notifications.length > 0 && (
         <div className="fixed top-20 left-0 right-0 z-40 px-4">
@@ -116,7 +104,23 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 max-w-2xl">
-        {currentUser.userId ? (
+        {/* Filter Button - Mobile & Desktop */}
+        <div className="mb-4">
+          <button
+            onClick={() => setShowFilters(true)}
+            className="w-full sm:w-auto glass-card px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-white font-medium hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-xl"
+          >
+            <SlidersHorizontal className="w-5 h-5" />
+            <span>Filters & Preferences</span>
+            {(filters.universities.length > 0 || filters.interests.length > 0) && (
+              <span className="bg-purple-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                {filters.universities.length + filters.interests.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {user?.userId ? (
           <RecommendationFeed
             filters={filters}
             onRequestSent={handleRequestSent}

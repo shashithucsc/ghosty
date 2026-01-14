@@ -232,13 +232,28 @@ export default function VerifiedRegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
+        // Store user data in localStorage for auto-login
+        localStorage.setItem('userId', data.userId);
+        localStorage.setItem('username', data.username);
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('registrationType', data.registrationType || 'verified');
+        localStorage.setItem('verificationStatus', data.verificationStatus || 'pending');
+        localStorage.setItem('isAdmin', 'false');
+        localStorage.setItem('userRole', 'user');
+        
+        if (data.user?.fullName) {
+          localStorage.setItem('fullName', data.user.fullName);
+        }
+
         setToast({
-          message: 'Your account is under review. You\'ll get access once verified by admin.',
+          message: 'Registration successful! Your account is under review.',
           type: 'success',
         });
+        
         setTimeout(() => {
-          router.push('/login');
-        }, 3000);
+          // Redirect to pending-verification page with auto-login
+          router.push('/pending-verification');
+        }, 2000);
       } else {
         setToast({ message: data.error || 'Registration failed', type: 'error' });
         setUploadProgress(0);
@@ -259,7 +274,7 @@ export default function VerifiedRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex items-center justify-center p-4 py-12">
       {/* Toast Notification */}
       {toast && (
         <motion.div
@@ -280,15 +295,6 @@ export default function VerifiedRegisterPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-2xl"
       >
-        {/* Back Button */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Home
-        </Link>
-
         {/* Card */}
         <div className="glassmorphic-card p-8 rounded-3xl shadow-2xl">
           {/* Header */}
@@ -299,12 +305,12 @@ export default function VerifiedRegisterPage() {
               transition={{ delay: 0.2, type: 'spring', bounce: 0.5 }}
               className="inline-block mb-4"
             >
-              <div className="w-16 h-16 bg-linear-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto">
-                <ShieldCheck className="w-8 h-8 text-white" />
+              <div className="w-20 h-20 bg-pink-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg rotate-3 hover:rotate-0 transition-transform">
+                <span className="text-5xl">👻</span>
               </div>
             </motion.div>
 
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
               Verified Registration
             </h1>
             <p className="text-gray-600 dark:text-gray-400">

@@ -85,7 +85,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <>
+    <div className="page-container">
       <ProfileView
         profile={profile}
         isLimited={isLimited}
@@ -99,6 +99,6 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
           onClose={() => setToast(null)}
         />
       )}
-    </>
+    </div>
   );
 }

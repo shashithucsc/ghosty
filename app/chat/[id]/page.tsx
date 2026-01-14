@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
+import { MoreVertical } from 'lucide-react';
 import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatMessage } from '@/components/chat/ChatMessage';
 import { ChatInput } from '@/components/chat/ChatInput';
@@ -493,18 +494,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               <button
                 type="button"
                 onClick={() => setShowUnblockModal(true)}
-                className="flex-1 px-6 py-3 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
+                className="w-full px-6 py-3 bg-linear-to-r from-green-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl cursor-pointer"
               >
                 Unblock User
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => router.push('/dashboard')}
-              className={`${blockedByYou ? 'flex-1' : 'w-full'} px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200 cursor-pointer`}
-            >
-              Back to Dashboard
-            </button>
           </div>
         </div>
 
@@ -530,23 +524,54 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950 dark:via-pink-950 dark:to-blue-950 flex flex-col">
-      {/* Header */}
-      <ChatHeader
-        title={chatPartner.realName}
-        subtitle={chatPartner.age > 0 ? `${chatPartner.age} • ${chatPartner.gender}` : chatPartner.gender}
-        avatar={chatPartner.avatar}
-        showBack={true}
-        showMenu={true}
-        onBack={() => router.push('/dashboard')}
-        onBlockReport={() => setShowBlockModal(true)}
-        userId={otherUserId || undefined}
-        onProfileClick={otherUserId ? () => router.push(`/profile/${otherUserId}`) : undefined}
-      />
+    <div className="h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex flex-col overflow-hidden">
+      {/* Header - Hidden on mobile */}
+      <div className="hidden md:block">
+        <ChatHeader
+          title={chatPartner.realName}
+          subtitle={chatPartner.age > 0 ? `${chatPartner.age} • ${chatPartner.gender}` : chatPartner.gender}
+          avatar={chatPartner.avatar}
+          showBack={false}
+          showMenu={true}
+          onBlockReport={() => setShowBlockModal(true)}
+          userId={otherUserId || undefined}
+          onProfileClick={otherUserId ? () => router.push(`/profile/${otherUserId}`) : undefined}
+        />
+      </div>
+
+      {/* Mobile Header - Compact */}
+      <div className="md:hidden bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700/50 shadow-lg">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div 
+            className="flex-1 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={otherUserId ? () => router.push(`/profile/${otherUserId}`) : undefined}
+          >
+            {chatPartner.avatar && (
+              <div className="text-3xl">{chatPartner.avatar}</div>
+            )}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-base font-bold text-gray-900 dark:text-white truncate">
+                {chatPartner.realName}
+              </h1>
+              {chatPartner.age > 0 && (
+                <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                  {chatPartner.age} • {chatPartner.gender}
+                </p>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => setShowBlockModal(true)}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <MoreVertical className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+          </button>
+        </div>
+      </div>
 
       {/* Block Status Warning Banner */}
       {blockStatus?.isBlocked && (
-        <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-3">
+        <div className="bg-red-100 dark:bg-red-900/30 border-b border-red-300 dark:border-red-700/50 px-4 py-3">
           <div className="max-w-2xl mx-auto flex items-center gap-3">
             <span className="text-2xl">🚫</span>
             <div className="flex-1">
@@ -556,7 +581,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   : `${chatPartner.anonymousName} has blocked you`
                 }
               </p>
-              <p className="text-xs text-red-600 dark:text-red-300">
+              <p className="text-xs text-red-700 dark:text-red-300">
                 {blockStatus.blockedBy === 'you'
                   ? 'You cannot send or receive messages from this user.'
                   : 'You cannot send messages to this user.'}
@@ -565,7 +590,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             {blockStatus.blockedBy === 'you' && (
               <button
                 onClick={() => setShowUnblockModal(true)}
-                className="px-4 py-2 bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 border-2 border-green-600 dark:border-green-400 rounded-lg text-sm font-semibold hover:bg-green-50 dark:hover:bg-gray-700 transition-all duration-200"
+                className="px-4 py-2 bg-white dark:bg-gray-800/95 text-green-700 dark:text-green-400 border-2 border-green-600 dark:border-green-500 rounded-lg text-sm font-semibold hover:bg-green-50 dark:hover:bg-gray-700 transition-all duration-200"
               >
                 Unblock
               </button>
@@ -574,13 +599,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         </div>
       )}
 
-      {/* Messages */}
-      <main className="flex-1 overflow-y-auto px-4 py-6 space-y-4 custom-scrollbar">
+      {/* Messages - Scrollable Container with bottom padding for mobile navbar */}
+      <main className="flex-1 overflow-y-auto px-4 py-6 pb-20 sm:pb-6 space-y-4 custom-scrollbar">
         <div className="max-w-2xl mx-auto space-y-4">
           {messages.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">👋</div>
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Start the Conversation
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
