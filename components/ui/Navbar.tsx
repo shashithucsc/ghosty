@@ -109,14 +109,15 @@ export function Navbar() {
   return (
     <>
       {/* Desktop & Mobile Navbar */}
-      {!shouldHideTopNavbar && (
-        <nav
-          className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-            isScrolled
-              ? 'glass-card shadow-2xl'
-              : 'bg-transparent'
-          }`}
-        >
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          shouldHideTopNavbar ? 'hidden md:block' : ''
+        } ${
+          isScrolled
+            ? 'glass-card shadow-2xl'
+            : 'bg-transparent'
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Logo */}
@@ -374,7 +375,6 @@ export function Navbar() {
           </div>
         </div>
       </nav>
-      )}
 
       {/* Bottom Mobile Navigation (iOS style) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700/50 safe-area-inset-bottom shadow-lg">
@@ -406,8 +406,8 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Spacer for fixed navbar */}
-      {!shouldHideTopNavbar && <div className="h-16 sm:h-20" />}
+      {/* Spacer for fixed navbar - hidden on mobile for chat pages */}
+      <div className={`h-16 sm:h-20 ${shouldHideTopNavbar ? 'hidden md:block' : ''}`} />
     </>
   );
 }

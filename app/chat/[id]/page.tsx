@@ -449,10 +449,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950 dark:via-pink-950 dark:to-blue-950 flex items-center justify-center p-4">
-        <div className="glassmorphic-card p-8 text-center max-w-md animate-scale-in">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex items-center justify-center p-4">
+        <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-2xl p-8 text-center max-w-md animate-scale-in">
           <div className="text-6xl mb-4 animate-pulse">💬</div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Loading Chat...
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
@@ -467,10 +467,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     const blockedByYou = blockStatus.blockedBy === 'you';
     
     return (
-      <div className="min-h-screen bg-linear-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950 dark:via-pink-950 dark:to-blue-950 flex items-center justify-center p-4">
-        <div className="glassmorphic-card p-8 text-center max-w-md animate-scale-in">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex items-center justify-center p-4">
+        <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-2xl shadow-2xl p-8 text-center max-w-md animate-scale-in">
           <div className="text-6xl mb-4">🚫</div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             {blockedByYou ? 'User Blocked' : 'You Are Blocked'}
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
@@ -524,7 +524,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex flex-col overflow-hidden">
+    <div className="h-screen pt-0 md:pt-20 bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex flex-col overflow-hidden">
       {/* Header - Hidden on mobile */}
       <div className="hidden md:block">
         <ChatHeader
