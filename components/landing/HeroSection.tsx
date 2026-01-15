@@ -87,13 +87,7 @@ export function HeroSection() {
             <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
           </button>
 
-          <button
-            onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-            className="btn-glass-secondary px-8 py-4 flex items-center justify-center gap-3 group"
-          >
-            <Globe className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
-            <span>Back to Home</span>
-          </button>
+         
         </motion.div>
       </div>
 

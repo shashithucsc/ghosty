@@ -75,6 +75,27 @@ export default function InboxPage() {
     setCurrentUserId(userId);
     fetchRequests(userId);
     fetchChats(userId);
+
+    // Refresh chats when user returns to this page (e.g., after viewing a chat)
+    const handleVisibilityChange = () => {
+      if (!document.hidden && userId) {
+        fetchChats(userId);
+      }
+    };
+
+    const handleFocus = () => {
+      if (userId) {
+        fetchChats(userId);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [router]);
 
   const fetchRequests = async (userId: string) => {
@@ -384,11 +405,11 @@ export default function InboxPage() {
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>Chats</span>
-                {chats.length > 0 && (
+                {chats.reduce((acc, c) => acc + c.unreadCount, 0) > 0 && (
                   <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold flex items-center justify-center ${
                     activeTab === 'chats' ? 'bg-white/20 text-white' : 'bg-emerald-500 text-white'
                   }`}>
-                    {chats.length}
+                    {chats.reduce((acc, c) => acc + c.unreadCount, 0)}
                   </span>
                 )}
               </button>

@@ -17,6 +17,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function VerifiedRegisterPage() {
   const router = useRouter();
@@ -305,9 +306,13 @@ export default function VerifiedRegisterPage() {
               transition={{ delay: 0.2, type: 'spring', bounce: 0.5 }}
               className="inline-block mb-4"
             >
-              <div className="w-20 h-20 bg-pink-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg rotate-3 hover:rotate-0 transition-transform">
-                <span className="text-5xl">👻</span>
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Ghosty Logo"
+                width={80}
+                height={80}
+                className="object-contain mx-auto"
+              />
             </motion.div>
 
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">

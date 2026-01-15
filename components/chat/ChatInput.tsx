@@ -21,7 +21,7 @@ export function ChatInput({ onSend, disabled = false, disabledMessage }: ChatInp
   };
 
   return (
-    <div className="sticky bottom-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700/50 px-4 py-3 sm:py-4 mb-16 sm:mb-0 shadow-lg">
+    <div className="sticky bottom-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700/50 px-4 py-3 sm:py-4 pb-20 sm:pb-4 shadow-lg">
       <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
         {/* Disabled Message */}
         {disabled && disabledMessage && (

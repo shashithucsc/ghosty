@@ -244,9 +244,13 @@ export async function GET(request: NextRequest) {
       `)
       .not('gender', 'is', null);
 
-    // Apply opposite gender filter only if viewer gender is known
+    // CRITICAL: Apply opposite gender filter - exclude same gender
+    // This ensures males don't see males and females don't see females
+    // Using case-insensitive comparison to handle 'Male'/'male', 'Female'/'female' variations
     if (viewerGender) {
-      query = query.neq('gender', viewerGender);
+      // Use NOT with ilike for case-insensitive gender exclusion
+      // This will exclude 'Male', 'male', 'MALE', etc. if viewer is male
+      query = query.not('gender', 'ilike', viewerGender);
     }
 
     // Exclude blocked and interacted users

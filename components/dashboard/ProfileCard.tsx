@@ -93,23 +93,17 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
       )}
 
       {/* Card Content - Compact Layout */}
-      <div className="h-full flex flex-col p-5 sm:p-6">
+      <div className="h-full flex flex-col p-3 sm:p-6 overflow-y-auto">
         {/* Header - Horizontal Layout */}
-        <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-200">
+        <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-200">
           <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-purple-600 border-2 border-purple-500/30 flex items-center justify-center shrink-0 shadow-lg">
-            {profile.gender?.toLowerCase() === 'male' ? (
-              <svg className="w-12 h-12 sm:w-14 sm:h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            ) : (
-              <svg className="w-12 h-12 sm:w-14 sm:h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            )}
+            <svg className="w-8 h-8 sm:w-14 sm:h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 truncate">
+              <h2 className="text-xl sm:text-3xl font-bold text-gray-800 truncate">
                 {profile.realName || profile.anonymousName}
               </h2>
               {profile.isVerified && (
@@ -127,10 +121,10 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
         </div>
 
         {/* Compact Info Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-2 gap-2 mb-2">
           {/* Height */}
           {profile.height && (
-            <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 flex items-center gap-3">
+            <div className="bg-teal-50 border border-teal-200 rounded-xl p-2 sm:p-3 flex items-center gap-2 sm:gap-3">
               <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center shrink-0">
                 <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
@@ -145,7 +139,7 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
 
           {/* Skin Tone */}
           {profile.skinTone && (
-            <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-center gap-3">
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-2 sm:p-3 flex items-center gap-2 sm:gap-3">
               <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
                 <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
@@ -161,7 +155,7 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
 
         {/* Education - Full Width */}
         {profile.university && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 flex items-start gap-3">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-2 sm:p-3 mb-2 flex items-start gap-2 sm:gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
               <GraduationCap className="w-5 h-5 text-blue-600" />
             </div>
@@ -179,7 +173,7 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
 
         {/* Hometown */}
         {profile.hometown && (
-          <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-4 flex items-center gap-3">
+          <div className="bg-orange-50 border border-orange-200 rounded-xl p-2 sm:p-3 mb-2 flex items-center gap-2 sm:gap-3">
             <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
               <MapPin className="w-5 h-5 text-orange-600" />
             </div>
@@ -192,7 +186,7 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
 
         {/* Interests - If exists */}
         {profile.interests && profile.interests.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2">
             {profile.interests.slice(0, 4).map((interest) => (
               <span key={interest} className="px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-lg text-xs font-semibold text-indigo-700">
                 {interest}
@@ -202,36 +196,36 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
         )}
 
         {/* Action Buttons - Prominent */}
-        <div className="mt-auto pt-4 border-t border-gray-200">
-          <div className="flex items-center justify-center gap-4 mb-3">
+        <div className="mt-auto pt-2 sm:pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-2">
             {/* Skip Button */}
             <button
               onClick={onSkip}
-              className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl text-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center"
+              className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl text-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center"
               style={{ backgroundColor: '#F43F5E' }}
               title="Skip"
             >
-              <X className="w-8 h-8 sm:w-9 sm:h-9" strokeWidth={2.5} />
+              <X className="w-6 h-6 sm:w-9 sm:h-9" strokeWidth={2.5} />
             </button>
 
             {/* View Profile Button */}
             <button
               onClick={() => router.push(`/profile/${profile.id}`)}
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl text-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center hover:brightness-110"
+              className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl text-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center hover:brightness-110"
               style={{ backgroundColor: '#8B5CF6' }}
               title="View Full Profile"
             >
-              <Eye className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2} />
+              <Eye className="w-5 h-5 sm:w-7 sm:h-7" strokeWidth={2} />
             </button>
 
             {/* Send Message Request Button */}
             <button
               onClick={onMessageRequest}
-              className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl text-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center"
+              className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl text-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center"
               style={{ backgroundColor: '#0EA5E9' }}
               title="Send Message Request"
             >
-              <MessageSquare className="w-8 h-8 sm:w-9 sm:h-9" strokeWidth={2.5} />
+              <MessageSquare className="w-6 h-6 sm:w-9 sm:h-9" strokeWidth={2.5} />
             </button>
           </div>
 

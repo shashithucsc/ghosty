@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -60,9 +61,13 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     transition={{ delay: 0.2, type: 'spring', bounce: 0.5 }}
                     className="inline-block mb-4"
                   >
-                    <div className="w-20 h-20 bg-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg rotate-3 hover:rotate-0 transition-transform">
-                      <span className="text-5xl">👻</span>
-                    </div>
+                    <Image
+                      src="/logo.png"
+                      alt="Ghosty Logo"
+                      width={80}
+                      height={80}
+                      className="object-contain mx-auto"
+                    />
                   </motion.div>
 
                   <motion.h2
@@ -96,8 +101,8 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     onClick={() => handleNavigate('/register/simple')}
                     className="w-full p-6 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 rounded-xl transition-all flex items-center gap-4"
                   >
-                    <div className="flex-shrink-0 w-12 h-12 bg-purple-600 dark:bg-purple-500 rounded-xl flex items-center justify-center">
-                      <Zap className="w-6 h-6 text-white" />
+                    <div className="flex-shrink-0">
+                      <Zap className="w-8 h-8 text-purple-600 dark:text-purple-400" />
                     </div>
                     
                     <div className="flex-1 text-left">
@@ -121,16 +126,14 @@ export function SignInModal({ isOpen, onClose }: SignInModalProps) {
                     onClick={() => handleNavigate('/register/verified')}
                     className="w-full p-6 bg-pink-100 dark:bg-pink-900/30 hover:bg-pink-200 dark:hover:bg-pink-900/50 rounded-xl transition-all flex items-center gap-4"
                   >
-                    <div className="flex-shrink-0 w-12 h-12 bg-pink-600 dark:bg-pink-500 rounded-xl flex items-center justify-center">
-                      <ShieldCheck className="w-6 h-6 text-white" />
+                    <div className="flex-shrink-0">
+                      <ShieldCheck className="w-8 h-8 text-pink-600 dark:text-pink-400" />
                     </div>
                     
                     <div className="flex-1 text-left">
                       <h3 className="text-lg font-bold text-pink-700 dark:text-pink-400">
                         Verified Join
-                        <span className="ml-2 px-2 py-0.5 bg-green-500 text-white text-xs rounded-full">
-                          Recommended
-                        </span>
+                        
                       </h3>
                     </div>
                     
