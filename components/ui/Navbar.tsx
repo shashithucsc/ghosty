@@ -128,8 +128,8 @@ export function Navbar() {
               <div className="text-3xl sm:text-4xl transform group-hover:scale-110 transition-transform duration-300">
                 👻
               </div>
-              <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 text-transparent bg-clip-text text-glow">
-                Ghosty
+              <span className="text-xl sm:text-2xl font-bold bg-purple-400 text-transparent bg-clip-text text-glow">
+                අතැගිලි
               </span>
             </div>
 

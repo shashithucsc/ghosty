@@ -119,18 +119,7 @@ export default function ProfileView({
   if (isLimited) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-20">
-        {/* Header */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
-          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-            <button
-              onClick={() => router.back()}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-700" />
-            </button>
-            <h1 className="text-lg font-semibold text-gray-800">Profile</h1>
-          </div>
-        </div>
+       
 
         {/* Profile Card */}
         <div className="max-w-2xl mx-auto px-4 py-6">

@@ -49,12 +49,12 @@ export function HeroSection() {
         >
           <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight leading-[0.9]">
             <span className="block text-white drop-shadow-xl">
-              Find Your
+             Welcome to
             </span>
             <span className="relative inline-block mt-2">
               <span className="absolute inset-0 blur-3xl bg-purple-600/40" />
-              <span className="relative bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 text-glow">
-                Ghosty
+              <span className="relative bg-clip-text text-transparent bg-purple-400 text-glow">
+                අතැගිලි
               </span>
             </span>
           </h1>
@@ -92,7 +92,7 @@ export function HeroSection() {
             className="btn-glass-secondary px-8 py-4 flex items-center justify-center gap-3 group"
           >
             <Globe className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
-            <span>Explore Features</span>
+            <span>Back to Home</span>
           </button>
         </motion.div>
       </div>

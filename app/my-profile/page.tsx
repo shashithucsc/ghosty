@@ -27,8 +27,8 @@ interface ProfileData {
 const avatarOptions = ['👤', '😊', '😎', '🤓', '😇', '🥳', '🤩', '😍', '🥰', '😋', '🤔', '🧐', '🤗', '🤠', '👻', '🎭', '🎨', '🎯', '⚡', '🌟'];
 
 const skinToneOptions = ['Fair', 'Medium', 'Olive', 'Tan', 'Brown', 'Dark'];
-const degreeOptions = ['Diploma', 'Foundation', 'Bachelor', 'Master', 'PhD'];
-const genderOptions = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+const degreeOptions = ['Diploma', 'Private Degree', 'Goverment Degree', 'Master', 'PhD'];
+const genderOptions = ['Male', 'Female'];
 
 export default function MyProfilePage() {
   const router = useRouter();
@@ -155,12 +155,7 @@ export default function MyProfilePage() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <button
-            onClick={() => router.back()}
-            className="p-2 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 hover:bg-white dark:hover:bg-gray-700 transition-all shadow-lg"
-          >
-            <ArrowLeft className="w-6 h-6 text-gray-800 dark:text-white" />
-          </button>
+          
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Profile</h1>
         </div>
 
