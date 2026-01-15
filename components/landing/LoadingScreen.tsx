@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export function LoadingScreen() {
   const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number }>>([]);
@@ -30,16 +31,27 @@ export function LoadingScreen() {
         />
       ))}
 
-      {/* Ghost Icon & Text */}
+      {/* Logo & Text */}
       <div className="relative z-10 flex flex-col items-center gap-6">
-        {/* Animated Ghost */}
-        <div className="relative">
-          <div className="text-9xl animate-bounce-gentle filter drop-shadow-2xl">
-            👻
+        {/* Animated Logo */}
+        <div className="relative w-36 h-36 sm:w-44 sm:h-44">
+          <div className="relative w-full h-full animate-bounce-gentle filter drop-shadow-2xl">
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
           {/* Glow effect */}
-          <div className="absolute inset-0 text-9xl animate-pulse-slow opacity-30 blur-xl">
-            👻
+          <div className="absolute inset-0 animate-pulse-slow opacity-30 blur-xl">
+            <Image
+              src="/logo.png"
+              alt="Logo Glow"
+              fill
+              className="object-contain"
+            />
           </div>
         </div>
 
@@ -47,18 +59,18 @@ export function LoadingScreen() {
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-5xl sm:text-6xl font-bold animate-fade-in">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400">
-              Ghosty
+             
             </span>
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg animate-fade-in-delay">
-            Loading your experience...
+            welcome to අතැගිලි...
           </p>
         </div>
 
         {/* Loading Spinner */}
         <div className="flex gap-2 animate-fade-in-delay-2">
           <div className="w-3 h-3 bg-purple-600 dark:bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-          <div className="w-3 h-3 bg-pink-600 dark:bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          <div className="w-3 h-3 bg-purple-600 dark:bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
           <div className="w-3 h-3 bg-purple-600 dark:bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
         </div>
       </div>

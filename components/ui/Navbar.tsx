@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { Home, LayoutDashboard, User, Menu, X, Inbox, Search, Bell, MessageCircle, UserCog, LogOut } from 'lucide-react';
 import { useUser } from '@/lib/contexts/UserContext';
 
@@ -106,6 +107,13 @@ export function Navbar() {
     return pathname?.startsWith(path);
   };
 
+  // Check if current page should use solid navbar
+  const useSolidNavbar = pathname === '/' || 
+                          pathname === '/dashboard' || 
+                          pathname === '/inbox' || 
+                          pathname === '/my-profile' || 
+                          pathname?.startsWith('/profile/');
+
   return (
     <>
       {/* Desktop & Mobile Navbar */}
@@ -113,7 +121,9 @@ export function Navbar() {
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           shouldHideTopNavbar ? 'hidden md:block' : ''
         } ${
-          isScrolled
+          useSolidNavbar
+            ? 'bg-slate-900 border-b border-white/10 shadow-xl'
+            : isScrolled
             ? 'glass-card shadow-2xl'
             : 'bg-transparent'
         }`}
@@ -125,11 +135,21 @@ export function Navbar() {
               onClick={() => router.push('/')}
               className="flex items-center gap-2 cursor-pointer group"
             >
-              <div className="text-3xl sm:text-4xl transform group-hover:scale-110 transition-transform duration-300">
-                👻
+              <div className="relative w-10 h-10 sm:w-12 sm:h-12 transform group-hover:scale-110 transition-transform duration-300">
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  fill
+                  className="object-contain"
+                  priority
+                />
               </div>
-              <span className="text-xl sm:text-2xl font-bold bg-purple-400 text-transparent bg-clip-text text-glow">
-                අතැගිලි
+              <span className={`text-xl sm:text-2xl font-bold transition-all ${
+                useSolidNavbar 
+                  ? 'text-white' 
+                  : 'bg-purple-400 text-transparent bg-clip-text text-glow'
+              }`}>
+               
               </span>
             </div>
 
@@ -377,7 +397,11 @@ export function Navbar() {
       </nav>
 
       {/* Bottom Mobile Navigation (iOS style) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700/50 safe-area-inset-bottom shadow-lg">
+      <div className={`md:hidden fixed bottom-0 left-0 right-0 z-50 border-t safe-area-inset-bottom shadow-lg transition-all ${
+        useSolidNavbar 
+          ? 'bg-slate-900 border-white/10' 
+          : 'bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-gray-200 dark:border-gray-700/50'
+      }`}>
         <div className="grid grid-cols-4 h-16">
           {mobileNavItems.map((item) => {
             const Icon = item.icon;

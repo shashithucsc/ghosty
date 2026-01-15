@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Send, X, Eye, MapPin, CheckCircle, XCircle, GraduationCap, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MessageSquare, X, Eye, MapPin, CheckCircle, XCircle, GraduationCap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { UserProfile } from '@/app/dashboard/page';
 
 interface ProfileCardProps {
@@ -72,7 +72,7 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
 
   return (
     <div
-      className="bg-white dark:bg-gray-800 rounded-3xl h-full overflow-hidden relative animate-scale-in shadow-2xl border border-gray-100 dark:border-gray-700"
+      className="bg-white rounded-3xl h-full overflow-hidden relative shadow-2xl border border-gray-100"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -80,154 +80,187 @@ export function ProfileCard({ profile, onMessageRequest, onSkip, onPrevious, isA
     >
       {/* Swipe Indicators */}
       {swipeDirection === 'right' && (
-        <div className="absolute top-8 right-8 z-20 bg-blue-500 text-white px-6 py-3 rounded-lg font-bold text-xl rotate-12 animate-scale-in">
-          MESSAGE 💌
+        <div className="absolute top-8 right-8 z-20 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold text-lg shadow-xl flex items-center gap-2">
+          <MessageSquare className="w-5 h-5" />
+          SEND REQUEST
         </div>
       )}
       {swipeDirection === 'left' && (
-        <div className="absolute top-8 left-8 z-20 bg-red-500 text-white px-6 py-3 rounded-lg font-bold text-xl -rotate-12 animate-scale-in">
-          SKIP ✗
+        <div className="absolute top-8 left-8 z-20 bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-lg shadow-xl flex items-center gap-2">
+          <X className="w-5 h-5" />
+          SKIP
         </div>
       )}
 
-      {/* Card Content */}
-      <div className="h-full flex flex-col p-4 sm:p-8">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="text-4xl sm:text-6xl">{profile.avatar}</div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
-                  {profile.anonymousName}
-                </h2>
-                {profile.isVerified ? (
-                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 fill-blue-500" aria-label="Verified" />
-                ) : (
-                  <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" aria-label="Not Verified" />
-                )}
-              </div>
-              <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-                {profile.age} • {profile.gender}
-              </p>
+      {/* Card Content - Compact Layout */}
+      <div className="h-full flex flex-col p-5 sm:p-6">
+        {/* Header - Horizontal Layout */}
+        <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-200">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-purple-600 border-2 border-purple-500/30 flex items-center justify-center shrink-0 shadow-lg">
+            {profile.gender?.toLowerCase() === 'male' ? (
+              <svg className="w-12 h-12 sm:w-14 sm:h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            ) : (
+              <svg className="w-12 h-12 sm:w-14 sm:h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 truncate">
+                {profile.realName || profile.anonymousName}
+              </h2>
+              {profile.isVerified && (
+                <div className="shrink-0 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-4 h-4 text-white" strokeWidth={3} />
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-gray-600">
+              <span className="text-lg font-semibold">{profile.age} yrs</span>
+              <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+              <span className="text-sm">{profile.gender}</span>
             </div>
           </div>
         </div>
 
-        {/* Profile Information - Single Compact Card */}
-        <div className="mb-3 bg-gradient-to-br from-purple-50/50 via-blue-50/50 to-pink-50/50 dark:from-purple-900/10 dark:via-blue-900/10 dark:to-pink-900/10 rounded-2xl p-3 border border-purple-100 dark:border-purple-800/50 space-y-2">
-          {/* Name */}
-          <div>
-            <h3 className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-0.5 uppercase tracking-wide">Name</h3>
-            <p className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">
-              {profile.realName || profile.anonymousName}
-            </p>
-          </div>
-
-          {/* Quick Stats Row */}
-          <div className="grid grid-cols-3 gap-1.5">
-            <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-1.5">
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Age</p>
-              <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-white">{profile.age}</p>
-            </div>
-            {profile.height && (
-              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-1.5">
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Height</p>
-                <p className="text-base sm:text-lg font-bold text-gray-800 dark:text-white">{profile.height}<span className="text-xs">cm</span></p>
+        {/* Compact Info Grid */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {/* Height */}
+          {profile.height && (
+            <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
               </div>
-            )}
-            {profile.skinTone && (
-              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-1.5">
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Skin Tone</p>
-                <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">{profile.skinTone}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Education */}
-          <div className="flex items-start gap-2 bg-blue-50/70 dark:bg-blue-900/20 rounded-lg p-2">
-            <GraduationCap className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">
-                {profile.university || 'University not specified'}
-              </p>
-              <div className="flex gap-2 mt-0.5 text-xs text-gray-600 dark:text-gray-400">
-                {profile.faculty && <span>• {profile.faculty}</span>}
-                {profile.degree && <span>• {profile.degree}</span>}
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Height</p>
+                <p className="text-lg font-bold text-gray-800">{profile.height}<span className="text-xs ml-0.5">cm</span></p>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Hometown */}
-          {profile.hometown && (
-            <div className="flex items-center gap-2 bg-pink-50/70 dark:bg-pink-900/20 rounded-lg p-1.5">
-              <MapPin className="w-4 h-4 text-pink-600 dark:text-pink-400 shrink-0" />
-              <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
-                {profile.hometown}
-              </p>
+          {/* Skin Tone */}
+          {profile.skinTone && (
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Skin</p>
+                <p className="text-sm font-bold text-gray-800 truncate">{profile.skinTone}</p>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-center gap-3 sm:gap-6 mt-auto">
-          {/* Skip Button */}
-          <button
-            onClick={onSkip}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-gray-800 border-2 border-red-500 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center group"
-            title="Skip"
-          >
-            <X className="w-6 h-6 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform" />
-          </button>
+        {/* Education - Full Width */}
+        {profile.university && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3 flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+              <GraduationCap className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-gray-500 font-medium mb-1">Education</p>
+              <p className="text-base font-bold text-gray-800 truncate">{profile.university}</p>
+              {(profile.faculty || profile.degree) && (
+                <p className="text-xs text-gray-600 mt-0.5 truncate">
+                  {[profile.faculty, profile.degree].filter(Boolean).join(' • ')}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
-          {/* View Profile Button */}
-          <button
-            onClick={() => router.push(`/profile/${profile.id}`)}
-            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white dark:bg-gray-800 border-2 border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center group"
-            title="View Full Profile"
-          >
-            <Eye className="w-5 h-5 sm:w-6 sm:h-6 group-hover:scale-110 transition-transform" />
-          </button>
+        {/* Hometown */}
+        {profile.hometown && (
+          <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
+              <MapPin className="w-5 h-5 text-orange-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-gray-500 font-medium">From</p>
+              <p className="text-base font-bold text-gray-800 truncate">{profile.hometown}</p>
+            </div>
+          </div>
+        )}
 
-          {/* Send Message Request Button */}
-          <button
-            onClick={onMessageRequest}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg flex items-center justify-center group"
-            title="Send Message Request"
-          >
-            <Send className="w-6 h-6 sm:w-7 sm:h-7 group-hover:scale-110 transition-transform" />
-          </button>
+        {/* Interests - If exists */}
+        {profile.interests && profile.interests.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {profile.interests.slice(0, 4).map((interest) => (
+              <span key={interest} className="px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-lg text-xs font-semibold text-indigo-700">
+                {interest}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Action Buttons - Prominent */}
+        <div className="mt-auto pt-4 border-t border-gray-200">
+          <div className="flex items-center justify-center gap-4 mb-3">
+            {/* Skip Button */}
+            <button
+              onClick={onSkip}
+              className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl text-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center"
+              style={{ backgroundColor: '#F43F5E' }}
+              title="Skip"
+            >
+              <X className="w-8 h-8 sm:w-9 sm:h-9" strokeWidth={2.5} />
+            </button>
+
+            {/* View Profile Button */}
+            <button
+              onClick={() => router.push(`/profile/${profile.id}`)}
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl text-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center hover:brightness-110"
+              style={{ backgroundColor: '#8B5CF6' }}
+              title="View Full Profile"
+            >
+              <Eye className="w-6 h-6 sm:w-7 sm:h-7" strokeWidth={2} />
+            </button>
+
+            {/* Send Message Request Button */}
+            <button
+              onClick={onMessageRequest}
+              className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl text-white transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center"
+              style={{ backgroundColor: '#0EA5E9' }}
+              title="Send Message Request"
+            >
+              <MessageSquare className="w-8 h-8 sm:w-9 sm:h-9" strokeWidth={2.5} />
+            </button>
+          </div>
+
+          {/* Navigation Row */}
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={onPrevious}
+              disabled={!hasPrevious}
+              className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                hasPrevious
+                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:scale-95'
+                  : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Prev</span>
+            </button>
+            <span className="text-xs text-gray-500">
+              Swipe left/right
+            </span>
+            <button
+              onClick={onSkip}
+              className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all active:scale-95"
+            >
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-
-        {/* Navigation Buttons */}
-        <div className="flex items-center justify-center gap-2 mt-3">
-          <button
-            onClick={onPrevious}
-            disabled={!hasPrevious}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm transition-all ${
-              hasPrevious
-                ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 active:scale-95'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
-            }`}
-            title="Previous Profile"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Previous
-          </button>
-          <button
-            onClick={onSkip}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all active:scale-95"
-            title="Next Profile"
-          >
-            Next
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Swipe Hint */}
-        <p className="text-center text-xs text-gray-500 dark:text-gray-500 mt-2 sm:hidden">
-          Swipe right to send message request, left to skip
-        </p>
       </div>
     </div>
   );

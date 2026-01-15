@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
     for (const chat of allChats || []) {
       const convId = chat.conversation_id;
       const otherUserId = chat.sender_id === userId ? chat.receiver_id : chat.sender_id;
+      const isReceived = chat.receiver_id === userId;
 
       if (!conversationsMap.has(convId)) {
         conversationsMap.set(convId, {
@@ -62,8 +63,19 @@ export async function GET(request: NextRequest) {
           otherUserId: otherUserId,
           lastMessage: chat.message,
           lastMessageTime: chat.created_at,
-          unreadCount: 0, // TODO: Implement unread count
+          unreadCount: (isReceived && !chat.is_read) ? 1 : 0,
         });
+      } else {
+        // Update if this message is newer
+        const existing = conversationsMap.get(convId);
+        if (new Date(chat.created_at) > new Date(existing.lastMessageTime)) {
+          existing.lastMessage = chat.message;
+          existing.lastMessageTime = chat.created_at;
+        }
+        // Count unread messages (messages received by current user that aren't read)
+        if (isReceived && !chat.is_read) {
+          existing.unreadCount++;
+        }
       }
     }
 

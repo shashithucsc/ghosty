@@ -329,7 +329,7 @@ export default function InboxPage() {
       )}
 
       {/* Header - Mobile First - Removed back button since navbar handles navigation */}
-      <header className="relative z-20 sticky top-16 sm:top-20 bg-slate-900/80 backdrop-blur-xl border-b border-white/5">
+      <header className="relative z-20 sticky top-16 sm:top-20 bg-slate-900 border-b border-white/10">
         <div className="px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between max-w-2xl mx-auto">
             {/* Title */}

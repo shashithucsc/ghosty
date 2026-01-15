@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 
@@ -7,6 +8,8 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Zod validation schema
 const SimpleRegistrationSchema = z.object({
@@ -92,6 +95,17 @@ export async function POST(request: NextRequest) {
       // Don't fail registration if profile creation fails, just log it
     }
 
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: newUser.id, 
+        username: newUser.username,
+        isAdmin: false 
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
     return NextResponse.json(
       {
         message: 'Account created successfully!',
@@ -99,7 +113,7 @@ export async function POST(request: NextRequest) {
         username: newUser.username,
         registrationType: 'simple',
         verificationStatus: 'unverified',
-        token: `simple_${newUser.id}_${Date.now()}`, // Simple token for session management
+        token,
         user: {
           id: newUser.id,
           username: newUser.username,

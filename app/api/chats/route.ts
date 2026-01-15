@@ -96,6 +96,20 @@ export async function GET(request: NextRequest) {
       isOwn: chat.sender_id === userId,
     }));
 
+    // Mark all received messages as read for this user
+    if (chats.length > 0) {
+      const messageIdsToMarkRead = chats
+        .filter(chat => chat.receiver_id === userId && !chat.is_read)
+        .map(chat => chat.id);
+
+      if (messageIdsToMarkRead.length > 0) {
+        await supabase
+          .from('chats')
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .in('id', messageIdsToMarkRead);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       messages,

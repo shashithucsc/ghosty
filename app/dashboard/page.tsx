@@ -88,7 +88,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 page-container">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-20">
       {/* Notifications */}
       {notifications.length > 0 && (
         <div className="fixed top-20 left-0 right-0 z-40 px-4">
@@ -105,15 +105,15 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 max-w-2xl">
         {/* Filter Button - Mobile & Desktop */}
-        <div className="mb-4">
+        <div className="mb-6">
           <button
             onClick={() => setShowFilters(true)}
-            className="w-full sm:w-auto glass-card px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-white font-medium hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-xl"
+            className="w-full sm:w-auto bg-white shadow-lg border border-gray-200 px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-gray-800 font-semibold hover:shadow-xl hover:border-purple-300 transition-all duration-300"
           >
-            <SlidersHorizontal className="w-5 h-5" />
+            <SlidersHorizontal className="w-5 h-5 text-purple-600" />
             <span>Filters & Preferences</span>
             {(filters.universities.length > 0 || filters.interests.length > 0) && (
-              <span className="bg-purple-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-purple-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                 {filters.universities.length + filters.interests.length}
               </span>
             )}
@@ -129,7 +129,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
               <div className="spinner-large mx-auto mb-4"></div>
-              <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+              <p className="text-gray-600">Loading your recommendations...</p>
             </div>
           </div>
         )}

@@ -94,30 +94,39 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
 
       {/* Panel */}
       <div className="fixed inset-x-0 bottom-0 sm:inset-y-0 sm:right-0 sm:left-auto sm:w-full sm:max-w-md z-50 animate-slide-up sm:animate-slide-left">
-        <div className="h-full bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto">
+        <div className="h-full bg-white shadow-2xl overflow-y-auto">
           {/* Header */}
-          <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between z-10">
+          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
             <div className="flex items-center gap-3">
-              <Sliders className="w-6 h-6 text-purple-600" />
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white">Filters</h2>
+              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                <Sliders className="w-5 h-5 text-purple-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-800">Filters</h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
             >
-              <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+              <X className="w-6 h-6 text-gray-600" />
             </button>
           </div>
 
           {/* Content */}
           <div className="p-6 space-y-8 pb-48">
             {/* Age Filter */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Age Filter</h3>
+            <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800">Age Range</h3>
+              </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Minimum: {ageRange[0]}</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Maximum: {ageRange[1]}</span>
+                  <span className="text-sm font-medium text-gray-600">Minimum: {ageRange[0]}</span>
+                  <span className="text-sm font-medium text-gray-600">Maximum: {ageRange[1]}</span>
                 </div>
                 <div className="space-y-2">
                   <input
@@ -137,8 +146,8 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
                     className="w-full range-slider"
                   />
                 </div>
-                <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <span className="text-purple-700 dark:text-purple-300 font-semibold">
+                <div className="text-center p-3 bg-purple-100 rounded-xl border border-purple-200">
+                  <span className="text-purple-700 font-bold">
                     {ageRange[0]} - {ageRange[1]} years old
                   </span>
                 </div>
@@ -149,27 +158,29 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
             <div>
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border-2 border-red-200 dark:border-red-800 rounded-xl transition-all group"
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-red-50 hover:bg-red-100 border-2 border-red-200 rounded-xl transition-all group shadow-sm"
               >
-                <LogOut className="w-5 h-5 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform" />
-                <span className="text-base font-semibold text-red-600 dark:text-red-400">
-                  Logout
+                <div className="w-10 h-10 rounded-full bg-red-100 group-hover:bg-red-200 flex items-center justify-center transition-colors">
+                  <LogOut className="w-5 h-5 text-red-600 group-hover:scale-110 transition-transform" />
+                </div>
+                <span className="text-base font-semibold text-red-600">
+                  Logout from Account
                 </span>
               </button>
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className="fixed bottom-0 inset-x-0 sm:right-0 sm:left-auto sm:w-full sm:max-w-md bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-6 space-y-3">
+          <div className="fixed bottom-0 inset-x-0 sm:right-0 sm:left-auto sm:w-full sm:max-w-md bg-white border-t border-gray-200 p-6 space-y-3 shadow-2xl">
             <button
               onClick={handleApply}
-              className="w-full btn-primary py-4 text-lg font-semibold"
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 text-lg font-semibold rounded-xl shadow-lg transition-all"
             >
               Apply Age Filter
             </button>
             <button
               onClick={handleReset}
-              className="w-full btn-secondary py-3 text-base font-semibold"
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 text-base font-semibold rounded-xl transition-all"
             >
               Reset Filter
             </button>
