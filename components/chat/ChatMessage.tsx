@@ -54,9 +54,13 @@ export function ChatMessage({ message, onDelete }: ChatMessageProps) {
               {!message.isOptimistic && (
                 <>
                   {message.isRead ? (
-                    <CheckCheck className="w-4 h-4 text-blue-500" title="Read" />
+                    <span title="Read">
+                      <CheckCheck className="w-4 h-4 text-blue-500" />
+                    </span>
                   ) : (
-                    <Check className="w-4 h-4 text-gray-400" title="Delivered" />
+                    <span title="Delivered">
+                      <Check className="w-4 h-4 text-gray-400" />
+                    </span>
                   )}
                 </>
               )}
