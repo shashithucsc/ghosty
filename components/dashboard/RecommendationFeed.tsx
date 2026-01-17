@@ -134,6 +134,8 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
     setSendingRequest(true);
 
     try {
+      console.log('📤 Sending request from:', currentUserId, 'to:', currentProfile.id);
+      
       const response = await fetch('/api/inbox/requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -144,6 +146,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       });
 
       const data = await response.json();
+      console.log('📬 Response:', response.status, data);
 
       if (!response.ok) {
         // Handle 409 conflict - request already exists
@@ -202,12 +205,12 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
     if (!currentUserId || !currentProfile) return;
 
     try {
-      await fetch('/api/swipes', {
+      await fetch('/api/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: currentUserId,
-          targetUserId: currentProfile.id,
+          swiperId: currentUserId,
+          targetId: currentProfile.id,
           action,
         }),
       });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, use } from 'react';
+import { useState, useEffect, useRef, use, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { MoreVertical } from 'lucide-react';
 import { ChatHeader } from '@/components/chat/ChatHeader';
@@ -10,6 +10,7 @@ import { BlockReportModal } from '@/components/chat/BlockReportModal';
 import { UnblockModal } from '@/components/chat/UnblockModal';
 import { Toast } from '@/components/ui/Toast';
 import { createClient } from '@supabase/supabase-js';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,11 +23,24 @@ export interface Message {
   text: string;
   timestamp: Date;
   isOwn: boolean;
+  isRead?: boolean;
+  readAt?: Date | null;
+  isOptimistic?: boolean;
+}
+
+interface PresenceState {
+  [key: string]: Array<{
+    presence_ref: string;
+    user_id: string;
+    typing?: boolean;
+    online?: boolean;
+  }>;
 }
 
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatPartner, setChatPartner] = useState({
     anonymousName: 'Loading...',
@@ -50,6 +64,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     blockedAt?: string | null;
     canSendMessages?: boolean;
   } | null>(null);
+  
+  // New state for enhanced features
+  const [isTyping, setIsTyping] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Unwrap params using React.use()
   const { id: conversationId } = use(params);
@@ -72,15 +91,33 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }
   }, [router]);
 
-  // Fetch messages and determine other user
+  // Mark messages as read when user opens chat
+  const markMessagesAsRead = useCallback(async () => {
+    if (!currentUserId || !conversationId) return;
+
+    try {
+      await fetch('/api/chats/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId,
+          userId: currentUserId,
+        }),
+      });
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
+  }, [currentUserId, conversationId]);
+
+  // Setup Supabase Realtime subscription (STOP POLLING, START LISTENING)
   useEffect(() => {
     if (!currentUserId || !conversationId) return;
 
-    let isFirstLoad = true;
     let isMounted = true;
 
-    const fetchMessages = async () => {
+    const setupRealtimeSubscription = async () => {
       try {
+        // Initial fetch of messages
         const response = await fetch(
           `/api/chats?conversationId=${conversationId}&userId=${currentUserId}&limit=100`
         );
@@ -94,13 +131,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         if (!isMounted) return;
 
         if (data.success && data.messages) {
-          // Transform messages to include proper Date objects
           const transformedMessages = data.messages.map((msg: any) => ({
             id: msg.id,
             senderId: msg.senderId,
             text: msg.text,
             timestamp: new Date(msg.timestamp),
             isOwn: msg.isOwn,
+            isRead: msg.isRead || false,
+            readAt: msg.readAt ? new Date(msg.readAt) : null,
           }));
 
           setMessages(transformedMessages);
@@ -115,32 +153,201 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           }
         }
 
-        // Stop loading after first fetch
-        if (isFirstLoad) {
-          setLoading(false);
-        }
+        setLoading(false);
+
+        // Mark messages as read
+        await markMessagesAsRead();
+
+        // Create a channel for this conversation
+        const channel = supabase.channel(`chat-${conversationId}`, {
+          config: {
+            presence: {
+              key: currentUserId,
+            },
+          },
+        });
+
+        // Subscribe to new messages (INSERT events)
+        channel.on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'chats',
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            if (!isMounted) return;
+            
+            console.log('📨 New message received via Realtime:', payload);
+            
+            const newMessage = payload.new as any;
+            
+            // Don't add if it's our own optimistic message
+            setMessages((prev) => {
+              // Check if this message already exists (from optimistic update)
+              const exists = prev.some(msg => msg.id === newMessage.id);
+              if (exists) {
+                console.log('Message already exists (optimistic), skipping');
+                return prev;
+              }
+
+              const message: Message = {
+                id: newMessage.id,
+                senderId: newMessage.sender_id,
+                text: newMessage.message,
+                timestamp: new Date(newMessage.created_at),
+                isOwn: newMessage.sender_id === currentUserId,
+                isRead: newMessage.is_read || false,
+                readAt: newMessage.read_at ? new Date(newMessage.read_at) : null,
+              };
+
+              console.log('✅ Adding new message to state:', message);
+
+              // Mark as read if it's not our message
+              if (!message.isOwn) {
+                setTimeout(() => markMessagesAsRead(), 500);
+              }
+
+              return [...prev, message];
+            });
+          }
+        );
+
+        // Subscribe to message updates (for read receipts)
+        channel.on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'chats',
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            if (!isMounted) return;
+            
+            const updatedMessage = payload.new as any;
+            
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === updatedMessage.id
+                  ? {
+                      ...msg,
+                      isRead: updatedMessage.is_read || false,
+                      readAt: updatedMessage.read_at ? new Date(updatedMessage.read_at) : null,
+                    }
+                  : msg
+              )
+            );
+          }
+        );
+
+        // Subscribe to message deletions
+        channel.on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'chats',
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          (payload) => {
+            if (!isMounted) return;
+            
+            const deletedMessage = payload.old as any;
+            
+            setMessages((prev) => prev.filter((msg) => msg.id !== deletedMessage.id));
+          }
+        );
+
+        // Subscribe to presence for typing indicators and online status
+        channel.on('presence', { event: 'sync' }, () => {
+          if (!isMounted) return;
+          
+          const state = channel.presenceState<PresenceState>();
+          
+          // Check if other user is online and typing
+          let otherUserOnline = false;
+          let otherUserTyping = false;
+
+          Object.values(state).forEach((presences) => {
+            presences.forEach((presence: any) => {
+              if (presence.user_id !== currentUserId) {
+                if (presence.online) otherUserOnline = true;
+                if (presence.typing) otherUserTyping = true;
+              }
+            });
+          });
+
+          setIsOnline(otherUserOnline);
+          setIsTyping(otherUserTyping);
+        });
+
+        // Subscribe to the channel
+        await channel.subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Realtime channel subscribed successfully');
+            // Track our presence (online)
+            await channel.track({
+              user_id: currentUserId,
+              online: true,
+              typing: false,
+            });
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('❌ Realtime channel error');
+          } else if (status === 'TIMED_OUT') {
+            console.error('⏱️ Realtime subscription timed out');
+          }
+        });
+
+        channelRef.current = channel;
+
       } catch (error) {
-        console.error('Error fetching messages:', error);
-        if (isFirstLoad) {
+        console.error('Error setting up realtime subscription:', error);
+        if (isMounted) {
           setLoading(false);
         }
-      } finally {
-        isFirstLoad = false;
       }
     };
 
-    fetchMessages();
+    setupRealtimeSubscription();
 
-    // Poll for new messages every 3 seconds
-    const interval = setInterval(() => {
-      fetchMessages();
-    }, 3000);
-
+    // Cleanup
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+      }
     };
-  }, [currentUserId, conversationId]);
+  }, [currentUserId, conversationId, otherUserId, markMessagesAsRead]);
+
+  // Handle typing indicator
+  const handleTyping = useCallback(() => {
+    if (!channelRef.current || !currentUserId) return;
+
+    // Send typing indicator
+    channelRef.current.track({
+      user_id: currentUserId,
+      online: true,
+      typing: true,
+    });
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Stop typing after 2 seconds of no input
+    typingTimeoutRef.current = setTimeout(() => {
+      if (channelRef.current && currentUserId) {
+        channelRef.current.track({
+          user_id: currentUserId,
+          online: true,
+          typing: false,
+        });
+      }
+    }, 2000);
+  }, [currentUserId]);
 
   // Fetch other user's profile and check block status
   useEffect(() => {
@@ -259,18 +466,30 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     try {
       setSending(true);
 
-      // Optimistically add message to UI
-      const tempMessage: Message = {
-        id: `temp-${Date.now()}`,
+      // Create optimistic message with temp ID (OPTIMISTIC UI)
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMessage: Message = {
+        id: tempId,
         senderId: currentUserId,
         text,
         timestamp: new Date(),
         isOwn: true,
+        isOptimistic: true,
       };
 
-      setMessages((prev) => [...prev, tempMessage]);
+      // Immediately add to UI - Don't wait for server response
+      setMessages((prev) => [...prev, optimisticMessage]);
 
-      // Send message to API
+      // Stop typing indicator
+      if (channelRef.current) {
+        channelRef.current.track({
+          user_id: currentUserId,
+          online: true,
+          typing: false,
+        });
+      }
+
+      // Send message to API in background
       const response = await fetch('/api/chats', {
         method: 'POST',
         headers: {
@@ -308,16 +527,19 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       }
 
       if (data.success && data.message) {
-        // Replace temp message with real one
+        // Replace optimistic message with real one from server
         setMessages((prev) =>
           prev.map((msg) =>
-            msg.id === tempMessage.id
+            msg.id === tempId
               ? {
                   id: data.message.id,
                   senderId: data.message.senderId,
                   text: data.message.text,
                   timestamp: new Date(data.message.timestamp),
                   isOwn: true,
+                  isRead: false,
+                  readAt: null,
+                  isOptimistic: false,
                 }
               : msg
           )
@@ -325,7 +547,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      // Remove failed message from UI
+      // Remove failed optimistic message from UI
       setMessages((prev) => prev.filter((msg) => !msg.id.startsWith('temp-')));
       
       // Show user-friendly error message
@@ -335,7 +557,34 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       setSending(false);
     }
   };
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!currentUserId) return;
 
+    try {
+      const response = await fetch(`/api/chats/${messageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: currentUserId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete message');
+      }
+
+      // Message will be removed via Realtime subscription
+      setToast({ message: 'Message deleted', type: 'success' });
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      setToast({ 
+        message: error instanceof Error ? error.message : 'Failed to delete message', 
+        type: 'error' 
+      });
+    }
+  };
   const handleBlockOrReport = async (action: 'block' | 'report', reason: string) => {
     if (!currentUserId || !otherUserId) return;
 
@@ -355,12 +604,19 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const data = await response.json();
 
         if (response.ok) {
+          // Update block status immediately
+          setBlockStatus({
+            isBlocked: true,
+            blockedBy: 'you',
+            canSendMessages: false,
+          });
           setIsBlocked(true);
           setShowBlockModal(false);
-          setToast({ message: 'User blocked successfully.', type: 'success' });
-          setTimeout(() => {
-            router.push('/dashboard');
-          }, 2000);
+          setToast({ 
+            message: 'User blocked successfully. You can unblock them anytime from this conversation.', 
+            type: 'success' 
+          });
+          // Don't redirect - keep user in the conversation so they can see the block status
         } else {
           setToast({ message: data.error || 'Failed to block user', type: 'error' });
         }
@@ -412,7 +668,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
       if (response.ok) {
         // Update block status
-        setBlockStatus({ isBlocked: false });
+        setBlockStatus({ isBlocked: false, canSendMessages: true });
         setIsBlocked(false);
         setShowUnblockModal(false);
         
@@ -421,11 +677,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           message: data.message || 'User unblocked successfully. You can now send messages.', 
           type: 'success' 
         });
-        
-        // Refresh the page to update UI after a short delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        // No need to reload - state is updated and UI will reflect the change
       } else {
         setToast({ message: data.error || 'Failed to unblock user', type: 'error' });
       }
@@ -536,6 +788,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           onBlockReport={() => setShowBlockModal(true)}
           userId={otherUserId || undefined}
           onProfileClick={otherUserId ? () => router.push(`/profile/${otherUserId}`) : undefined}
+          isOnline={isOnline}
+          isTyping={isTyping}
         />
       </div>
 
@@ -546,18 +800,28 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             className="flex-1 flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={otherUserId ? () => router.push(`/profile/${otherUserId}`) : undefined}
           >
-            {chatPartner.avatar && (
-              <div className="text-3xl">{chatPartner.avatar}</div>
-            )}
+            <div className="relative">
+              {chatPartner.avatar && (
+                <div className="text-3xl">{chatPartner.avatar}</div>
+              )}
+              {isOnline && (
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+              )}
+            </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-base font-bold text-gray-900 dark:text-white truncate">
                 {chatPartner.realName}
               </h1>
-              {chatPartner.age > 0 && (
+              {isTyping ? (
+                <p className="text-xs text-purple-600 dark:text-purple-400 truncate">
+                  typing...
+                </p>
+              ) : chatPartner.age > 0 ? (
                 <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                  {isOnline && <span className="text-green-500">● </span>}
                   {chatPartner.age} • {chatPartner.gender}
                 </p>
-              )}
+              ) : null}
             </div>
           </div>
           <button
@@ -571,26 +835,33 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
       {/* Block Status Warning Banner */}
       {blockStatus?.isBlocked && (
-        <div className="bg-red-100 dark:bg-red-900/30 border-b border-red-300 dark:border-red-700/50 px-4 py-3">
-          <div className="max-w-2xl mx-auto flex items-center gap-3">
-            <span className="text-2xl">🚫</span>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-red-800 dark:text-red-200">
+        <div className="bg-gradient-to-r from-red-500/10 via-red-600/10 to-red-500/10 dark:bg-gradient-to-r dark:from-red-900/20 dark:via-red-800/20 dark:to-red-900/20 backdrop-blur-sm border-b-2 border-red-400/30 dark:border-red-600/30 px-4 py-4">
+          <div className="max-w-2xl mx-auto flex items-center gap-4">
+            {/* Icon with glow */}
+            <div className="shrink-0 w-10 h-10 rounded-full bg-red-500/20 dark:bg-red-500/30 flex items-center justify-center shadow-lg shadow-red-500/20">
+              <span className="text-2xl">🚫</span>
+            </div>
+            
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-red-900 dark:text-red-100 mb-0.5">
                 {blockStatus.blockedBy === 'you' 
-                  ? `You have blocked ${chatPartner.anonymousName}`
-                  : `${chatPartner.anonymousName} has blocked you`
+                  ? `You have blocked ${chatPartner.realName}`
+                  : `${chatPartner.realName} has blocked you`
                 }
               </p>
-              <p className="text-xs text-red-700 dark:text-red-300">
+              <p className="text-xs text-red-800/90 dark:text-red-200/80">
                 {blockStatus.blockedBy === 'you'
-                  ? 'You cannot send or receive messages from this user.'
+                  ? 'You cannot send or receive messages. Click Unblock to restore communication.'
                   : 'You cannot send messages to this user.'}
               </p>
             </div>
+            
+            {/* Unblock Button */}
             {blockStatus.blockedBy === 'you' && (
               <button
                 onClick={() => setShowUnblockModal(true)}
-                className="px-4 py-2 bg-white dark:bg-gray-800/95 text-green-700 dark:text-green-400 border-2 border-green-600 dark:border-green-500 rounded-lg text-sm font-semibold hover:bg-green-50 dark:hover:bg-gray-700 transition-all duration-200"
+                className="shrink-0 px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl text-sm font-bold hover:from-green-500 hover:to-green-400 transition-all duration-200 shadow-lg shadow-green-500/25 hover:shadow-green-500/40 hover:scale-105 active:scale-95"
               >
                 Unblock
               </button>
@@ -614,9 +885,29 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             </div>
           ) : (
             messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
+              <ChatMessage 
+                key={message.id} 
+                message={message} 
+                onDelete={message.isOwn ? handleDeleteMessage : undefined}
+              />
             ))
           )}
+          
+          {/* Typing Indicator */}
+          {isTyping && (
+            <div className="flex justify-start animate-slide-up">
+              <div className="max-w-[75%] sm:max-w-[60%]">
+                <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl rounded-tl-sm px-4 py-3 shadow-lg border border-gray-200 dark:border-gray-700/50">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div ref={messagesEndRef} />
         </div>
       </main>
@@ -624,6 +915,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       {/* Input */}
       <ChatInput 
         onSend={handleSendMessage} 
+        onTyping={handleTyping}
         disabled={sending || (blockStatus?.isBlocked ?? false)}
         disabledMessage={
           blockStatus?.isBlocked 

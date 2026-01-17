@@ -103,17 +103,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Delete any existing conversations/chats between these users
-    // This prevents further communication
-    const { error: deleteChatsError } = await supabase
-      .from('chats')
-      .delete()
-      .or(`and(sender_id.eq.${blockerId},receiver_id.eq.${blockedId}),and(sender_id.eq.${blockedId},receiver_id.eq.${blockerId})`);
-
-    if (deleteChatsError) {
-      console.error('Error deleting chats:', deleteChatsError);
-      // Don't fail the block operation if chat deletion fails
-    }
+    // NOTE: We DO NOT delete chats when blocking
+    // The conversation history is preserved so users can:
+    // 1. See that they've blocked someone when viewing the chat
+    // 2. Easily unblock them from within the conversation
+    // 3. Keep a record of the conversation for reference
+    // The block status is checked in the chat UI to prevent new messages
 
     return NextResponse.json({
       success: true,

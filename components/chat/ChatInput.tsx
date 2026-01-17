@@ -5,11 +5,12 @@ import { Send, Smile } from 'lucide-react';
 
 interface ChatInputProps {
   onSend: (text: string) => void;
+  onTyping?: () => void;
   disabled?: boolean;
   disabledMessage?: string;
 }
 
-export function ChatInput({ onSend, disabled = false, disabledMessage }: ChatInputProps) {
+export function ChatInput({ onSend, onTyping, disabled = false, disabledMessage }: ChatInputProps) {
   const [text, setText] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -17,6 +18,14 @@ export function ChatInput({ onSend, disabled = false, disabledMessage }: ChatInp
     if (text.trim()) {
       onSend(text.trim());
       setText('');
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
+    // Trigger typing indicator
+    if (onTyping && e.target.value.length > 0) {
+      onTyping();
     }
   };
 
@@ -35,7 +44,7 @@ export function ChatInput({ onSend, disabled = false, disabledMessage }: ChatInp
           <div className="flex-1 relative">
             <textarea
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={handleChange}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();

@@ -47,6 +47,8 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get('limit') || '20',
     };
 
+    console.log('📥 GET /api/inbox/requests - Query:', queryData);
+
     const validatedQuery = GetRequestsQuerySchema.parse(queryData);
     const { userId, type, status, page, limit } = validatedQuery;
 
@@ -59,7 +61,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id,
         sender_id,
-        receiver_id,
+        recipient_id,
         status,
         created_at
       `)
@@ -67,12 +69,12 @@ export async function GET(request: NextRequest) {
 
     // Filter by type
     if (type === 'received') {
-      query = query.eq('receiver_id', userId);
+      query = query.eq('recipient_id', userId);
     } else if (type === 'sent') {
       query = query.eq('sender_id', userId);
     } else {
-      // all - requests where user is either sender or receiver
-      query = query.or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
+      // all - requests where user is either sender or recipient
+      query = query.or(`sender_id.eq.${userId},recipient_id.eq.${userId}`);
     }
 
     // Filter by status
@@ -86,13 +88,23 @@ export async function GET(request: NextRequest) {
 
     const { data: requests, error } = await query;
 
+    console.log('📊 Query result:', { count: requests?.length || 0, error: error?.message });
+
     if (error) {
       console.error('Error fetching inbox requests:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       return NextResponse.json(
-        { error: 'Failed to fetch inbox requests' },
+        { 
+          error: 'Failed to fetch inbox requests',
+          details: error.message,
+          hint: error.hint,
+          code: error.code
+        },
         { status: 500 }
       );
     }
+
+    console.log('✅ Raw requests:', requests);
 
     // Enrich with sender profile data
     const enrichedRequests = await Promise.all(
@@ -146,11 +158,11 @@ export async function GET(request: NextRequest) {
       .select('id', { count: 'exact', head: true });
 
     if (type === 'received') {
-      countQuery = countQuery.eq('receiver_id', userId);
+      countQuery = countQuery.eq('recipient_id', userId);
     } else if (type === 'sent') {
       countQuery = countQuery.eq('sender_id', userId);
     } else {
-      countQuery = countQuery.or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
+      countQuery = countQuery.or(`sender_id.eq.${userId},recipient_id.eq.${userId}`);
     }
 
     if (status !== 'all') {
@@ -191,8 +203,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('📨 POST /api/inbox/requests - Body:', body);
+    
     const validatedData = SendRequestSchema.parse(body);
     const { userId, recipientId, message } = validatedData;
+    
+    console.log('✅ Validated:', { userId, recipientId });
 
     // TODO: Add JWT authentication check here
     // Verify that the authenticated user matches userId
@@ -250,7 +266,7 @@ export async function POST(request: NextRequest) {
     const { data: existingRequest } = await supabase
       .from('inbox_requests')
       .select('id, status')
-      .or(`and(sender_id.eq.${userId},receiver_id.eq.${recipientId}),and(sender_id.eq.${recipientId},receiver_id.eq.${userId})`)
+      .or(`and(sender_id.eq.${userId},recipient_id.eq.${recipientId}),and(sender_id.eq.${recipientId},recipient_id.eq.${userId})`)
       .single();
 
     if (existingRequest) {
@@ -278,25 +294,28 @@ export async function POST(request: NextRequest) {
       .from('inbox_requests')
       .insert({
         sender_id: userId,
-        receiver_id: recipientId,
+        recipient_id: recipientId,
         status: 'pending',
       })
       .select(`
         id,
         sender_id,
-        receiver_id,
+        recipient_id,
         status,
         created_at
       `)
       .single();
 
     if (createError) {
-      console.error('Error creating inbox request:', createError);
+      console.error('❌ Error creating inbox request:', createError);
+      console.error('Error details:', JSON.stringify(createError, null, 2));
       return NextResponse.json(
-        { error: 'Failed to create inbox request' },
+        { error: 'Failed to create inbox request', details: createError.message },
         { status: 500 }
       );
     }
+
+    console.log('✅ Request created successfully:', newRequest);
 
     return NextResponse.json({
       success: true,
@@ -334,7 +353,7 @@ export async function PATCH(request: NextRequest) {
     // Get the request
     const { data: inboxRequest, error: fetchError } = await supabase
       .from('inbox_requests')
-      .select('id, sender_id, receiver_id, status')
+      .select('id, sender_id, recipient_id, status')
       .eq('id', requestId)
       .single();
 
@@ -345,8 +364,8 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Verify user is the receiver
-    if (inboxRequest.receiver_id !== userId) {
+    // Verify user is the recipient
+    if (inboxRequest.recipient_id !== userId) {
       return NextResponse.json(
         { error: 'Only the receiver can accept or reject this request' },
         { status: 403 }
@@ -389,7 +408,7 @@ export async function PATCH(request: NextRequest) {
         .insert({
           conversation_id: conversationId,
           sender_id: inboxRequest.sender_id,
-          receiver_id: inboxRequest.receiver_id,
+          receiver_id: inboxRequest.recipient_id,
           message: '🎉 Chat request accepted! Start your conversation here.',
           created_at: new Date().toISOString(),
         })
@@ -401,7 +420,7 @@ export async function PATCH(request: NextRequest) {
         console.error('Chat data attempted:', {
           conversation_id: conversationId,
           sender_id: inboxRequest.sender_id,
-          receiver_id: inboxRequest.receiver_id,
+          recipient_id: inboxRequest.recipient_id,
         });
         // Don't fail the request, just log the error
       } else {

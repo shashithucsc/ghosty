@@ -107,6 +107,16 @@ export default function SetupProfilePage() {
     skin_tone: '',
   });
 
+  // Height input state
+  const [heightUnit, setHeightUnit] = useState<'cm' | 'ft'>('cm');
+  const [heightFeet, setHeightFeet] = useState('');
+  const [heightInches, setHeightInches] = useState('');
+
+  // Partner height preference state
+  const [partnerHeightUnit, setPartnerHeightUnit] = useState<'cm' | 'ft'>('cm');
+  const [partnerHeightFeet, setPartnerHeightFeet] = useState('');
+  const [partnerHeightInches, setPartnerHeightInches] = useState('');
+
   // Partner preferences state
   const [partnerPreferences, setPartnerPreferences] = useState({
     age_min: '18',
@@ -134,6 +144,86 @@ export default function SetupProfilePage() {
     setQualifications({ ...qualifications, [field]: value });
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' });
+    }
+  };
+
+  // Height conversion functions
+  const cmToFeetAndInches = (cm: number): { feet: number; inches: number } => {
+    const totalInches = cm / 2.54;
+    const feet = Math.floor(totalInches / 12);
+    const inches = Math.round(totalInches % 12);
+    return { feet, inches };
+  };
+
+  const feetAndInchesToCm = (feet: number, inches: number): number => {
+    return Math.round((feet * 12 + inches) * 2.54);
+  };
+
+  // Handle height input based on selected unit
+  const handleHeightCmChange = (value: string) => {
+    const cm = parseInt(value) || 0;
+    if (cm >= 100 && cm <= 250) {
+      setQualifications({ ...qualifications, height_cm: value });
+      const { feet, inches } = cmToFeetAndInches(cm);
+      setHeightFeet(feet.toString());
+      setHeightInches(inches.toString());
+    } else if (value === '') {
+      setQualifications({ ...qualifications, height_cm: '' });
+      setHeightFeet('');
+      setHeightInches('');
+    } else {
+      setQualifications({ ...qualifications, height_cm: value });
+    }
+  };
+
+  const handleHeightFeetInchesChange = (feet: string, inches: string) => {
+    setHeightFeet(feet);
+    setHeightInches(inches);
+    
+    const feetNum = parseInt(feet) || 0;
+    const inchesNum = parseInt(inches) || 0;
+    
+    if (feetNum > 0 || inchesNum > 0) {
+      const cm = feetAndInchesToCm(feetNum, inchesNum);
+      if (cm >= 100 && cm <= 250) {
+        setQualifications({ ...qualifications, height_cm: cm.toString() });
+      }
+    } else {
+      setQualifications({ ...qualifications, height_cm: '' });
+    }
+  };
+
+  // Handle partner height preference
+  const handlePartnerHeightCmChange = (value: string) => {
+    const cm = parseInt(value) || 0;
+    if (cm >= 100 && cm <= 250) {
+      setPartnerPreferences({ ...partnerPreferences, height_pref_value: value });
+      const { feet, inches } = cmToFeetAndInches(cm);
+      setPartnerHeightFeet(feet.toString());
+      setPartnerHeightInches(inches.toString());
+    } else if (value === '') {
+      setPartnerPreferences({ ...partnerPreferences, height_pref_value: '' });
+      setPartnerHeightFeet('');
+      setPartnerHeightInches('');
+    } else {
+      setPartnerPreferences({ ...partnerPreferences, height_pref_value: value });
+    }
+  };
+
+  const handlePartnerHeightFeetInchesChange = (feet: string, inches: string) => {
+    setPartnerHeightFeet(feet);
+    setPartnerHeightInches(inches);
+    
+    const feetNum = parseInt(feet) || 0;
+    const inchesNum = parseInt(inches) || 0;
+    
+    if (feetNum > 0 || inchesNum > 0) {
+      const cm = feetAndInchesToCm(feetNum, inchesNum);
+      if (cm >= 100 && cm <= 250) {
+        setPartnerPreferences({ ...partnerPreferences, height_pref_value: cm.toString() });
+      }
+    } else {
+      setPartnerPreferences({ ...partnerPreferences, height_pref_value: '' });
     }
   };
 
@@ -322,23 +412,116 @@ export default function SetupProfilePage() {
           {/* Height */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Height (cm)
+              Height
             </label>
-            <div className="relative">
-              <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="number"
-                value={qualifications.height_cm}
-                onChange={(e) => handleQualificationChange('height_cm', e.target.value)}
-                placeholder="e.g., 170"
-                min="100"
-                max="250"
-                className={`w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border ${
-                  errors.height_cm ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
-              />
+            
+            {/* Unit Toggle */}
+            <div className="flex gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setHeightUnit('cm')}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+                  heightUnit === 'cm'
+                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                Centimeters (cm)
+              </button>
+              <button
+                type="button"
+                onClick={() => setHeightUnit('ft')}
+                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+                  heightUnit === 'ft'
+                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                Feet & Inches
+              </button>
             </div>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Height in centimeters (e.g., 170)</p>
+
+            {/* CM Input */}
+            {heightUnit === 'cm' && (
+              <div>
+                <div className="relative">
+                  <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="number"
+                    value={qualifications.height_cm}
+                    onChange={(e) => handleHeightCmChange(e.target.value)}
+                    placeholder="e.g., 170"
+                    min="100"
+                    max="250"
+                    className={`w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border ${
+                      errors.height_cm ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+                  />
+                </div>
+                {qualifications.height_cm && heightFeet && (
+                  <div className="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <p className="text-sm text-purple-700 dark:text-purple-300">
+                      ≈ <span className="font-semibold">{heightFeet}' {heightInches}"</span> (Feet & Inches)
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Feet & Inches Input */}
+            {heightUnit === 'ft' && (
+              <div>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={heightFeet}
+                        onChange={(e) => handleHeightFeetInchesChange(e.target.value, heightInches)}
+                        placeholder="Feet"
+                        min="3"
+                        max="8"
+                        className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
+                          errors.height_cm ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm font-medium">
+                        ft
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={heightInches}
+                        onChange={(e) => handleHeightFeetInchesChange(heightFeet, e.target.value)}
+                        placeholder="Inches"
+                        min="0"
+                        max="11"
+                        className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
+                          errors.height_cm ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm font-medium">
+                        in
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                {qualifications.height_cm && (
+                  <div className="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <p className="text-sm text-purple-700 dark:text-purple-300">
+                      ≈ <span className="font-semibold">{qualifications.height_cm} cm</span> (Centimeters)
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Choose your preferred unit - we'll store it in centimeters
+            </p>
             {errors.height_cm && <p className="mt-1 text-sm text-red-500">{errors.height_cm}</p>}
           </div>
 
@@ -539,17 +722,108 @@ export default function SetupProfilePage() {
               </div>
 
               {partnerPreferences.height_pref_type !== 'no_preference' && (
-                <input
-                  type="number"
-                  value={partnerPreferences.height_pref_value}
-                  onChange={(e) => handlePreferenceChange('height_pref_value', e.target.value)}
-                  placeholder="Height in cm"
-                  min="100"
-                  max="250"
-                  className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
-                    errors.height_pref ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                  } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
-                />
+                <div>
+                  {/* Unit Toggle */}
+                  <div className="flex gap-2 mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setPartnerHeightUnit('cm')}
+                      className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+                        partnerHeightUnit === 'cm'
+                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      CM
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPartnerHeightUnit('ft')}
+                      className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+                        partnerHeightUnit === 'ft'
+                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      Feet & Inches
+                    </button>
+                  </div>
+
+                  {/* CM Input */}
+                  {partnerHeightUnit === 'cm' && (
+                    <div>
+                      <input
+                        type="number"
+                        value={partnerPreferences.height_pref_value}
+                        onChange={(e) => handlePartnerHeightCmChange(e.target.value)}
+                        placeholder="Height in cm"
+                        min="100"
+                        max="250"
+                        className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
+                          errors.height_pref ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+                      />
+                      {partnerPreferences.height_pref_value && partnerHeightFeet && (
+                        <div className="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                          <p className="text-sm text-purple-700 dark:text-purple-300">
+                            ≈ <span className="font-semibold">{partnerHeightFeet}' {partnerHeightInches}"</span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Feet & Inches Input */}
+                  {partnerHeightUnit === 'ft' && (
+                    <div>
+                      <div className="flex gap-3">
+                        <div className="flex-1">
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={partnerHeightFeet}
+                              onChange={(e) => handlePartnerHeightFeetInchesChange(e.target.value, partnerHeightInches)}
+                              placeholder="Feet"
+                              min="3"
+                              max="8"
+                              className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
+                                errors.height_pref ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                              } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm font-medium">
+                              ft
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={partnerHeightInches}
+                              onChange={(e) => handlePartnerHeightFeetInchesChange(partnerHeightFeet, e.target.value)}
+                              placeholder="Inches"
+                              min="0"
+                              max="11"
+                              className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
+                                errors.height_pref ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                              } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm font-medium">
+                              in
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {partnerPreferences.height_pref_value && (
+                        <div className="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                          <p className="text-sm text-purple-700 dark:text-purple-300">
+                            ≈ <span className="font-semibold">{partnerPreferences.height_pref_value} cm</span>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
             {errors.height_pref && <p className="mt-1 text-sm text-red-500">{errors.height_pref}</p>}

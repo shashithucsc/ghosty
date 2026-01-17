@@ -1,8 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { InboxList } from '@/components/chat/InboxList';
 import { Toast } from '@/components/ui/Toast';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { createClient } from '@supabase/supabase-js';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 import { 
   MessageSquare, 
   Inbox, 
@@ -57,12 +65,14 @@ export interface ActiveChat {
 
 export default function InboxPage() {
   const router = useRouter();
+  const channelRef = useRef<RealtimeChannel | null>(null);
   const [activeTab, setActiveTab] = useState<'requests' | 'chats'>('requests');
   const [requests, setRequests] = useState<ChatRequest[]>([]);
   const [chats, setChats] = useState<ActiveChat[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ conversationId: string; chatName: string } | null>(null);
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
@@ -76,15 +86,121 @@ export default function InboxPage() {
     fetchRequests(userId);
     fetchChats(userId);
 
-    // Refresh chats when user returns to this page (e.g., after viewing a chat)
+    // Setup Realtime subscriptions for inbox updates
+    const setupRealtimeSubscriptions = async () => {
+      // Create channel for inbox updates
+      const channel = supabase.channel(`inbox-${userId}`, {
+        config: {
+          broadcast: { self: true },
+        },
+      });
+
+      // Subscribe to new chat requests (table: inbox_requests)
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'inbox_requests',
+        },
+        (payload) => {
+          const newRequest = payload.new as any;
+          console.log('📬 New chat request received:', payload);
+          // Check if this request is for us
+          if (newRequest.recipient_id === userId) {
+            fetchRequests(userId);
+          }
+        }
+      );
+
+      // Subscribe to chat request updates (accept/reject)
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'inbox_requests',
+        },
+        (payload) => {
+          const updatedRequest = payload.new as any;
+          console.log('🔄 Chat request updated:', payload);
+          if (updatedRequest.recipient_id === userId || updatedRequest.sender_id === userId) {
+            fetchRequests(userId);
+            if (updatedRequest.status === 'accepted') {
+              fetchChats(userId);
+            }
+          }
+        }
+      );
+
+      // Subscribe to ALL new messages - then filter in callback
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chats',
+        },
+        (payload) => {
+          const newMessage = payload.new as any;
+          console.log('💬 New message event received:', newMessage);
+          
+          // Check if message is for current user (receiver)
+          if (newMessage.receiver_id === userId) {
+            console.log('📥 Message is for us, refreshing chats...');
+            fetchChats(userId);
+          }
+        }
+      );
+
+      // Subscribe to message updates (read receipts)
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chats',
+        },
+        (payload) => {
+          const updatedMessage = payload.new as any;
+          console.log('📖 Message updated:', payload);
+          
+          // Refresh if we sent this message (to see read status)
+          if (updatedMessage.sender_id === userId || updatedMessage.receiver_id === userId) {
+            fetchChats(userId);
+          }
+        }
+      );
+
+      await channel.subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Inbox realtime subscribed successfully');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Inbox channel error:', err);
+          console.warn('⚠️ Realtime disabled. Enable Realtime for inbox_requests and chats tables in Supabase Dashboard → Database → Replication');
+        } else if (status === 'TIMED_OUT') {
+          console.error('⏱️ Inbox subscription timed out');
+        } else {
+          console.log('📡 Inbox channel status:', status);
+        }
+      });
+
+      channelRef.current = channel;
+    };
+
+    setupRealtimeSubscriptions();
+
+    // Refresh chats when user returns to this page
     const handleVisibilityChange = () => {
       if (!document.hidden && userId) {
+        fetchRequests(userId);
         fetchChats(userId);
       }
     };
 
     const handleFocus = () => {
       if (userId) {
+        fetchRequests(userId);
         fetchChats(userId);
       }
     };
@@ -95,6 +211,11 @@ export default function InboxPage() {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
+      
+      // Cleanup Realtime subscription
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+      }
     };
   }, [router]);
 
@@ -106,10 +227,15 @@ export default function InboxPage() {
       const response = await fetch(`/api/inbox/requests?userId=${userId}&type=received&status=all`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch requests');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API Error:', response.status, errorData);
+        throw new Error(errorData.error || 'Failed to fetch requests');
       }
 
       const data = await response.json();
+
+      console.log('📬 Fetched requests:', data);
+      console.log('📊 Number of requests:', data.requests?.length || 0);
 
       // Transform API data to ChatRequest format
       const transformedRequests: ChatRequest[] = (data.requests || []).map((req: any) => ({
@@ -141,7 +267,9 @@ export default function InboxPage() {
       const response = await fetch(`/api/inbox/chats?userId=${userId}`);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch chats');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API Error fetching chats:', response.status, errorData);
+        throw new Error(errorData.error || 'Failed to fetch chats');
       }
 
       const data = await response.json();
@@ -286,11 +414,14 @@ export default function InboxPage() {
   const handleDeleteChat = async (conversationId: string, chatName: string) => {
     if (!currentUserId) return;
 
-    const confirmed = window.confirm(
-      `Are you sure you want to delete your conversation with ${chatName}? This action cannot be undone.`
-    );
+    // Show custom confirmation modal
+    setDeleteConfirm({ conversationId, chatName });
+  };
 
-    if (!confirmed) return;
+  const confirmDeleteChat = async () => {
+    if (!currentUserId || !deleteConfirm) return;
+
+    const { conversationId } = deleteConfirm;
 
     try {
       const response = await fetch(
@@ -313,6 +444,8 @@ export default function InboxPage() {
     } catch (error: any) {
       console.error('Error deleting conversation:', error);
       setToast({ message: error.message || 'Failed to delete conversation', type: 'error' });
+    } finally {
+      setDeleteConfirm(null);
     }
   };
 
@@ -361,15 +494,35 @@ export default function InboxPage() {
               <h1 className="text-lg font-bold text-white">Inbox</h1>
             </div>
 
-            {/* Notification Bell */}
-            <button className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all">
-              <Bell className="w-5 h-5 text-white/70" />
-              {(pendingRequests.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)) > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
-                  {pendingRequests.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)}
-                </span>
-              )}
-            </button>
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              {/* Refresh Button */}
+              <button 
+                onClick={() => {
+                  if (currentUserId) {
+                    fetchRequests(currentUserId);
+                    fetchChats(currentUserId);
+                    setToast({ message: 'Refreshing...', type: 'info' });
+                  }
+                }}
+                className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all"
+                title="Refresh"
+              >
+                <svg className="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </button>
+
+              {/* Notification Bell */}
+              <button className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all">
+                <Bell className="w-5 h-5 text-white/70" />
+                {(pendingRequests.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)) > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
+                    {pendingRequests.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -613,6 +766,18 @@ export default function InboxPage() {
           </div>
         )}
       </main>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={confirmDeleteChat}
+        title="Delete Conversation"
+        message={`Are you sure you want to delete your conversation with ${deleteConfirm?.chatName}? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 }

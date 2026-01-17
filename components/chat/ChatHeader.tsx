@@ -12,6 +12,8 @@ interface ChatHeaderProps {
   onBlockReport?: () => void;
   userId?: string;
   onProfileClick?: () => void;
+  isOnline?: boolean;
+  isTyping?: boolean;
 }
 
 export function ChatHeader({
@@ -24,6 +26,8 @@ export function ChatHeader({
   onBlockReport,
   userId,
   onProfileClick,
+  isOnline = false,
+  isTyping = false,
 }: ChatHeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700/50 shadow-lg">
@@ -45,18 +49,30 @@ export function ChatHeader({
             onClick={onProfileClick}
             title={onProfileClick ? 'View Profile' : undefined}
           >
-            {avatar && (
-              <div className="text-3xl sm:text-4xl">{avatar}</div>
-            )}
+            <div className="relative">
+              {avatar && (
+                <div className="text-3xl sm:text-4xl">{avatar}</div>
+              )}
+              {/* Online Status Indicator */}
+              {isOnline && (
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+              )}
+            </div>
             <div className="flex-1 min-w-0">
               <h1 className={`text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate ${onProfileClick ? 'hover:text-purple-600 dark:hover:text-purple-400' : ''}`}>
                 {title}
               </h1>
-              {subtitle && (
+              {/* Show typing indicator or subtitle */}
+              {isTyping ? (
+                <p className="text-xs sm:text-sm text-purple-600 dark:text-purple-400 truncate">
+                  typing...
+                </p>
+              ) : subtitle ? (
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
+                  {isOnline && <span className="text-green-500">● </span>}
                   {subtitle}
                 </p>
-              )}
+              ) : null}
             </div>
           </div>
 
