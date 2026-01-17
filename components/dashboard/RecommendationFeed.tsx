@@ -5,6 +5,7 @@ import { UserProfile, FilterOptions } from '@/app/dashboard/page';
 import { ProfileCard } from './ProfileCard';
 import { EmptyState } from './EmptyState';
 import { Toast } from '@/components/ui/Toast';
+import { MatchModal } from './MatchModal';
 
 interface RecommendationFeedProps {
   filters: FilterOptions;
@@ -19,6 +20,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
   const [sendingRequest, setSendingRequest] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
   const [viewedProfiles, setViewedProfiles] = useState<string[]>([]);
+  const [matchedUser, setMatchedUser] = useState<{ user: UserProfile; conversationId?: string } | null>(null);
 
   // Fetch real profiles from API
   useEffect(() => {
@@ -157,8 +159,17 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
         throw new Error(data.error || 'Failed to send request');
       }
 
-      // Show success message
-      setToast({ message: '✅ Message request sent successfully!', type: 'success' });
+      // Check if it's a match!
+      if (data.isMatch && data.matchData) {
+        console.log('🎉 IT\'S A MATCH!', data.matchData);
+        setMatchedUser({
+          user: currentProfile,
+          conversationId: data.matchData.conversationId,
+        });
+      } else {
+        // Show success message for non-match like
+        setToast({ message: '✅ Message request sent successfully!', type: 'success' });
+      }
 
       // Notify parent component
       if (onRequestSent) {
@@ -264,6 +275,15 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
 
   return (
     <div className="relative">
+      {/* Match Modal */}
+      {matchedUser && (
+        <MatchModal
+          user={matchedUser.user}
+          conversationId={matchedUser.conversationId}
+          onClose={() => setMatchedUser(null)}
+        />
+      )}
+
       {/* Toast Notification */}
       {toast && (
         <Toast

@@ -66,10 +66,12 @@ export interface ActiveChat {
 export default function InboxPage() {
   const router = useRouter();
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const [activeTab, setActiveTab] = useState<'requests' | 'chats'>('requests');
+  const [activeTab, setActiveTab] = useState<'requests' | 'chats' | 'matches'>('requests');
   const [requests, setRequests] = useState<ChatRequest[]>([]);
   const [chats, setChats] = useState<ActiveChat[]>([]);
+  const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [matchesLoading, setMatchesLoading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ conversationId: string; chatName: string } | null>(null);
@@ -190,11 +192,15 @@ export default function InboxPage() {
 
     setupRealtimeSubscriptions();
 
+    // Fetch matches initially
+    fetchMatches(userId);
+
     // Refresh chats when user returns to this page
     const handleVisibilityChange = () => {
       if (!document.hidden && userId) {
         fetchRequests(userId);
         fetchChats(userId);
+        fetchMatches(userId);
       }
     };
 
@@ -202,6 +208,7 @@ export default function InboxPage() {
       if (userId) {
         fetchRequests(userId);
         fetchChats(userId);
+        fetchMatches(userId);
       }
     };
 
@@ -276,6 +283,27 @@ export default function InboxPage() {
       setChats(data.chats || []);
     } catch (error) {
       console.error('Error fetching chats:', error);
+    }
+  };
+
+  const fetchMatches = async (userId: string) => {
+    try {
+      setMatchesLoading(true);
+      const response = await fetch(`/api/matches?userId=${userId}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API Error fetching matches:', response.status, errorData);
+        throw new Error(errorData.error || 'Failed to fetch matches');
+      }
+
+      const data = await response.json();
+      console.log('💝 Fetched matches:', data.matches?.length || 0);
+      setMatches(data.matches || []);
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+    } finally {
+      setMatchesLoading(false);
     }
   };
 
@@ -502,6 +530,7 @@ export default function InboxPage() {
                   if (currentUserId) {
                     fetchRequests(currentUserId);
                     fetchChats(currentUserId);
+                    fetchMatches(currentUserId);
                     setToast({ message: 'Refreshing...', type: 'info' });
                   }
                 }}
@@ -545,6 +574,24 @@ export default function InboxPage() {
                     activeTab === 'requests' ? 'bg-white/20 text-white' : 'bg-amber-500 text-white'
                   }`}>
                     {pendingRequests.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('matches')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all ${
+                  activeTab === 'matches'
+                    ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Matches</span>
+                {matches.length > 0 && (
+                  <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold flex items-center justify-center ${
+                    activeTab === 'matches' ? 'bg-white/20 text-white' : 'bg-pink-500 text-white'
+                  }`}>
+                    {matches.length}
                   </span>
                 )}
               </button>
@@ -640,6 +687,116 @@ export default function InboxPage() {
                     >
                       <Sparkles className="w-4 h-4" />
                       Discover People
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Matches Tab */}
+            {activeTab === 'matches' && (
+              <>
+                {matchesLoading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <div className="text-center">
+                      <Loader2 className="w-12 h-12 text-purple-400 animate-spin mx-auto mb-4" />
+                      <p className="text-white/60 text-sm">Loading matches...</p>
+                    </div>
+                  </div>
+                ) : matches.length > 0 ? (
+                  <section className="space-y-2">
+                    {/* Section Header */}
+                    <div className="flex items-center gap-2 px-1 mb-3">
+                      <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">
+                        Your Matches · {matches.length}
+                      </span>
+                    </div>
+
+                    {/* Matches List */}
+                    <div className="space-y-2">
+                      {matches.map((match: any) => (
+                        <div
+                          key={match.matchId}
+                          className="group relative bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 backdrop-blur-sm border border-purple-400/20 hover:border-purple-400/40 rounded-2xl p-3 sm:p-4 transition-all duration-200 active:scale-[0.98]"
+                        >
+                          <div 
+                            className="flex items-center gap-3 cursor-pointer"
+                            onClick={() => router.push(`/profile/${match.user.id}`)}
+                          >
+                            {/* Avatar */}
+                            <div className="relative shrink-0">
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-2xl border-2 border-white/20 shadow-lg">
+                                {match.user.avatar}
+                              </div>
+                              {/* Match Badge */}
+                              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-pink-500 rounded-full border-2 border-slate-950 flex items-center justify-center">
+                                <span className="text-[10px]">💝</span>
+                              </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <h3 className="font-semibold text-white truncate text-sm sm:text-base">
+                                    {match.user.anonymousName}
+                                  </h3>
+                                  {match.user.isVerified && (
+                                    <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                                  )}
+                                </div>
+                                <span className="text-[11px] text-pink-400/60 shrink-0">
+                                  {getTimeAgo(match.matchedAt)}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-white/50">
+                                <span>{match.user.age} • {match.user.university}</span>
+                              </div>
+
+                              <div className="mt-2 flex items-center gap-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    router.push(`/chat/${match.user.id}`);
+                                  }}
+                                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-500/25 text-xs sm:text-sm flex items-center justify-center gap-2"
+                                >
+                                  <MessageSquare className="w-4 h-4" />
+                                  Start Chat
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    router.push(`/profile/${match.user.id}`);
+                                  }}
+                                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white font-medium rounded-xl transition-all text-xs sm:text-sm"
+                                >
+                                  View Profile
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mx-auto mb-6">
+                      <Sparkles className="w-10 h-10 text-purple-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">No matches yet</h3>
+                    <p className="text-white/40 text-sm mb-8 max-w-[280px]">
+                      When you and someone else both swipe right, you'll see them here as a match!
+                    </p>
+                    <button
+                      onClick={() => router.push('/dashboard')}
+                      className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:scale-95 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Start Swiping
                     </button>
                   </div>
                 )}

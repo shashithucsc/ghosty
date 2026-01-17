@@ -460,6 +460,7 @@ export async function POST(request: NextRequest) {
 
     // If action is "like", check for mutual match
     let isMatch = false;
+    let conversationId: string | undefined;
 
     if (action === 'like') {
       const { data: reciprocalSwipe } = await supabaseAdmin
@@ -473,6 +474,9 @@ export async function POST(request: NextRequest) {
       if (reciprocalSwipe) {
         isMatch = true;
 
+        // Generate unique conversation ID for the match
+        conversationId = crypto.randomUUID();
+
         // Create match record
         const { error: matchError } = await supabaseAdmin.from('matches').insert({
           user1_id: swiperId,
@@ -484,6 +488,22 @@ export async function POST(request: NextRequest) {
           console.error('Error creating match:', matchError);
           // Don't fail the request if match creation fails
         }
+
+        // Create initial chat conversation for the match
+        const { error: chatError } = await supabaseAdmin.from('chats').insert({
+          conversation_id: conversationId,
+          sender_id: swiperId,
+          receiver_id: targetId,
+          message: '🎉 You matched! Start your conversation here.',
+          created_at: new Date().toISOString(),
+          is_read: false,
+        });
+
+        if (chatError) {
+          console.error('Error creating match chat:', chatError);
+        }
+
+        console.log(`✨ MATCH CREATED between ${swiperId} and ${targetId} | Conversation: ${conversationId}`);
       }
     }
 
@@ -493,6 +513,10 @@ export async function POST(request: NextRequest) {
         message: `Profile ${action === 'like' ? 'liked' : 'skipped'} successfully`,
         action,
         isMatch,
+        matchData: isMatch ? {
+          userId: targetId,
+          conversationId: conversationId,
+        } : undefined,
       },
       { status: 201 }
     );
