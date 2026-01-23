@@ -20,7 +20,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
   const [sendingRequest, setSendingRequest] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
   const [viewedProfiles, setViewedProfiles] = useState<string[]>([]);
-  const [matchedUser, setMatchedUser] = useState<{ user: UserProfile; conversationId?: string } | null>(null);
+  const [matchedUser, setMatchedUser] = useState<{ user: UserProfile } | null>(null);
 
   // Fetch real profiles from API
   useEffect(() => {
@@ -129,57 +129,59 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
     const currentUserId = localStorage.getItem('userId');
 
     if (!currentUserId) {
-      setToast({ message: 'Please log in to send message requests', type: 'error' });
+      setToast({ message: 'Please log in to like profiles', type: 'error' });
       return;
     }
 
     setSendingRequest(true);
 
     try {
-      console.log('📤 Sending request from:', currentUserId, 'to:', currentProfile.id);
+      console.log('💖 Swiping RIGHT (like) from:', currentUserId, 'to:', currentProfile.id);
       
-      const response = await fetch('/api/inbox/requests', {
+      // Record the swipe/like action
+      const response = await fetch('/api/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: currentUserId,
-          recipientId: currentProfile.id,
+          swiperId: currentUserId,
+          targetId: currentProfile.id,
+          action: 'like',
         }),
       });
 
       const data = await response.json();
-      console.log('📬 Response:', response.status, data);
+      console.log('📬 Swipe response:', response.status, data);
 
       if (!response.ok) {
-        // Handle 409 conflict - request already exists
+        // Handle duplicate swipes gracefully
         if (response.status === 409) {
-          setToast({ message: 'You already sent a request to this user', type: 'info' });
+          setToast({ message: 'You already liked this profile', type: 'info' });
+          handleNext(); // Move to next card
           return;
         }
-        throw new Error(data.error || 'Failed to send request');
+        throw new Error(data.error || 'Failed to record like');
       }
 
       // Check if it's a match!
-      if (data.isMatch && data.matchData) {
-        console.log('🎉 IT\'S A MATCH!', data.matchData);
+      if (data.isMatch) {
+        console.log('🎉 IT\'S A MATCH!', data);
         setMatchedUser({
           user: currentProfile,
-          conversationId: data.matchData.conversationId,
         });
       } else {
         // Show success message for non-match like
-        setToast({ message: '✅ Message request sent successfully!', type: 'success' });
+        setToast({ message: '💜 Liked! If they like you back, it\'s a match!', type: 'success' });
+        // Auto-advance to next profile after liking
+        setTimeout(() => handleNext(), 500);
       }
 
       // Notify parent component
       if (onRequestSent) {
         onRequestSent(currentProfile);
       }
-
-      // Card stays visible - don't move to next automatically
     } catch (error: any) {
-      console.error('Error sending message request:', error);
-      setToast({ message: error.message || 'Failed to send message request. Please try again.', type: 'error' });
+      console.error('Error liking profile:', error);
+      setToast({ message: error.message || 'Failed to like profile. Please try again.', type: 'error' });
     } finally {
       setSendingRequest(false);
     }
@@ -279,7 +281,6 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       {matchedUser && (
         <MatchModal
           user={matchedUser.user}
-          conversationId={matchedUser.conversationId}
           onClose={() => setMatchedUser(null)}
         />
       )}

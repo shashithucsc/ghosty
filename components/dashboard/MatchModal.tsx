@@ -34,14 +34,7 @@ export function MatchModal({ user, onClose, conversationId }: MatchModalProps) {
         return;
       }
 
-      // If we already have a conversation ID from the match, use it directly
-      if (conversationId) {
-        router.push(`/chat/${conversationId}`);
-        onClose();
-        return;
-      }
-
-      // Otherwise, create or get conversation
+      // Create or get conversation with matched user
       const response = await fetch('/api/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -54,8 +47,9 @@ export function MatchModal({ user, onClose, conversationId }: MatchModalProps) {
       const data = await response.json();
 
       if (response.ok && data.conversation) {
-        // Navigate to chat page with conversation ID and other user ID
+        // Navigate to chat page with conversation ID
         router.push(`/chat/${data.conversation.id}?userId=${user.id}`);
+        onClose();
       } else {
         alert(data.error || 'Failed to start chat');
       }

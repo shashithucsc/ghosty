@@ -439,6 +439,33 @@ export default function InboxPage() {
     router.push(`/chat/${conversationId}?userId=${otherUserId}`);
   };
 
+  const handleStartChatWithMatch = async (matchUserId: string) => {
+    if (!currentUserId) return;
+
+    try {
+      // Create or get conversation with matched user
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUserId,
+          otherUserId: matchUserId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.conversation) {
+        router.push(`/chat/${data.conversation.id}?userId=${matchUserId}`);
+      } else {
+        setToast({ message: data.error || 'Failed to start chat', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error starting chat with match:', error);
+      setToast({ message: 'Failed to start chat. Please try again.', type: 'error' });
+    }
+  };
+
   const handleDeleteChat = async (conversationId: string, chatName: string) => {
     if (!currentUserId) return;
 
@@ -759,7 +786,7 @@ export default function InboxPage() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    router.push(`/chat/${match.user.id}`);
+                                    handleStartChatWithMatch(match.user.id);
                                   }}
                                   className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-500/25 text-xs sm:text-sm flex items-center justify-center gap-2"
                                 >
