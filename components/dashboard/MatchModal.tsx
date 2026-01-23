@@ -65,6 +65,7 @@ export function MatchModal({ user, onClose, conversationId }: MatchModalProps) {
     <AnimatePresence>
       {/* Backdrop */}
       <motion.div
+        key="backdrop"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -74,10 +75,10 @@ export function MatchModal({ user, onClose, conversationId }: MatchModalProps) {
 
       {/* Confetti Effect */}
       {showConfetti && (
-        <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
+        <div key="confetti" className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
           {[...Array(50)].map((_, i) => (
             <motion.div
-              key={i}
+              key={`confetti-${i}`}
               initial={{
                 top: '-10%',
                 left: `${Math.random() * 100}%`,
@@ -105,6 +106,7 @@ export function MatchModal({ user, onClose, conversationId }: MatchModalProps) {
 
       {/* Modal */}
       <motion.div
+        key="modal"
         initial={{ scale: 0.8, opacity: 0, y: 50 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.8, opacity: 0, y: 50 }}
@@ -126,6 +128,7 @@ export function MatchModal({ user, onClose, conversationId }: MatchModalProps) {
 
           {/* Celebration */}
           <motion.div
+            key="celebration"
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: 'spring', delay: 0.1, damping: 15 }}
@@ -142,6 +145,7 @@ export function MatchModal({ user, onClose, conversationId }: MatchModalProps) {
 
           {/* User Info */}
           <motion.div
+            key="user-info"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
@@ -158,6 +162,7 @@ export function MatchModal({ user, onClose, conversationId }: MatchModalProps) {
 
           {/* Actions */}
           <motion.div
+            key="actions"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}

@@ -173,7 +173,6 @@ export default function MyProfilePage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Anonymous Identity Section */}
           <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-2xl p-6 shadow-lg">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <User className="w-5 h-5" />
@@ -224,7 +223,7 @@ export default function MyProfilePage() {
               </label>
               <input
                 type="text"
-                value={profileData.anonymousName}
+                value={profileData.anonymousName || ''}
                 onChange={(e) => handleChange('anonymousName', e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                 placeholder="Your anonymous display name"
@@ -275,7 +274,7 @@ export default function MyProfilePage() {
                 </label>
                 <input
                   type="text"
-                  value={profileData.fullName}
+                  value={profileData.fullName || ''}
                   onChange={(e) => handleChange('fullName', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                   placeholder="Your full name"
@@ -291,7 +290,7 @@ export default function MyProfilePage() {
                 </label>
                 <input
                   type="date"
-                  value={profileData.birthday}
+                  value={profileData.birthday || ''}
                   onChange={(e) => handleChange('birthday', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                   required
@@ -305,7 +304,7 @@ export default function MyProfilePage() {
                   Gender
                 </label>
                 <select
-                  value={profileData.gender}
+                  value={profileData.gender || ''}
                   onChange={(e) => handleChange('gender', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                   required
@@ -334,7 +333,7 @@ export default function MyProfilePage() {
                 </label>
                 <input
                   type="text"
-                  value={profileData.universityName}
+                  value={profileData.universityName || ''}
                   onChange={(e) => handleChange('universityName', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                   placeholder="Your university name"
@@ -350,7 +349,7 @@ export default function MyProfilePage() {
                 </label>
                 <input
                   type="text"
-                  value={profileData.faculty}
+                  value={profileData.faculty || ''}
                   onChange={(e) => handleChange('faculty', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                   placeholder="Your faculty/department"
@@ -365,7 +364,7 @@ export default function MyProfilePage() {
                   Degree Type
                 </label>
                 <select
-                  value={profileData.degreeType}
+                  value={profileData.degreeType || ''}
                   onChange={(e) => handleChange('degreeType', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                 >
@@ -391,7 +390,7 @@ export default function MyProfilePage() {
                 </label>
                 <input
                   type="text"
-                  value={profileData.hometown}
+                  value={profileData.hometown || ''}
                   onChange={(e) => handleChange('hometown', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                   placeholder="Your hometown"
@@ -422,7 +421,7 @@ export default function MyProfilePage() {
                   Skin Tone
                 </label>
                 <select
-                  value={profileData.skinTone}
+                  value={profileData.skinTone || ''}
                   onChange={(e) => handleChange('skinTone', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent"
                 >
@@ -439,7 +438,7 @@ export default function MyProfilePage() {
                   Bio
                 </label>
                 <textarea
-                  value={profileData.bio}
+                  value={profileData.bio || ''}
                   onChange={(e) => handleChange('bio', e.target.value)}
                   rows={4}
                   className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent resize-none"

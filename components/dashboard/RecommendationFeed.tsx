@@ -168,6 +168,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
         setMatchedUser({
           user: currentProfile,
         });
+        // Don't show like toast if it's a match - the match modal is more important
       } else {
         // Show success message for non-match like
         setToast({ message: '💜 Liked! If they like you back, it\'s a match!', type: 'success' });
@@ -175,10 +176,8 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
         setTimeout(() => handleNext(), 500);
       }
 
-      // Notify parent component
-      if (onRequestSent) {
-        onRequestSent(currentProfile);
-      }
+      // Note: Removed onRequestSent callback since we no longer send "message requests"
+      // The like action is now handled entirely within this component
     } catch (error: any) {
       console.error('Error liking profile:', error);
       setToast({ message: error.message || 'Failed to like profile. Please try again.', type: 'error' });
@@ -295,7 +294,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       )}
 
       {/* Card Stack Preview */}
-      <div className="relative h-[calc(100vh-200px)] sm:h-[600px] max-w-md mx-auto">
+      <div className="relative h-[calc(100vh-280px)] sm:h-[500px] max-w-sm sm:max-w-md mx-auto">
         {profiles.slice(currentIndex, currentIndex + 3).map((profile, index) => (
           <div
             key={profile.id}

@@ -66,7 +66,7 @@ export interface ActiveChat {
 export default function InboxPage() {
   const router = useRouter();
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const [activeTab, setActiveTab] = useState<'requests' | 'chats' | 'matches'>('requests');
+  const [activeTab, setActiveTab] = useState<'matches' | 'chats'>('matches');
   const [requests, setRequests] = useState<ChatRequest[]>([]);
   const [chats, setChats] = useState<ActiveChat[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
@@ -169,6 +169,44 @@ export default function InboxPage() {
           
           // Refresh if we sent this message (to see read status)
           if (updatedMessage.sender_id === userId || updatedMessage.receiver_id === userId) {
+            fetchChats(userId);
+          }
+        }
+      );
+
+      // Subscribe to new matches (real-time match count update)
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'matches',
+        },
+        (payload) => {
+          const newMatch = payload.new as any;
+          console.log('💝 New match detected:', payload);
+          // Check if this match involves us
+          if (newMatch.user1_id === userId || newMatch.user2_id === userId) {
+            fetchMatches(userId);
+          }
+        }
+      );
+
+      // Subscribe to new chats (to move matches to chats when conversation starts)
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chats',
+        },
+        (payload) => {
+          const newChat = payload.new as any;
+          console.log('💬 New chat created:', payload);
+          // Check if this chat involves us
+          if (newChat.sender_id === userId || newChat.receiver_id === userId) {
+            // Refresh both matches and chats
+            fetchMatches(userId);
             fetchChats(userId);
           }
         }
@@ -456,6 +494,11 @@ export default function InboxPage() {
       const data = await response.json();
 
       if (response.ok && data.conversation) {
+        // Refresh matches to remove this user from matches list
+        fetchMatches(currentUserId);
+        // Refresh chats to add this conversation to chats list
+        fetchChats(currentUserId);
+        // Navigate to chat
         router.push(`/chat/${data.conversation.id}?userId=${matchUserId}`);
       } else {
         setToast({ message: data.error || 'Failed to start chat', type: 'error' });
@@ -572,9 +615,9 @@ export default function InboxPage() {
               {/* Notification Bell */}
               <button className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all">
                 <Bell className="w-5 h-5 text-white/70" />
-                {(pendingRequests.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)) > 0 && (
+                {(matches.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)) > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
-                    {pendingRequests.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)}
+                    {matches.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)}
                   </span>
                 )}
               </button>
@@ -586,24 +629,6 @@ export default function InboxPage() {
         <div className="px-4 pb-3">
           <div className="max-w-2xl mx-auto">
             <div className="flex gap-2 p-1 bg-white/5 rounded-2xl">
-              <button
-                onClick={() => setActiveTab('requests')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all ${
-                  activeTab === 'requests'
-                    ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25'
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Inbox className="w-4 h-4" />
-                <span>Requests</span>
-                {pendingRequests.length > 0 && (
-                  <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold flex items-center justify-center ${
-                    activeTab === 'requests' ? 'bg-white/20 text-white' : 'bg-amber-500 text-white'
-                  }`}>
-                    {pendingRequests.length}
-                  </span>
-                )}
-              </button>
               <button
                 onClick={() => setActiveTab('matches')}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all ${
@@ -656,70 +681,6 @@ export default function InboxPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Requests Tab */}
-            {activeTab === 'requests' && (
-              <>
-                {pendingRequests.length > 0 && (
-                  <section className="space-y-3">
-                    {/* Section Header */}
-                    <div className="flex items-center gap-2 px-1">
-                      <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
-                      <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">
-                        Pending · {pendingRequests.length}
-                      </span>
-                    </div>
-                    <InboxList
-                      requests={pendingRequests}
-                      onAccept={handleAccept}
-                      onReject={handleReject}
-                      onBlock={handleBlock}
-                      onOpenChat={handleOpenChat}
-                    />
-                  </section>
-                )}
-
-                {blockedRequests.length > 0 && (
-                  <section className="space-y-3 mt-6">
-                    <div className="flex items-center gap-2 px-1">
-                      <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                      <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">
-                        Blocked · {blockedRequests.length}
-                      </span>
-                    </div>
-                    <InboxList
-                      requests={blockedRequests}
-                      onAccept={handleAccept}
-                      onReject={handleReject}
-                      onBlock={handleBlock}
-                      onOpenChat={handleOpenChat}
-                    />
-                  </section>
-                )}
-
-                {/* Empty State */}
-                {pendingRequests.length === 0 && blockedRequests.length === 0 && (
-                  <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-6">
-                    <div className="w-20 h-20 rounded-3xl bg-white/5 backdrop-blur-sm flex items-center justify-center mb-6">
-                      <Inbox className="w-10 h-10 text-white/20" />
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-2">
-                      No Requests Yet
-                    </h3>
-                    <p className="text-white/40 text-sm mb-8 max-w-[280px]">
-                      When someone wants to connect with you, their request will appear here.
-                    </p>
-                    <button
-                      onClick={() => router.push('/dashboard')}
-                      className="flex items-center gap-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 active:scale-95 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      Discover People
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-
             {/* Matches Tab */}
             {activeTab === 'matches' && (
               <>
@@ -788,7 +749,7 @@ export default function InboxPage() {
                                     e.stopPropagation();
                                     handleStartChatWithMatch(match.user.id);
                                   }}
-                                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-500/25 text-xs sm:text-sm flex items-center justify-center gap-2"
+                                  className="flex-1 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-xl transition-all shadow-lg shadow-purple-500/25 text-xs sm:text-sm flex items-center justify-center gap-2"
                                 >
                                   <MessageSquare className="w-4 h-4" />
                                   Start Chat
@@ -820,7 +781,7 @@ export default function InboxPage() {
                     </p>
                     <button
                       onClick={() => router.push('/dashboard')}
-                      className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:scale-95 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
+                      className="flex items-center gap-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 active:scale-95 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
                     >
                       <Sparkles className="w-4 h-4" />
                       Start Swiping
@@ -934,14 +895,14 @@ export default function InboxPage() {
                       No Chats Yet
                     </h3>
                     <p className="text-white/40 text-sm mb-8 max-w-[280px]">
-                      Accept a message request to start your first conversation.
+                      Start a conversation with one of your matches to chat!
                     </p>
                     <button
-                      onClick={() => setActiveTab('requests')}
-                      className="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/15 active:scale-95 text-white font-semibold rounded-xl transition-all border border-white/10"
+                      onClick={() => setActiveTab('matches')}
+                      className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:scale-95 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
                     >
-                      <Inbox className="w-4 h-4" />
-                      View Requests
+                      <Sparkles className="w-4 h-4" />
+                      View Matches
                     </button>
                   </div>
                 )}

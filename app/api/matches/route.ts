@@ -37,11 +37,45 @@ export async function GET(request: NextRequest) {
       match.user1_id === userId ? match.user2_id : match.user1_id
     );
 
+    // Fetch conversations to filter out matches that already have active chats
+    // Use chats table since there's no separate conversations table
+    const { data: existingChats } = await supabaseAdmin
+      .from('chats')
+      .select('conversation_id, sender_id, receiver_id')
+      .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
+
+    // Build a set of user IDs that already have conversations with current user
+    const usersWithConversations = new Set<string>();
+    if (existingChats) {
+      existingChats.forEach((chat) => {
+        if (chat.sender_id === userId) {
+          usersWithConversations.add(chat.receiver_id);
+        } else {
+          usersWithConversations.add(chat.sender_id);
+        }
+      });
+    }
+
+    // Filter matches to exclude those with existing conversations
+    const matchesWithoutChats = matches.filter((match) => {
+      const otherUserId = match.user1_id === userId ? match.user2_id : match.user1_id;
+      return !usersWithConversations.has(otherUserId);
+    });
+
+    // Get the other user IDs from filtered matches
+    const filteredOtherUserIds = matchesWithoutChats.map((match) =>
+      match.user1_id === userId ? match.user2_id : match.user1_id
+    );
+
+    if (filteredOtherUserIds.length === 0) {
+      return NextResponse.json({ matches: [], total: 0 }, { status: 200 });
+    }
+
     // Fetch profiles for matched users
     const { data: profiles, error: profilesError } = await supabaseAdmin
       .from('profiles')
       .select('user_id, anonymous_name, age, gender, university, faculty, bio, height_cm, degree_type, hometown, skin_tone, verified')
-      .in('user_id', otherUserIds);
+      .in('user_id', filteredOtherUserIds);
 
     if (profilesError) {
       console.error('Error fetching profiles:', profilesError);
@@ -52,7 +86,7 @@ export async function GET(request: NextRequest) {
     const { data: users, error: usersError } = await supabaseAdmin
       .from('users')
       .select('id, username, verification_status')
-      .in('id', otherUserIds);
+      .in('id', filteredOtherUserIds);
 
     if (usersError) {
       console.error('Error fetching users:', usersError);
@@ -60,8 +94,8 @@ export async function GET(request: NextRequest) {
 
     const userMap = new Map(users?.map(u => [u.id, u]) || []);
 
-    // Combine match data with profile data
-    const enrichedMatches = matches.map((match) => {
+    // Combine match data with profile data (using filtered matches)
+    const enrichedMatches = matchesWithoutChats.map((match) => {
       const otherUserId = match.user1_id === userId ? match.user2_id : match.user1_id;
       const profile = profiles?.find((p) => p.user_id === otherUserId);
       const user = userMap.get(otherUserId);
