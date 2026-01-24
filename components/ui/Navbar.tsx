@@ -351,34 +351,6 @@ export function Navbar() {
               </div>
             )}
 
-            {mobileNavItems.map((item, index) => {
-              const Icon = item.icon;
-              const active = isActive(item.path);
-              return (
-                <button
-                  key={item.path}
-                  onClick={() => {
-                    router.push(item.path);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-6 py-4 transition-all duration-300 ${
-                    active
-                      ? 'bg-white/10 text-white font-semibold'
-                      : 'text-gray-300 hover:bg-white/5 hover:text-white'
-                  } ${index !== mobileNavItems.length - 1 ? 'border-b border-white/10' : ''}`}
-                  style={{
-                    transitionDelay: isMobileMenuOpen ? `${index * 50}ms` : '0ms',
-                  }}
-                >
-                  <Icon className={`w-5 h-5 ${active ? 'text-purple-400' : ''}`} />
-                  <span>{item.name}</span>
-                  {active && (
-                    <div className="ml-auto w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-                  )}
-                </button>
-              );
-            })}
-
             {/* Logout Button in Mobile Menu */}
             {user && (
               <button
@@ -386,7 +358,7 @@ export function Navbar() {
                   handleLogout();
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full flex items-center gap-3 px-6 py-4 text-red-300 hover:bg-red-500/10 hover:text-red-200 transition-all duration-300 border-t border-white/10"
+                className="w-full flex items-center gap-3 px-6 py-4 text-red-300 hover:bg-red-500/10 hover:text-red-200 transition-all duration-300"
               >
                 <LogOut className="w-5 h-5" />
                 <span>Logout</span>

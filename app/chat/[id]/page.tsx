@@ -183,12 +183,18 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             
             const newMessage = payload.new as any;
             
-            // Don't add if it's our own optimistic message
+            // Skip if this is our own message (sender already has it from optimistic update)
+            if (newMessage.sender_id === currentUserId) {
+              console.log('⏭️ Skipping own message (already added optimistically)');
+              return;
+            }
+            
+            // Don't add if message already exists
             setMessages((prev) => {
-              // Check if this message already exists (from optimistic update)
+              // Check if this message already exists
               const exists = prev.some(msg => msg.id === newMessage.id);
               if (exists) {
-                console.log('Message already exists (optimistic), skipping');
+                console.log('Message already exists, skipping');
                 return prev;
               }
 
@@ -197,17 +203,15 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 senderId: newMessage.sender_id,
                 text: newMessage.message,
                 timestamp: new Date(newMessage.created_at),
-                isOwn: newMessage.sender_id === currentUserId,
+                isOwn: false, // Always false here since we filtered out own messages above
                 isRead: newMessage.is_read || false,
                 readAt: newMessage.read_at ? new Date(newMessage.read_at) : null,
               };
 
               console.log('✅ Adding new message to state:', message);
 
-              // Mark as read if it's not our message
-              if (!message.isOwn) {
-                setTimeout(() => markMessagesAsRead(), 500);
-              }
+              // Mark as read since it's not our message
+              setTimeout(() => markMessagesAsRead(), 500);
 
               return [...prev, message];
             });

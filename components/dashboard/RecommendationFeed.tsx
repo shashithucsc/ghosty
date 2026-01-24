@@ -133,12 +133,16 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       return;
     }
 
+    // OPTIMISTIC UI: Move to next card immediately for smooth experience
+    const profileIndex = currentIndex;
+    handleNext();
+    
     setSendingRequest(true);
 
     try {
       console.log('💖 Swiping RIGHT (like) from:', currentUserId, 'to:', currentProfile.id);
       
-      // Record the swipe/like action
+      // Record the swipe/like action in background
       const response = await fetch('/api/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -153,10 +157,9 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       console.log('📬 Swipe response:', response.status, data);
 
       if (!response.ok) {
-        // Handle duplicate swipes gracefully
+        // Handle duplicate swipes gracefully - already moved to next card, so just notify
         if (response.status === 409) {
           setToast({ message: 'You already liked this profile', type: 'info' });
-          handleNext(); // Move to next card
           return;
         }
         throw new Error(data.error || 'Failed to record like');
@@ -172,8 +175,6 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       } else {
         // Show success message for non-match like
         setToast({ message: '💜 Liked! If they like you back, it\'s a match!', type: 'success' });
-        // Auto-advance to next profile after liking
-        setTimeout(() => handleNext(), 500);
       }
 
       // Note: Removed onRequestSent callback since we no longer send "message requests"
@@ -181,14 +182,34 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
     } catch (error: any) {
       console.error('Error liking profile:', error);
       setToast({ message: error.message || 'Failed to like profile. Please try again.', type: 'error' });
+      // Don't revert - user already moved on to next profile
     } finally {
       setSendingRequest(false);
     }
   };
 
-  const handleSkip = () => {
-    recordSwipe('skip');
+  const handleSkip = async () => {
+    // OPTIMISTIC UI: Move to next card immediately
+    const currentProfile = profiles[currentIndex];
     handleNext();
+    
+    // Record skip in background
+    const currentUserId = localStorage.getItem('userId');
+    if (!currentUserId || !currentProfile) return;
+
+    try {
+      await fetch('/api/recommendations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          swiperId: currentUserId,
+          targetId: currentProfile.id,
+          action: 'skip',
+        }),
+      });
+    } catch (error) {
+      console.log('Skip not recorded (optional):', error);
+    }
   };
 
   const handlePrevious = () => {
@@ -207,29 +228,6 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
     } else {
       // All profiles viewed
       setProfiles([]);
-    }
-  };
-
-  const recordSwipe = async (action: 'skip' | 'like') => {
-    const currentProfile = profiles[currentIndex];
-    const currentUserId = localStorage.getItem('userId');
-
-    if (!currentUserId || !currentProfile) return;
-
-    try {
-      await fetch('/api/recommendations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          swiperId: currentUserId,
-          targetId: currentProfile.id,
-          action,
-        }),
-      });
-      // Swipe recording is optional - don't block user experience if it fails
-    } catch (error) {
-      // Silently fail - swipe recording is not critical for core functionality
-      console.log('Swipe not recorded (optional feature):', error);
     }
   };
 

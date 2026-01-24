@@ -135,7 +135,7 @@ export function MatchModal({ user, onClose, conversationId }: MatchModalProps) {
             className="mb-6"
           >
             <div className="text-6xl mb-4">💝</div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+            <h2 className="text-3xl font-bold bg-pink-600 bg-clip-text text-transparent mb-2">
               It's a Match!
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
