@@ -294,7 +294,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       )}
 
       {/* Card Stack Preview */}
-      <div className="relative h-[calc(100vh-280px)] sm:h-[500px] max-w-sm sm:max-w-md mx-auto">
+      <div className="relative h-[calc(100vh-380px)] sm:h-[500px] max-w-sm sm:max-w-md mx-auto">
         {profiles.slice(currentIndex, currentIndex + 3).map((profile, index) => (
           <div
             key={profile.id}

@@ -66,7 +66,7 @@ export interface ActiveChat {
 export default function InboxPage() {
   const router = useRouter();
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const [activeTab, setActiveTab] = useState<'matches' | 'chats'>('matches');
+  const [activeTab, setActiveTab] = useState<'matches' | 'requests' | 'chats'>('matches');
   const [requests, setRequests] = useState<ChatRequest[]>([]);
   const [chats, setChats] = useState<ActiveChat[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
@@ -615,9 +615,9 @@ export default function InboxPage() {
               {/* Notification Bell */}
               <button className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all">
                 <Bell className="w-5 h-5 text-white/70" />
-                {(matches.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)) > 0 && (
+                {(matches.length + requests.filter(r => r.status === 'pending').length + chats.reduce((acc, c) => acc + c.unreadCount, 0)) > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center">
-                    {matches.length + chats.reduce((acc, c) => acc + c.unreadCount, 0)}
+                    {matches.length + requests.filter(r => r.status === 'pending').length + chats.reduce((acc, c) => acc + c.unreadCount, 0)}
                   </span>
                 )}
               </button>
@@ -644,6 +644,24 @@ export default function InboxPage() {
                     activeTab === 'matches' ? 'bg-white/20 text-white' : 'bg-pink-500 text-white'
                   }`}>
                     {matches.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('requests')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-medium text-sm transition-all ${
+                  activeTab === 'requests'
+                    ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25'
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Inbox className="w-4 h-4" />
+                <span>Requests</span>
+                {requests.filter(r => r.status === 'pending').length > 0 && (
+                  <span className={`min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold flex items-center justify-center ${
+                    activeTab === 'requests' ? 'bg-white/20 text-white' : 'bg-yellow-500 text-white'
+                  }`}>
+                    {requests.filter(r => r.status === 'pending').length}
                   </span>
                 )}
               </button>
@@ -791,6 +809,115 @@ export default function InboxPage() {
               </>
             )}
 
+            {/* Requests Tab */}
+            {activeTab === 'requests' && (
+              <>
+                {requests.filter(r => r.status === 'pending').length > 0 ? (
+                  <section className="space-y-2">
+                    {/* Section Header */}
+                    <div className="flex items-center gap-2 px-1 mb-3">
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                      <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">
+                        Pending Requests · {requests.filter(r => r.status === 'pending').length}
+                      </span>
+                    </div>
+
+                    {/* Requests List */}
+                    <div className="space-y-2">
+                      {requests
+                        .filter(r => r.status === 'pending')
+                        .map((request) => (
+                        <div
+                          key={request.id}
+                          className="group relative bg-gradient-to-r from-yellow-500/10 to-orange-500/10 hover:from-yellow-500/15 hover:to-orange-500/15 backdrop-blur-sm border border-yellow-400/20 hover:border-yellow-400/40 rounded-2xl p-3 sm:p-4 transition-all duration-200"
+                        >
+                          <div className="flex items-start gap-3">
+                            {/* Avatar */}
+                            <div
+                              className="relative shrink-0 cursor-pointer"
+                              onClick={() => router.push(`/profile/${request.from.id}`)}
+                            >
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center text-2xl border-2 border-white/20 shadow-lg hover:scale-105 transition-transform">
+                                {request.from.avatar}
+                              </div>
+                              {/* Request Badge */}
+                              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full border-2 border-slate-950 flex items-center justify-center">
+                                <span className="text-[10px]">✉️</span>
+                              </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <h3 className="font-semibold text-white truncate text-sm sm:text-base">
+                                    {request.from.anonymousName}
+                                  </h3>
+                                  {request.from.verified && (
+                                    <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                                  )}
+                                </div>
+                                <span className="text-[11px] text-yellow-400/60 shrink-0">
+                                  {getTimeAgo(request.timestamp.toISOString())}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 text-sm text-white/50 mb-2">
+                                <span>{request.from.age} • {request.from.university || 'University'}</span>
+                              </div>
+
+                              {/* Message */}
+                              {request.message && (
+                                <div className="bg-white/5 rounded-xl p-3 mb-3 border border-white/10">
+                                  <p className="text-sm text-white/70 italic line-clamp-3">
+                                    &quot;{request.message}&quot;
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Action Buttons */}
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleAccept(request.id)}
+                                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/25 text-sm"
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                  Accept
+                                </button>
+                                <button
+                                  onClick={() => handleReject(request.id)}
+                                  className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-white/5 hover:bg-white/10 active:scale-95 text-white/70 hover:text-white font-medium rounded-xl transition-all text-sm"
+                                >
+                                  Reject
+                                </button>
+                                <button
+                                  onClick={() => handleBlock(request.id)}
+                                  className="px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 active:scale-95 text-red-400 rounded-xl transition-all"
+                                  title="Block user"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 flex items-center justify-center mx-auto mb-6">
+                      <Inbox className="w-10 h-10 text-yellow-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">No pending requests</h3>
+                    <p className="text-white/40 text-sm max-w-[280px]">
+                      When someone sends you a chat request, it will appear here for you to accept or reject.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
             {/* Chats Tab */}
             {activeTab === 'chats' && (
               <>
@@ -899,7 +1026,7 @@ export default function InboxPage() {
                     </p>
                     <button
                       onClick={() => setActiveTab('matches')}
-                      className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 active:scale-95 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
+                      className="flex items-center gap-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 active:scale-95 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/25"
                     >
                       <Sparkles className="w-4 h-4" />
                       View Matches

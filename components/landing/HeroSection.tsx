@@ -1,12 +1,27 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Heart, Sparkles, Ghost, Globe, ChevronRight } from 'lucide-react';
 import { SignInModal } from './SignInModal';
 
 export function HeroSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
+
+  const handleStartDating = () => {
+    // Check if user is already logged in
+    const userId = localStorage.getItem('userId');
+    
+    if (userId) {
+      // User is logged in, redirect to dashboard
+      router.push('/dashboard');
+    } else {
+      // User is not logged in, show sign in modal
+      setIsModalOpen(true);
+    }
+  };
 
   return (
     <div className="relative min-h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden bg-[#030014]">
@@ -79,7 +94,7 @@ export function HeroSection() {
           className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
         >
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleStartDating}
             className="btn-glass-primary px-8 py-4 flex items-center justify-center gap-3 group"
           >
             <Heart className="w-5 h-5 fill-current text-purple-600 group-hover:scale-110 transition-transform" />

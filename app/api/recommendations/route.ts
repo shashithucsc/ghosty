@@ -146,7 +146,11 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const { userId, page, limit, filterUniversity, filterFaculty, minAge, maxAge } = validation.data;
+    const { userId, page, limit, filterUniversity, filterFaculty, minAge, maxAge, universities, interests } = validation.data;
+
+    // Parse filter arrays from comma-separated strings
+    const universitiesArray = universities ? universities.split(',').filter(Boolean) : [];
+    const interestsArray = interests ? interests.split(',').filter(Boolean) : [];
 
     // Step 1: Get viewer's profile and gender from profiles table (fallback to users if needed)
     const { data: viewerProfile, error: viewerError } = await supabaseAdmin
@@ -231,11 +235,11 @@ export async function GET(request: NextRequest) {
         user_id,
         age,
         height_cm,
+        skin_tone,
+        hometown,
         university,
         faculty,
         degree_type,
-        hometown,
-        skin_tone,
         bio,
         gender,
         verified,
@@ -251,6 +255,19 @@ export async function GET(request: NextRequest) {
       // Use NOT with ilike for case-insensitive gender exclusion
       // This will exclude 'Male', 'male', 'MALE', etc. if viewer is male
       query = query.not('gender', 'ilike', viewerGender);
+    }
+
+    // Apply age filter if provided
+    if (minAge !== null && minAge !== undefined) {
+      query = query.gte('age', minAge);
+    }
+    if (maxAge !== null && maxAge !== undefined) {
+      query = query.lte('age', maxAge);
+    }
+
+    // Apply university filter if provided
+    if (universitiesArray.length > 0) {
+      query = query.in('university', universitiesArray);
     }
 
     // Exclude blocked and interacted users
@@ -293,7 +310,20 @@ export async function GET(request: NextRequest) {
     const userMap = new Map(candidateUsers?.map(u => [u.id, u]) || []);
 
     // Filter out restricted users and admins
-    const validCandidates = candidates.filter(c => userMap.has(c.user_id));
+    let validCandidates = candidates.filter(c => userMap.has(c.user_id));
+
+    // TODO: Apply interests filter once interests column is added to database
+    // Note: Interests column doesn't exist in current database schema
+    // if (interestsArray.length > 0) {
+    //   validCandidates = validCandidates.filter((candidate: any) => {
+    //     if (!candidate.interests || !Array.isArray(candidate.interests)) {
+    //       return false;
+    //     }
+    //     return candidate.interests.some((interest: string) => 
+    //       interestsArray.includes(interest)
+    //     );
+    //   });
+    // }
 
     // Step 5: Calculate match scores using weighted algorithm
     const scoredMatches = validCandidates.map((candidate: any) => {
@@ -325,7 +355,7 @@ export async function GET(request: NextRequest) {
         degree: candidate.degree_type,
         hometown: candidate.hometown,
         skinTone: candidate.skin_tone,
-        interests: [],
+        interests: [], // interests field will be added when column exists
         isVerified: candidate.verified || user?.verification_status === 'verified',
         verificationStatus: user?.verification_status || 'unverified',
         matchScore,

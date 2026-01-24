@@ -36,7 +36,6 @@ export default function MyProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
 
   const [profileData, setProfileData] = useState<ProfileData>({
     id: '',
@@ -104,8 +103,6 @@ export default function MyProfilePage() {
           universityName: profileData.universityName,
           faculty: profileData.faculty,
           bio: profileData.bio,
-          anonymousName: profileData.anonymousName,
-          anonymousAvatar: profileData.anonymousAvatar,
           heightCm: profileData.heightCm,
           skinTone: profileData.skinTone,
           degreeType: profileData.degreeType,
@@ -173,65 +170,6 @@ export default function MyProfilePage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-2xl p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Anonymous Identity
-            </h2>
-
-            {/* Avatar Picker */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Anonymous Avatar
-              </label>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowAvatarPicker(!showAvatarPicker)}
-                  className="text-6xl p-3 rounded-xl bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-all border border-purple-200 dark:border-purple-700/50"
-                >
-                  {profileData.anonymousAvatar}
-                </button>
-                <span className="text-gray-600 dark:text-gray-400 text-sm">Click to change</span>
-              </div>
-              
-              {showAvatarPicker && (
-                <div className="mt-3 grid grid-cols-8 sm:grid-cols-10 gap-2 p-3 rounded-xl bg-gray-100 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700/50">
-                  {avatarOptions.map(avatar => (
-                    <button
-                      key={avatar}
-                      type="button"
-                      onClick={() => {
-                        handleChange('anonymousAvatar', avatar);
-                        setShowAvatarPicker(false);
-                      }}
-                      className={`text-3xl p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-all ${
-                        profileData.anonymousAvatar === avatar ? 'bg-purple-200 dark:bg-purple-900/50 ring-2 ring-purple-600 dark:ring-purple-400' : ''
-                      }`}
-                    >
-                      {avatar}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Anonymous Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Anonymous Name
-              </label>
-              <input
-                type="text"
-                value={profileData.anonymousName || ''}
-                onChange={(e) => handleChange('anonymousName', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                placeholder="Your anonymous display name"
-                required
-              />
-            </div>
-          </div>
-
           {/* Personal Information Section */}
           <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-2xl p-6 shadow-lg">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">

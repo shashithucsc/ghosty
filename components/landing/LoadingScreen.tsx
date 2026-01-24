@@ -234,21 +234,14 @@ export function LoadingScreen() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex flex-col items-center gap-3"
         >
-          <h1 className="text-5xl sm:text-6xl font-bold">
-            <span className="relative inline-block">
-              <span className="absolute inset-0 blur-2xl bg-purple-600/40" />
-              <span className="relative text-purple-400">
-                අතැගිලි
-              </span>
-            </span>
-          </h1>
+         
           
           <motion.p 
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
             className="text-gray-400 text-lg tracking-wide"
           >
-            welcome to අතැගිලි...
+           
           </motion.p>
         </motion.div>
 
