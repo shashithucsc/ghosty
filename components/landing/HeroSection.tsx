@@ -11,14 +11,16 @@ export function HeroSection() {
   const router = useRouter();
 
   const handleStartDating = () => {
-    // Check if user is already logged in
+    // Check if user is already logged in with proper validation
     const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
     
-    if (userId) {
+    // Only redirect to dashboard if userId exists, is not "null" string, and is not empty
+    if (userId && userId !== 'null' && userId !== 'undefined' && userId.trim() !== '' && username) {
       // User is logged in, redirect to dashboard
       router.push('/dashboard');
     } else {
-      // User is not logged in, show sign in modal
+      // User is not logged in or session is invalid, show sign in modal
       setIsModalOpen(true);
     }
   };
