@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ghosty - Anonymous Dating for Students",
+  title: "Athagili - Anonymous Dating for Students",
   description: "Find your perfect match anonymously. Connect with fellow students while maintaining your privacy.",
 };
 

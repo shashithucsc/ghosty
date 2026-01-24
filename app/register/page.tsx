@@ -24,7 +24,7 @@ export default function RegisterPage() {
         {/* Logo & Header */}
         <div className="text-center mb-8 animate-fade-in">
           <h1 className="text-4xl sm:text-5xl font-bold bg-linear-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-2">
-            Ghosty 👻
+            Athagili
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
             Find your match anonymously

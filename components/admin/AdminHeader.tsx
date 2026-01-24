@@ -19,7 +19,7 @@ export function AdminHeader({ darkMode, onToggleTheme }: AdminHeaderProps) {
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-linear-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-                Ghosty Admin
+                Athagili Admin
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">Platform Management</p>
             </div>

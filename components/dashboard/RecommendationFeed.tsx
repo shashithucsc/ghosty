@@ -273,7 +273,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
   }
 
   return (
-    <div className="relative">
+    <div className="relative flex flex-col h-full">
       {/* Match Modal */}
       {matchedUser && (
         <MatchModal
@@ -291,14 +291,14 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
         />
       )}
 
-      {/* Card Stack Preview */}
-      <div className="relative h-[calc(100vh-380px)] sm:h-[500px] max-w-sm sm:max-w-md mx-auto">
+      {/* Card Stack Preview - Dynamic height for mobile */}
+      <div className="relative flex-1 max-w-sm sm:max-w-md mx-auto w-full px-2 sm:px-0">
         {profiles.slice(currentIndex, currentIndex + 3).map((profile, index) => (
           <div
             key={profile.id}
             className="absolute inset-0 transition-all duration-300"
             style={{
-              transform: `translateY(${index * 8}px) scale(${1 - index * 0.05})`,
+              transform: `translateY(${index * 6}px) scale(${1 - index * 0.04})`,
               zIndex: 10 - index,
               opacity: index === 0 ? 1 : 0.5,
               pointerEvents: index === 0 ? 'auto' : 'none',
@@ -316,12 +316,12 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
         ))}
       </div>
 
-      {/* Progress Indicator */}
-      <div className="mt-6 text-center">
-        <p className="text-sm font-medium text-gray-600">
+      {/* Progress Indicator - Compact for mobile */}
+      <div className="mt-3 sm:mt-6 pb-2 sm:pb-4 text-center px-4">
+        <p className="text-xs sm:text-sm font-medium text-gray-600 mb-1 sm:mb-2">
           {currentIndex + 1} of {profiles.length} profiles
         </p>
-        <div className="mt-2 w-full max-w-md mx-auto h-2 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+        <div className="w-full max-w-md mx-auto h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden shadow-inner">
           <div
             className="h-full bg-purple-600 transition-all duration-300 rounded-full"
             style={{ width: `${((currentIndex + 1) / profiles.length) * 100}%` }}

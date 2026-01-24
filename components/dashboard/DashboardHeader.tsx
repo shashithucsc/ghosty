@@ -61,7 +61,7 @@ export function DashboardHeader({
           {/* Logo */}
           <div className="flex items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400">
-              Ghosty 👻
+              Athagili
             </h1>
           </div>
 

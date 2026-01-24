@@ -152,7 +152,7 @@ export function ProfileCreation({ email }: ProfileCreationProps) {
             {assignedAlias}
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-            This will be your identity on Ghosty. Your real name remains private.
+            This will be your identity on Athagili. Your real name remains private.
           </p>
         </div>
 
