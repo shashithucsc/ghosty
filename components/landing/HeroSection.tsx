@@ -58,7 +58,7 @@ export function HeroSection() {
         </motion.div>
 
         {/* Hero Title */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
@@ -75,7 +75,7 @@ export function HeroSection() {
               </span>
             </span>
           </h1>
-        </motion.div>
+        </motion.div> */}
 
         {/* Subtitle */}
         <motion.p 

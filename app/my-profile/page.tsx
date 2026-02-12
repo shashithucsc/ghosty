@@ -36,6 +36,7 @@ export default function MyProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const [profileData, setProfileData] = useState<ProfileData>({
     id: '',
@@ -63,10 +64,36 @@ export default function MyProfilePage() {
 
   const loadProfile = async () => {
     const userId = localStorage.getItem('userId');
+    const verificationStatus = localStorage.getItem('verificationStatus');
+    const registrationType = localStorage.getItem('registrationType');
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
     if (!userId) {
       router.push('/login');
       return;
     }
+
+    // Admin bypass
+    if (!isAdmin) {
+      // Check verification status for verified registration type
+      if (registrationType === 'verified' && verificationStatus === 'pending') {
+        router.push('/pending-verification');
+        return;
+      }
+
+      if (registrationType === 'verified' && verificationStatus === 'rejected') {
+        localStorage.clear();
+        router.push('/login');
+        return;
+      }
+
+      if (registrationType === 'verified' && verificationStatus !== 'verified') {
+        router.push('/pending-verification');
+        return;
+      }
+    }
+
+    setIsCheckingAuth(false);
 
     try {
       const response = await fetch(`/api/profile/edit?userId=${userId}`);
@@ -135,6 +162,17 @@ export default function MyProfilePage() {
   const handleChange = (field: keyof ProfileData, value: any) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
   };
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-800 dark:text-white text-lg">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

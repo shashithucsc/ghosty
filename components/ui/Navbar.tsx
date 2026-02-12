@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { Home, LayoutDashboard, User, Menu, X, Inbox, Search, Bell, MessageCircle, UserCog, LogOut } from 'lucide-react';
+import { Home, LayoutDashboard, User, Menu, X, Inbox, Search, Bell, MessageCircle, UserCog, LogOut, ClipboardList } from 'lucide-react';
 import { useUser } from '@/lib/contexts/UserContext';
 
 export function Navbar() {
@@ -91,6 +91,7 @@ export function Navbar() {
   const mobileNavItems = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Notices', path: '/notice-board', icon: ClipboardList },
     { name: 'Inbox', path: '/inbox', icon: Inbox },
     { name: 'Profile', path: '/my-profile', icon: User }
   ];
@@ -98,6 +99,7 @@ export function Navbar() {
   // Desktop nav items - Home is in logo
   const desktopNavItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Notice Board', path: '/notice-board', icon: ClipboardList },
     { name: 'Inbox', path: '/inbox', icon: Inbox },
     { name: 'Profile', path: '/my-profile', icon: User },
   ];
@@ -112,6 +114,7 @@ export function Navbar() {
                           pathname === '/dashboard' || 
                           pathname === '/inbox' || 
                           pathname === '/my-profile' || 
+                          pathname === '/notice-board' ||
                           pathname?.startsWith('/profile/');
 
   return (
@@ -374,7 +377,7 @@ export function Navbar() {
           ? 'bg-slate-900 border-white/10' 
           : 'bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-gray-200 dark:border-gray-700/50'
       }`}>
-        <div className="grid grid-cols-4 h-16">
+        <div className="grid grid-cols-5 h-16">
           {mobileNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);

@@ -75,16 +75,42 @@ export default function InboxPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' | 'warning' } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ conversationId: string; chatName: string } | null>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
+    const verificationStatus = localStorage.getItem('verificationStatus');
+    const registrationType = localStorage.getItem('registrationType');
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
     
+    // Check if user is logged in
     if (!userId) {
       router.push('/login');
       return;
     }
 
+    // Admin bypass
+    if (!isAdmin) {
+      // Check verification status for verified registration type
+      if (registrationType === 'verified' && verificationStatus === 'pending') {
+        router.push('/pending-verification');
+        return;
+      }
+
+      if (registrationType === 'verified' && verificationStatus === 'rejected') {
+        localStorage.clear();
+        router.push('/login');
+        return;
+      }
+
+      if (registrationType === 'verified' && verificationStatus !== 'verified') {
+        router.push('/pending-verification');
+        return;
+      }
+    }
+
     setCurrentUserId(userId);
+    setIsCheckingAuth(false);
     fetchRequests(userId);
     fetchChats(userId);
 
@@ -564,6 +590,17 @@ export default function InboxPage() {
     if (g === 'female') return <User className="w-full h-full text-pink-400" />;
     return <User className="w-full h-full text-purple-400" />;
   };
+
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 page-container">

@@ -40,6 +40,7 @@ export default function DashboardPage() {
     universities: [],
     interests: [],
   });
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const [notifications, setNotifications] = useState<Array<{
     id: string;
@@ -48,22 +49,58 @@ export default function DashboardPage() {
     from?: string;
   }>>([]);
 
-  // Load user data from localStorage and update context
+  // Check authentication and verification status
   useEffect(() => {
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
     const avatar = localStorage.getItem('avatar');
+    const verificationStatus = localStorage.getItem('verificationStatus');
+    const registrationType = localStorage.getItem('registrationType');
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
     
-    if (userId) {
+    // 1. Check if user is logged in
+    if (!userId) {
+      window.location.href = '/login';
+      return;
+    }
+
+    // 2. Admin bypass - admins can access dashboard
+    if (isAdmin) {
       setUser({
-        anonymousName: username || 'User',
+        anonymousName: username || 'Admin',
         avatar: avatar || '👤',
         userId,
       });
-    } else {
-      // Redirect to login if no user ID found
-      window.location.href = '/login';
+      setIsCheckingAuth(false);
+      return;
     }
+
+    // 3. Check if user registered with verified type and is pending approval
+    if (registrationType === 'verified' && verificationStatus === 'pending') {
+      window.location.href = '/pending-verification';
+      return;
+    }
+
+    // 4. Check if verification was rejected
+    if (registrationType === 'verified' && verificationStatus === 'rejected') {
+      localStorage.clear();
+      window.location.href = '/login';
+      return;
+    }
+
+    // 5. For verified registration type, must be verified to access dashboard
+    if (registrationType === 'verified' && verificationStatus !== 'verified') {
+      window.location.href = '/pending-verification';
+      return;
+    }
+
+    // 6. User is authenticated and authorized
+    setUser({
+      anonymousName: username || 'User',
+      avatar: avatar || '👤',
+      userId,
+    });
+    setIsCheckingAuth(false);
   }, [setUser]);
 
   const handleRequestSent = (user: UserProfile) => {
@@ -86,6 +123,18 @@ export default function DashboardPage() {
     setFilters(newFilters);
     setShowFilters(false);
   };
+
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="fixed inset-0 pt-16 sm:pt-20 pb-16 sm:pb-20 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 pt-16 sm:pt-20 pb-16 sm:pb-20 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 overflow-hidden">
