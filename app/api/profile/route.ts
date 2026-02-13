@@ -35,9 +35,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify user exists and email is verified
+    // Verify user exists in users_v2
     const { data: user, error: userError } = await supabaseAdmin
-      .from('users')
+      .from('users_v2')
       .select('id, email_verified')
       .eq('id', userId)
       .single();
@@ -56,10 +56,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if profile already exists
+    // Check if profile already exists in profiles_v2
     const { data: existingProfile } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
+      .from('profiles_v2')
+      .select('user_id')
       .eq('user_id', userId)
       .single();
 
@@ -107,15 +107,15 @@ export async function POST(request: NextRequest) {
     // Calculate age
     const age = calculateAge(dateOfBirth);
 
-    // Generate anonymous name (ensure uniqueness)
+    // Generate anonymous name (ensure uniqueness in profiles_v2)
     let anonymousName = generateAnonymousName();
     let isUnique = false;
     let attempts = 0;
 
     while (!isUnique && attempts < 10) {
       const { data: existingName } = await supabaseAdmin
-        .from('profiles')
-        .select('id')
+        .from('profiles_v2')
+        .select('user_id')
         .eq('anonymous_name', anonymousName)
         .single();
 
@@ -146,28 +146,37 @@ export async function POST(request: NextRequest) {
       preferencesHopes: preferencesHopes ? sanitizeInput(preferencesHopes) : '',
     };
 
-    // Create profile
+    // Update users_v2 with private identity data
+    const { error: userUpdateError } = await supabaseAdmin
+      .from('users_v2')
+      .update({
+        full_name: sanitizedData.realName,
+        birthday: dateOfBirth,
+        gender: gender,
+        university_name: sanitizedData.university,
+        faculty: sanitizedData.faculty,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId);
+
+    if (userUpdateError) {
+      console.error('Error updating user:', userUpdateError);
+      return NextResponse.json(
+        { error: 'Failed to update user data' },
+        { status: 500 }
+      );
+    }
+
+    // Create profile in profiles_v2 (public anonymous persona)
     const { data: newProfile, error: createError } = await supabaseAdmin
-      .from('profiles')
+      .from('profiles_v2')
       .insert({
         user_id: userId,
         anonymous_name: anonymousName,
-        avatar,
-        real_name: sanitizedData.realName,
-        date_of_birth: dateOfBirth,
-        age,
-        gender,
-        university: sanitizedData.university,
-        faculty: sanitizedData.faculty,
+        anonymous_avatar_url: avatar,
         bio: sanitizedData.bio,
-        interests: interests || [],
-        is_verified: false,
-        preferences_age_min: preferencesAgeMin || 18,
-        preferences_age_max: preferencesAgeMax || 35,
-        preferences_gender: preferencesGender || [],
-        preferences_interests: preferencesInterests || [],
-        preferences_hopes: sanitizedData.preferencesHopes,
-        profile_completed: true,
+        age: age,
+        public: true,
       })
       .select()
       .single();
@@ -182,24 +191,12 @@ export async function POST(request: NextRequest) {
 
     // Return profile (excluding sensitive info)
     const profileData = {
-      id: newProfile.id,
+      userId: newProfile.user_id,
       anonymousName: newProfile.anonymous_name,
-      avatar: newProfile.avatar,
+      avatar: newProfile.anonymous_avatar_url,
       age: newProfile.age,
-      gender: newProfile.gender,
-      university: newProfile.university,
-      faculty: newProfile.faculty,
       bio: newProfile.bio,
-      interests: newProfile.interests,
-      isVerified: newProfile.is_verified,
-      preferences: {
-        ageMin: newProfile.preferences_age_min,
-        ageMax: newProfile.preferences_age_max,
-        gender: newProfile.preferences_gender,
-        interests: newProfile.preferences_interests,
-        hopes: newProfile.preferences_hopes,
-      },
-      profileCompleted: newProfile.profile_completed,
+      profileCompleted: true,
       createdAt: newProfile.created_at,
     };
 
@@ -219,7 +216,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET endpoint to retrieve profile by user ID
+// GET endpoint to retrieve profile by user ID (V2)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -233,7 +230,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: profile, error } = await supabaseAdmin
-      .from('profiles')
+      .from('profiles_v2')
       .select('*')
       .eq('user_id', userId)
       .single();
@@ -245,26 +242,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Return profile (excluding sensitive real name and DOB)
+    // Get verification status from users_v2
+    const { data: user } = await supabaseAdmin
+      .from('users_v2')
+      .select('verification_status')
+      .eq('id', userId)
+      .single();
+
+    // Return profile (public data only)
     const profileData = {
-      id: profile.id,
+      userId: profile.user_id,
       anonymousName: profile.anonymous_name,
-      avatar: profile.avatar,
+      avatar: profile.anonymous_avatar_url,
       age: profile.age,
-      gender: profile.gender,
-      university: profile.university,
-      faculty: profile.faculty,
       bio: profile.bio,
-      interests: profile.interests,
-      isVerified: profile.is_verified,
-      preferences: {
-        ageMin: profile.preferences_age_min,
-        ageMax: profile.preferences_age_max,
-        gender: profile.preferences_gender,
-        interests: profile.preferences_interests,
-        hopes: profile.preferences_hopes,
-      },
-      profileCompleted: profile.profile_completed,
+      heightCm: profile.height_cm,
+      skinTone: profile.skin_tone,
+      degreeType: profile.degree_type,
+      hometown: profile.hometown,
+      isVerified: user?.verification_status === 'verified',
+      totalReports: profile.total_reports,
+      isPublic: profile.public,
       createdAt: profile.created_at,
     };
 

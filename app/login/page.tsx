@@ -56,7 +56,17 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store user data in localStorage
+        // CRITICAL: Clear ALL old localStorage data first to prevent stale values
+        const keysToPreserve = ['theme', 'darkMode']; // Preserve non-auth data
+        const preserved: Record<string, string> = {};
+        keysToPreserve.forEach(key => {
+          const value = localStorage.getItem(key);
+          if (value) preserved[key] = value;
+        });
+        localStorage.clear();
+        Object.entries(preserved).forEach(([key, value]) => localStorage.setItem(key, value));
+
+        // Store user data in localStorage with fresh values
         localStorage.setItem('userId', data.user.id);
         localStorage.setItem('username', data.user.username);
         localStorage.setItem('token', data.token);
@@ -65,18 +75,22 @@ export default function LoginPage() {
           localStorage.setItem('fullName', data.user.fullName);
         }
         
-        if (data.user.verificationStatus) {
-          localStorage.setItem('verificationStatus', data.user.verificationStatus);
-        }
-
-        if (data.user.registrationType) {
-          localStorage.setItem('registrationType', data.user.registrationType);
-        }
+        // CRITICAL: Always set verification status (even if undefined) to clear stale values
+        localStorage.setItem('verificationStatus', data.user.verificationStatus || 'unverified');
+        localStorage.setItem('registrationType', data.user.registrationType || 'simple');
+        
+        // Debug log to verify correct values are being set
+        console.log('[LOGIN] Set localStorage - verificationStatus:', data.user.verificationStatus, 'registrationType:', data.user.registrationType);
 
         // Store admin flag and role
         const isAdmin = data.user.isAdmin || false;
         localStorage.setItem('isAdmin', isAdmin.toString());
         localStorage.setItem('userRole', isAdmin ? 'admin' : 'user');
+
+        // Store profile completion status
+        if (data.user.isProfileComplete !== undefined) {
+          localStorage.setItem('isProfileComplete', data.user.isProfileComplete.toString());
+        }
 
         // Different success messages for admin vs user
         const successMessage = isAdmin 
@@ -87,6 +101,12 @@ export default function LoginPage() {
         
         // Redirect based on user role and account status
         setTimeout(() => {
+          // Re-read from localStorage to ensure fresh values are used for routing
+          const freshVerificationStatus = localStorage.getItem('verificationStatus');
+          const freshRegistrationType = localStorage.getItem('registrationType');
+          
+          console.log('[LOGIN] Routing decision - verificationStatus:', freshVerificationStatus, 'registrationType:', freshRegistrationType, 'isAdmin:', isAdmin);
+
           // ADMIN FLOW - Admins always go to admin panel
           if (isAdmin) {
             router.push('/admin');
@@ -96,13 +116,15 @@ export default function LoginPage() {
           // NORMAL USER FLOW - Check various statuses
           if (data.user.isRestricted) {
             router.push('/restricted');
-          } else if (data.user.isPending || data.user.verificationStatus === 'pending') {
+          } else if (data.user.isPending || freshVerificationStatus === 'pending') {
+            console.log('[LOGIN] Redirecting to pending-verification');
             router.push('/pending-verification');
-          } else if (data.user.verificationStatus === 'rejected') {
+          } else if (freshVerificationStatus === 'rejected') {
             router.push('/login'); // Stay on login with error message
           } else if (!data.user.isProfileComplete) {
             router.push('/setup-profile');
           } else {
+            console.log('[LOGIN] Redirecting to dashboard');
             router.push('/dashboard');
           }
         }, 1500);

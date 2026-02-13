@@ -57,6 +57,9 @@ export default function DashboardPage() {
     const verificationStatus = localStorage.getItem('verificationStatus');
     const registrationType = localStorage.getItem('registrationType');
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+    // Debug log to diagnose verification issues
+    console.log('[DASHBOARD] Auth check - userId:', userId, 'registrationType:', registrationType, 'verificationStatus:', verificationStatus);
     
     // 1. Check if user is logged in
     if (!userId) {

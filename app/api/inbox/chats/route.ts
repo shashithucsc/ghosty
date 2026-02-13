@@ -84,42 +84,30 @@ export async function GET(request: NextRequest) {
 
     const enrichedConversations = await Promise.all(
       conversations.map(async (conv) => {
-        // Get other user's profile
+        // Get other user's profile from profiles_v2 (PUBLIC anonymous persona)
         const { data: profile } = await supabase
-          .from('profiles')
-          .select('anonymous_name, real_name, anonymous_avatar_url, verified, dob, age, gender')
+          .from('profiles_v2')
+          .select('anonymous_name, anonymous_avatar_url, age')
           .eq('user_id', conv.otherUserId)
           .single();
 
-        // Get other user's data
+        // Get other user's verification status and gender from users_v2
         const { data: user } = await supabase
-          .from('users')
-          .select('username, gender')
+          .from('users_v2')
+          .select('username, gender, verification_status')
           .eq('id', conv.otherUserId)
           .single();
-
-        // Calculate age from dob if available, otherwise use age field
-        let calculatedAge = profile?.age;
-        if (profile?.dob) {
-          const birthDate = new Date(profile.dob);
-          const today = new Date();
-          calculatedAge = today.getFullYear() - birthDate.getFullYear();
-          const monthDiff = today.getMonth() - birthDate.getMonth();
-          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            calculatedAge--;
-          }
-        }
 
         return {
           id: conv.conversationId,
           conversationId: conv.conversationId,
           otherUser: {
             id: conv.otherUserId,
-            anonymousName: profile?.real_name || profile?.anonymous_name || user?.username || 'Anonymous',
+            anonymousName: profile?.anonymous_name || user?.username || 'Anonymous', // NEVER show real_name
             avatar: profile?.anonymous_avatar_url || '👤',
-            verified: profile?.verified || false,
-            gender: profile?.gender || user?.gender || 'Unknown',
-            age: calculatedAge,
+            verified: user?.verification_status === 'verified',
+            gender: user?.gender || 'Unknown',
+            age: profile?.age,
           },
           lastMessage: conv.lastMessage,
           lastMessageTime: conv.lastMessageTime,

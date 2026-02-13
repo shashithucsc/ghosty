@@ -2,19 +2,44 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, CheckCircle, XCircle, Shield, ArrowLeft } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Shield, ArrowLeft, RefreshCw, Bug } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function PendingVerificationPage() {
   const router = useRouter();
   const [userData, setUserData] = useState<any>(null);
+  const [showDebug, setShowDebug] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const [debugInfo, setDebugInfo] = useState({
+    userId: '',
+    username: '',
+    verificationStatus: '',
+    registrationType: '',
+    timestamp: '',
+  });
 
   useEffect(() => {
     // Get user data from localStorage
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
     const verificationStatus = localStorage.getItem('verificationStatus');
+    const registrationType = localStorage.getItem('registrationType');
+
+    console.log('[PENDING-VERIFICATION] Current localStorage:', {
+      userId,
+      username,
+      verificationStatus,
+      registrationType,
+    });
+
+    setDebugInfo({
+      userId: userId || 'Not found',
+      username: username || 'Not found',
+      verificationStatus: verificationStatus || 'Not found',
+      registrationType: registrationType || 'Not found',
+      timestamp: new Date().toLocaleString(),
+    });
 
     if (!userId) {
       router.push('/login');
@@ -22,12 +47,106 @@ export default function PendingVerificationPage() {
     }
 
     if (verificationStatus === 'verified') {
+      console.log('[PENDING-VERIFICATION] User is verified, redirecting to dashboard');
       router.push('/dashboard');
       return;
     }
 
-    setUserData({ userId, username, verificationStatus });
+    setUserData({ userId, username, verificationStatus, registrationType });
+
+    // Auto-check status every 10 seconds
+    const intervalId = setInterval(async () => {
+      console.log('[PENDING-VERIFICATION] Auto-checking status...');
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`/api/profile/edit?userId=${userId}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        
+        const data = await response.json();
+        if (data.success && data.data) {
+          const newStatus = data.data.verificationStatus || 'unverified';
+          const oldStatus = localStorage.getItem('verificationStatus');
+          
+          console.log('[PENDING-VERIFICATION] Auto-check: Old status:', oldStatus, '→ New status:', newStatus);
+          
+          if (newStatus !== oldStatus) {
+            localStorage.setItem('verificationStatus', newStatus);
+            
+            if (newStatus === 'verified') {
+              console.log('[PENDING-VERIFICATION] ✅ Approved! Redirecting to dashboard...');
+              alert('✅ Your verification has been approved! Redirecting...');
+              clearInterval(intervalId);
+              router.push('/dashboard');
+            } else if (newStatus === 'rejected') {
+              console.log('[PENDING-VERIFICATION] ❌ Rejected! Redirecting to login...');
+              alert('❌ Your verification was rejected. Please contact support.');
+              clearInterval(intervalId);
+              router.push('/login');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('[PENDING-VERIFICATION] Auto-check error:', error);
+      }
+    }, 10000); // Check every 10 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
   }, [router]);
+
+  const handleCheckStatus = async () => {
+    setIsChecking(true);
+    try {
+      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('token');
+      
+      console.log('[PENDING-VERIFICATION] Checking status for user:', userId);
+      
+      // Query the API to get fresh verification status
+      const response = await fetch(`/api/profile/edit?userId=${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      const data = await response.json();
+      console.log('[PENDING-VERIFICATION] API response:', data);
+      
+      if (data.success && data.data) {
+        const newStatus = data.data.verificationStatus || 'unverified';
+        console.log('[PENDING-VERIFICATION] Current verification status from API:', newStatus);
+        
+        // Update localStorage with fresh value
+        localStorage.setItem('verificationStatus', newStatus);
+        
+        // Update debug info
+        setDebugInfo(prev => ({
+          ...prev,
+          verificationStatus: newStatus,
+          timestamp: new Date().toLocaleString(),
+        }));
+        
+        setUserData((prev: any) => ({ ...prev, verificationStatus: newStatus }));
+        
+        // If verified, redirect
+        if (newStatus === 'verified') {
+          alert('✅ Your verification has been approved! Redirecting to dashboard...');
+          setTimeout(() => router.push('/dashboard'), 500);
+        } else if (newStatus === 'rejected') {
+          alert('❌ Your verification was rejected. Please contact support.');
+          setTimeout(() => router.push('/login'), 500);
+        } else {
+          alert('⏳ Your verification is still pending approval.');
+        }
+      }
+    } catch (error) {
+      console.error('[PENDING-VERIFICATION] Error checking status:', error);
+      alert('Error checking status. Please try again.');
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -170,20 +289,48 @@ export default function PendingVerificationPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <button
+              onClick={handleCheckStatus}
+              disabled={isChecking}
+              className="flex-1 py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <RefreshCw className={`w-5 h-5 ${isChecking ? 'animate-spin' : ''}`} />
+              {isChecking ? 'Checking...' : 'Check Status'}
+            </button>
             <button
               onClick={handleLogout}
               className="flex-1 py-3 px-6 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-semibold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
             >
               Sign Out
             </button>
-            <Link
-              href="/"
-              className="flex-1 py-3 px-6 bg-linear-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all text-center"
-            >
-              Back to Home
-            </Link>
           </div>
+
+          {/* Debug Toggle */}
+          <button
+            onClick={() => setShowDebug(!showDebug)}
+            className="w-full py-2 px-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-all flex items-center justify-center gap-2"
+          >
+            <Bug className="w-4 h-4" />
+            {showDebug ? 'Hide' : 'Show'} Debug Info
+          </button>
+
+          {/* Debug Panel */}
+          {showDebug && (
+            <div className="mt-4 p-4 bg-gray-900 text-white rounded-lg text-xs font-mono">
+              <div className="font-bold mb-2 text-green-400">Debug Information:</div>
+              <div className="space-y-1">
+                <div><span className="text-gray-400">User ID:</span> {debugInfo.userId}</div>
+                <div><span className="text-gray-400">Username:</span> {debugInfo.username}</div>
+                <div><span className="text-gray-400">Verification Status:</span> <span className={debugInfo.verificationStatus === 'verified' ? 'text-green-400' : 'text-yellow-400'}>{debugInfo.verificationStatus}</span></div>
+                <div><span className="text-gray-400">Registration Type:</span> {debugInfo.registrationType}</div>
+                <div><span className="text-gray-400">Last Checked:</span> {debugInfo.timestamp}</div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-700 text-gray-400">
+                Press F12 to view browser console for detailed logs
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer Note */}

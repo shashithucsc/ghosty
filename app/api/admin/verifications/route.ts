@@ -45,8 +45,8 @@ export async function GET(request: NextRequest) {
     let users: Record<string, any> = {};
     if (userIds.length > 0) {
       const { data: usersData, error: usersError } = await supabaseAdmin
-        .from('users')
-        .select('id, username, full_name, email, university_name, faculty, bio, partner_preferences, birthday, gender, proof_type, proof_url, verification_status, registration_type, created_at')
+        .from('users_v2')
+        .select('id, username, full_name, email, university_name, faculty, birthday, gender, proof_type, proof_url, verification_status, registration_type, created_at')
         .in('id', userIds);
 
       if (usersError) {
@@ -95,8 +95,6 @@ export async function GET(request: NextRequest) {
         email: user?.email || null,
         university: user?.university_name || 'Unknown University',
         faculty: user?.faculty || null,
-        bio: user?.bio || null,
-        partnerPreferences: user?.partner_preferences || null,
         birthday: user?.birthday || null,
         gender: user?.gender || null,
         userCreatedAt: user?.created_at || null,
@@ -192,19 +190,49 @@ async function approveVerification(verificationId: string, userId: string) {
     }
 
     // Step 3: Update user verification status to verified
-    const { error: updateUserError } = await supabaseAdmin
-      .from('users')
+    const { data: updatedUser, error: updateUserError } = await supabaseAdmin
+      .from('users_v2')
       .update({
         verification_status: 'verified',
         updated_at: new Date().toISOString(),
       })
-      .eq('id', userId);
+      .eq('id', userId)
+      .select();
+
+    // Log the update result for debugging
+    console.log(`[APPROVAL] Updated user ${userId} verification_status to 'verified'`);
+    console.log('[APPROVAL] Updated rows:', updatedUser?.length || 0);
+    if (updatedUser && updatedUser.length > 0) {
+      console.log('[APPROVAL] New verification_status:', updatedUser[0].verification_status);
+    }
 
     if (updateUserError) {
       console.error('Error updating user:', updateUserError);
       // Rollback verification status
       await supabaseAdmin.from('verifications').update({ status: 'pending' }).eq('id', verificationId);
       return NextResponse.json({ error: 'Failed to update user verification status' }, { status: 500 });
+    }
+
+    // CRITICAL: Verify the update actually happened
+    if (!updatedUser || updatedUser.length === 0) {
+      console.error(`[APPROVAL] ERROR: No rows updated for user ${userId}. User may not exist in users_v2 table!`);
+      // Rollback verification status
+      await supabaseAdmin.from('verifications').update({ status: 'pending' }).eq('id', verificationId);
+      return NextResponse.json({ 
+        error: 'Failed to update user: User not found in database',
+        details: 'User may not exist in users_v2 table. Check data migration.'
+      }, { status: 404 });
+    }
+
+    // Double-check the verification_status was actually set to 'verified'
+    if (updatedUser[0].verification_status !== 'verified') {
+      console.error(`[APPROVAL] ERROR: Update command executed but verification_status is still '${updatedUser[0].verification_status}'!`);
+      // Rollback verification status
+      await supabaseAdmin.from('verifications').update({ status: 'pending' }).eq('id', verificationId);
+      return NextResponse.json({ 
+        error: 'Failed to update verification status correctly',
+        details: `Status is '${updatedUser[0].verification_status}' instead of 'verified'. May be RLS policy issue.`
+      }, { status: 500 });
     }
 
     // Step 4: Update verification_files table status
@@ -242,6 +270,11 @@ async function approveVerification(verificationId: string, userId: string) {
         message: 'Verification approved successfully',
         verificationId,
         userId,
+        debug: {
+          rowsUpdated: updatedUser?.length || 0,
+          newVerificationStatus: updatedUser?.[0]?.verification_status || 'unknown',
+          timestamp: new Date().toISOString(),
+        },
       },
       { status: 200 }
     );
@@ -291,7 +324,7 @@ async function rejectVerification(verificationId: string, userId: string, reason
 
     // Step 3: Update user verification status to rejected (they stay unverified but can reapply)
     const { error: updateUserError } = await supabaseAdmin
-      .from('users')
+      .from('users_v2')
       .update({
         verification_status: 'rejected',
         updated_at: new Date().toISOString(),

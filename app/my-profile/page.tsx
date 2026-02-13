@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, User, Mail, Calendar, Users, School, GraduationCap, MapPin, Ruler, Palette, Award, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Save, User, Mail, Calendar, Users, School, GraduationCap, MapPin, Ruler, Palette, Award, Eye, EyeOff, ArrowLeft, MessageSquarePlus } from 'lucide-react';
+import CreatePostModal from '@/components/profile/CreatePostModal';
 
 interface ProfileData {
   id: string;
@@ -37,6 +38,8 @@ export default function MyProfilePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState('');
 
   const [profileData, setProfileData] = useState<ProfileData>({
     id: '',
@@ -64,7 +67,7 @@ export default function MyProfilePage() {
 
   const loadProfile = async () => {
     const userId = localStorage.getItem('userId');
-    const verificationStatus = localStorage.getItem('verificationStatus');
+    const verificationStatusLocal = localStorage.getItem('verificationStatus');
     const registrationType = localStorage.getItem('registrationType');
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
@@ -73,21 +76,27 @@ export default function MyProfilePage() {
       return;
     }
 
+    // Set verification status in state
+    setVerificationStatus(verificationStatusLocal || 'unverified');
+
+    // Debug log for verification checks
+    console.log('[MY-PROFILE] Auth check - userId:', userId, 'registrationType:', registrationType, 'verificationStatus:', verificationStatusLocal);
+
     // Admin bypass
     if (!isAdmin) {
       // Check verification status for verified registration type
-      if (registrationType === 'verified' && verificationStatus === 'pending') {
+      if (registrationType === 'verified' && verificationStatusLocal === 'pending') {
         router.push('/pending-verification');
         return;
       }
 
-      if (registrationType === 'verified' && verificationStatus === 'rejected') {
+      if (registrationType === 'verified' && verificationStatusLocal === 'rejected') {
         localStorage.clear();
         router.push('/login');
         return;
       }
 
-      if (registrationType === 'verified' && verificationStatus !== 'verified') {
+      if (registrationType === 'verified' && verificationStatusLocal !== 'verified') {
         router.push('/pending-verification');
         return;
       }
@@ -165,7 +174,7 @@ export default function MyProfilePage() {
 
   if (isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-800 dark:text-white text-lg">Verifying access...</p>
@@ -176,7 +185,7 @@ export default function MyProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-800 dark:text-white text-lg">Loading profile...</p>
@@ -186,13 +195,32 @@ export default function MyProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 py-6 px-4 pb-24">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 px-4 pb-24">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          
+        <div className="flex items-center justify-between gap-4 mb-6">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Profile</h1>
+          
+          {/* Create Post Button - Only show for verified users */}
+          {verificationStatus === 'verified' && profileData.id && (
+            <button
+              onClick={() => setIsCreatePostModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
+            >
+              <MessageSquarePlus className="w-5 h-5" />
+              <span className="hidden sm:inline">Create Post</span>
+            </button>
+          )}
         </div>
+
+        {/* Create Post Modal */}
+        <CreatePostModal
+          isOpen={isCreatePostModalOpen}
+          onClose={() => setIsCreatePostModalOpen(false)}
+          userId={profileData.id}
+          userGender={profileData.gender}
+          verificationStatus={verificationStatus}
+        />
 
         {/* Success/Error Messages */}
         {success && (

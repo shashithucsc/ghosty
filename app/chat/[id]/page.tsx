@@ -359,28 +359,32 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
     const fetchUserProfile = async () => {
       try {
-        // Fetch from profiles table for complete info
+        // Fetch from profiles_v2 and users_v2 tables (V2 architecture)
         const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('real_name, anonymous_name, anonymous_avatar_url, dob, age, gender')
+          .from('profiles_v2')
+          .select(`
+            anonymous_name,
+            anonymous_avatar_url,
+            age,
+            user_id,
+            users_v2!inner(gender)
+          `)
           .eq('user_id', otherUserId)
           .single();
 
         if (profileError) {
           console.error('Error fetching profile:', profileError);
-          // Fallback to users table
+          // Fallback to API endpoint
           const response = await fetch(`/api/users/${otherUserId}`);
           if (response.ok) {
             const data = await response.json();
             if (data.success && data.user) {
               const user = data.user;
-              const birthday = new Date(user.birthday);
-              const age = new Date().getFullYear() - birthday.getFullYear();
               setChatPartner({
-                realName: user.username || 'Anonymous',
-                anonymousName: user.username || 'Anonymous',
-                avatar: user.gender === 'Male' ? '👨' : user.gender === 'Female' ? '👩' : '👤',
-                age: age,
+                realName: user.anonymousName || 'Anonymous',
+                anonymousName: user.anonymousName || 'Anonymous',
+                avatar: user.anonymousAvatarUrl || (user.gender === 'Male' ? '👨' : user.gender === 'Female' ? '👩' : '👤'),
+                age: user.age || 18,
                 gender: user.gender || 'Unknown',
               });
             }
@@ -388,24 +392,16 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           return;
         }
 
-        // Calculate age from dob if available
-        let calculatedAge = profile?.age || 0;
-        if (profile?.dob) {
-          const birthDate = new Date(profile.dob);
-          const today = new Date();
-          calculatedAge = today.getFullYear() - birthDate.getFullYear();
-          const monthDiff = today.getMonth() - birthDate.getMonth();
-          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            calculatedAge--;
-          }
-        }
+        // Use age directly from profiles_v2
+        const calculatedAge = profile?.age || 18;
+        const gender = (profile?.users_v2 as any)?.gender || 'Unknown';
 
         setChatPartner({
-          realName: profile?.real_name || profile?.anonymous_name || 'Anonymous',
-          anonymousName: profile?.real_name || profile?.anonymous_name || 'Anonymous',
+          realName: profile?.anonymous_name || 'Anonymous',
+          anonymousName: profile?.anonymous_name || 'Anonymous',
           avatar: profile?.anonymous_avatar_url || '👤',
           age: calculatedAge,
-          gender: profile?.gender || 'Unknown',
+          gender: gender,
         });
       } catch (error) {
         console.error('Error fetching user profile:', error);

@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     // Verify both users exist
     const { data: users, error: usersError } = await supabase
-      .from('users')
+      .from('users_v2')
       .select('id')
       .in('id', [userId, otherUserId]);
 
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
 
     // Verify user exists
     const { data: user, error: userError } = await supabase
-      .from('users')
+      .from('users_v2')
       .select('id')
       .eq('id', userId)
       .single();
@@ -179,19 +179,34 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
     const paginatedConversations = allConversations.slice(offset, offset + limit);
 
-    // Enrich with user data
+    // Enrich with user data from users_v2 and profiles_v2
     const enrichedConversations = await Promise.all(
       paginatedConversations.map(async (conv) => {
-        // Get other user's profile
-        const { data: otherUser } = await supabase
-          .from('users')
-          .select('id, username, gender, university_name, bio')
+        // Get other user's verification status from users_v2
+        const { data: otherUserAuth } = await supabase
+          .from('users_v2')
+          .select('id, verification_status, gender')
           .eq('id', conv.otherUserId)
+          .single();
+
+        // Get other user's anonymous profile from profiles_v2
+        const { data: otherProfile } = await supabase
+          .from('profiles_v2')
+          .select('anonymous_name, anonymous_avatar_url, age, bio')
+          .eq('user_id', conv.otherUserId)
           .single();
 
         return {
           id: conv.id,
-          otherUser: otherUser || null,
+          otherUser: otherUserAuth && otherProfile ? {
+            id: otherUserAuth.id,
+            username: otherProfile.anonymous_name, // Show anonymous name in conversations
+            avatar: otherProfile.anonymous_avatar_url,
+            age: otherProfile.age,
+            bio: otherProfile.bio,
+            gender: otherUserAuth.gender,
+            verification_status: otherUserAuth.verification_status,
+          } : null,
           lastMessage: conv.lastMessage,
           unreadCount: 0, // TODO: Implement unread count if needed
           lastMessageAt: conv.lastMessageAt,

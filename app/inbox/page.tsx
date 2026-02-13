@@ -89,6 +89,9 @@ export default function InboxPage() {
       return;
     }
 
+    // Debug log for verification checks
+    console.log('[INBOX] Auth check - userId:', userId, 'registrationType:', registrationType, 'verificationStatus:', verificationStatus);
+
     // Admin bypass
     if (!isAdmin) {
       // Check verification status for verified registration type

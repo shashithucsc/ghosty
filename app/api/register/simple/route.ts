@@ -39,9 +39,9 @@ export async function POST(request: NextRequest) {
     // Sanitize username (lowercase)
     const sanitizedUsername = username.toLowerCase().trim();
 
-    // Check if username already exists
+    // Check if username already exists in users_v2
     const { data: existingUser } = await supabaseAdmin
-      .from('users')
+      .from('users_v2')
       .select('id, username')
       .eq('username', sanitizedUsername)
       .single();
@@ -56,9 +56,9 @@ export async function POST(request: NextRequest) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Create user with simple registration
+    // Create user in users_v2 with private identity & auth data
     const { data: newUser, error: createError } = await supabaseAdmin
-      .from('users')
+      .from('users_v2')
       .insert({
         username: sanitizedUsername,
         password_hash: passwordHash,
@@ -79,14 +79,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create profile record
+    // Create basic profile record in profiles_v2 (public anonymous persona)
     const { error: profileError } = await supabaseAdmin
-      .from('profiles')
+      .from('profiles_v2')
       .insert({
         user_id: newUser.id,
         anonymous_name: sanitizedUsername,
-        gender: gender,
-        verified: false,
+        anonymous_avatar_url: gender === 'Male' ? '🧑' : '👩',
         public: true,
       });
 

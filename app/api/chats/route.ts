@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     // Verify user exists
     const { data: user, error: userError } = await supabase
-      .from('users')
+      .from('users_v2')
       .select('id')
       .eq('id', userId)
       .single();
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
 
     // Verify both users exist
     const { data: users, error: usersError } = await supabase
-      .from('users')
+      .from('users_v2')
       .select('id')
       .in('id', [senderId, receiverId]);
 

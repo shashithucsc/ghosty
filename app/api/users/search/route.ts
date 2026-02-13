@@ -51,13 +51,12 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Search users by username (case-insensitive)
+    // Search users by username (case-insensitive) in users_v2
     const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id, username, birthday, gender')
-      .ilike('username', `%${searchQuery}%`)
+      .from('users_v2')
+      .select('id, gender')
       .eq('is_restricted', false)
-      .limit(10);
+      .limit(50); // Get more to filter after username match
 
     if (usersError) {
       console.error('Error searching users:', usersError);
@@ -67,42 +66,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get profiles for matched users
+    // Get profiles for matched users (search by anonymous_name)
     const userIds = users?.map(u => u.id) || [];
     const { data: profiles } = await supabase
-      .from('profiles')
-      .select('user_id, anonymous_avatar_url, dob')
-      .in('user_id', userIds);
+      .from('profiles_v2')
+      .select('user_id, anonymous_name, anonymous_avatar_url, age')
+      .in('user_id', userIds)
+      .ilike('anonymous_name', `%${searchQuery}%`);
 
     const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
     // Filter out blocked users and current user, then format results
     const results = users
-      ?.filter(user => user.id !== userId && !blockedUserIds.has(user.id))
+      ?.filter(user => {
+        const hasProfile = profileMap.has(user.id);
+        return hasProfile && user.id !== userId && !blockedUserIds.has(user.id);
+      })
       .map(user => {
-        const profile = profileMap.get(user.id);
-        
-        // Calculate age
-        let age = null;
-        const birthday = user.birthday || profile?.dob;
-        if (birthday) {
-          const birthDate = new Date(birthday);
-          const today = new Date();
-          age = today.getFullYear() - birthDate.getFullYear();
-          const monthDiff = today.getMonth() - birthDate.getMonth();
-          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-          }
-        }
+        const profile = profileMap.get(user.id)!;
 
         return {
           id: user.id,
-          username: user.username,
-          avatar: profile?.anonymous_avatar_url || '👤',
-          age: age,
+          username: profile.anonymous_name, // Show anonymous name
+          avatar: profile.anonymous_avatar_url || '👤',
+          age: profile.age,
           gender: user.gender,
         };
-      }) || [];
+      })
+      .slice(0, 10) || []; // Limit to 10 results
 
     return NextResponse.json({
       success: true,
