@@ -159,7 +159,23 @@ export async function GET(request: NextRequest) {
       .eq('id', userId)
       .single();
 
-    const viewerGender = viewerUser?.gender || null;
+    const viewerGender = viewerUser?.gender?.toLowerCase() || null;
+
+    // If viewer doesn't have a gender set, return empty recommendations
+    if (!viewerGender) {
+      console.warn(`User ${userId} has no gender set, cannot show opposite gender recommendations`);
+      return NextResponse.json(
+        {
+          recommendations: [],
+          page,
+          limit,
+          total: 0,
+          hasMore: false,
+          message: 'Please update your profile with gender information to see recommendations'
+        },
+        { status: 200 }
+      );
+    }
 
     // Get viewer's partner preferences from preferences table (if exists)
     // Note: This should come from your existing preferences table as per instructions
@@ -315,11 +331,16 @@ export async function GET(request: NextRequest) {
     let validCandidates = candidates.filter(c => {
       const user = userMap.get(c.user_id);
       if (!user) return false;
-      // Exclude same gender (case-insensitive)
-      if (viewerGender && user.gender && 
-          user.gender.toLowerCase() === viewerGender.toLowerCase()) {
+      
+      // Skip candidates without gender set
+      if (!user.gender) return false;
+      
+      // Exclude same gender - ONLY show opposite gender
+      const candidateGender = user.gender.toLowerCase();
+      if (candidateGender === viewerGender) {
         return false;
       }
+      
       return true;
     });
 

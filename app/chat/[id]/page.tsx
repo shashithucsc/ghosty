@@ -248,6 +248,29 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     };
   }, [currentUserId, conversationId, otherUserId, markMessagesAsRead]);
 
+  // Mark messages as read when user returns to the tab/window
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && currentUserId && conversationId) {
+        markMessagesAsRead();
+      }
+    };
+
+    const handleFocus = () => {
+      if (currentUserId && conversationId) {
+        markMessagesAsRead();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [currentUserId, conversationId, markMessagesAsRead]);
+
   const handleTyping = useCallback(() => {
     if (!channelRef.current || !currentUserId) return;
 
