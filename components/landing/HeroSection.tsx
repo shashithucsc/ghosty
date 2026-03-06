@@ -22,31 +22,35 @@ export function HeroSection() {
   };
 
   return (
-    <div className="relative min-h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden bg-background">
+    <div className="relative min-h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden bg-[#FDF8F5] font-sans text-black">
       
-      {/* --- Premium Matte Background --- */}
-      <div className="absolute inset-0 w-full h-full bg-background">
-        {/* Subtle Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#27272a_1px,transparent_1px),linear-gradient(to_bottom,#27272a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" />
-        {/* Top Spotlight */}
-        <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-zinc-900/50 to-transparent pointer-events-none" />
+      {/* --- Hard Neobrutalist Background --- */}
+      <div className="absolute inset-0 w-full h-full bg-[#FDF8F5]">
+        {/* Solid, non-fading dot grid */}
+        <div 
+          className="absolute inset-0 opacity-10" 
+          style={{ 
+            backgroundImage: 'radial-gradient(#000000 3px, transparent 3px)', 
+            backgroundSize: '40px 40px' 
+          }} 
+        />
       </div>
 
       {/* --- Main Content --- */}
       <div className="relative z-10 w-full max-w-5xl mx-auto px-6 flex flex-col items-center justify-center text-center">
         
-        {/* High-End Pill Badge */}
+        {/* High-End Pill Badge -> Chunky Solid Badge */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "circOut" }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-zinc-700 bg-zinc-900/50 mb-8"
+          className="inline-flex items-center gap-3 px-6 py-2 border-4 border-black bg-[#FFD166] shadow-[4px_4px_0px_rgba(0,0,0,1)] mb-10"
         >
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full bg-[#FF6B6B] border-2 border-black"></span>
+            <span className="relative inline-flex h-3 w-3 bg-[#FF6B6B] border-2 border-black"></span>
           </span>
-          <span className="text-xs font-semibold text-zinc-300 tracking-widest uppercase">
+          <span className="text-sm font-black text-black tracking-widest uppercase">
             Exclusive Campus Network
           </span>
         </motion.div>
@@ -56,11 +60,14 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="mb-6"
+          className="mb-8"
         >
-          <h1 className="text-5xl sm:text-7xl md:text-8xl font-bold tracking-tight text-primary leading-tight">
-            Connect without <br />
-            <span className="text-zinc-500">Expectations.</span>
+          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight text-black leading-[1.1] uppercase">
+            Connect Without <br />
+            {/* Highlighted text block with a slight tilt */}
+            <span className="inline-block mt-4 bg-[#4ECDC4] border-4 border-black px-6 py-2 shadow-[8px_8px_0px_rgba(0,0,0,1)] transform -rotate-2">
+              Expectations.
+            </span>
           </h1>
         </motion.div>
 
@@ -69,10 +76,10 @@ export function HeroSection() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="max-w-xl text-lg sm:text-xl text-secondary mb-10 font-normal leading-relaxed"
+          className="max-w-2xl text-lg sm:text-xl text-gray-800 font-bold uppercase tracking-widest mt-6 mb-12 leading-relaxed"
         >
           A private, verified dating space for university students. 
-          <span className="block text-zinc-300 mt-1">Chat anonymously. Reveal when ready.</span>
+          <span className="block text-[#FF6B6B] mt-2 font-black">Chat anonymously. Reveal when ready.</span>
         </motion.p>
 
         {/* Action Buttons */}
@@ -84,14 +91,12 @@ export function HeroSection() {
         >
           <button
             onClick={handleStartDating}
-            className="group relative px-8 py-4 bg-primary text-black font-bold text-lg rounded-xl transition-all hover:bg-white/90 hover:scale-[1.02] flex items-center justify-center gap-3"
+            className="group relative px-10 py-5 bg-[#A3E635] text-black font-black uppercase tracking-wider text-xl border-4 border-black rounded-2xl shadow-[8px_8px_0px_rgba(0,0,0,1)] transition-all hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[12px_12px_0px_rgba(0,0,0,1)] active:translate-y-[8px] active:translate-x-[8px] active:shadow-none flex items-center justify-center gap-4"
           >
             Start Matching
-            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-6 h-6 stroke-[4] group-hover:translate-x-2 transition-transform" />
           </button>
         </motion.div>
-
-      
       </div>
 
       <SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />

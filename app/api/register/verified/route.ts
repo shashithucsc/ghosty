@@ -33,8 +33,8 @@ const VerifiedRegistrationSchema = z.object({
     .max(20, 'Username must be less than 20 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  partnerPreferences: z.string().min(1, 'Partner preferences are required'),
-  bio: z.string().min(20, 'Bio must be at least 20 characters'),
+  partnerPreferences: z.string().optional(),
+  bio: z.string().optional(),
   proofType: z.enum(['student_id', 'facebook', 'academic'], { message: 'Please select a valid proof type' }),
 });
 
@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
       faculty: formData.get('faculty') as string,
       username: formData.get('username') as string,
       password: formData.get('password') as string,
-      partnerPreferences: formData.get('partnerPreferences') as string,
-      bio: formData.get('bio') as string,
+      partnerPreferences: (formData.get('partnerPreferences') as string) || '',
+      bio: (formData.get('bio') as string) || '',
       proofType: formData.get('proofType') as string,
     };
 
@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
         user_id: newUser.id,
         anonymous_name: sanitizedUsername,
         anonymous_avatar_url: avatar,
-        bio: validatedData.bio,
+        bio: validatedData.bio || `Hi, I'm ${sanitizedUsername}!`,
         age: age,
         public: true,
       });

@@ -31,8 +31,6 @@ export default function VerifiedRegisterPage() {
     username: '',
     password: '',
     confirmPassword: '',
-    partnerPreferences: '',
-    bio: '',
   });
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofType, setProofType] = useState('');
@@ -100,16 +98,6 @@ export default function VerifiedRegisterPage() {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (!formData.bio.trim()) {
-      newErrors.bio = 'Bio is required';
-    } else if (formData.bio.length < 20) {
-      newErrors.bio = 'Bio must be at least 20 characters';
-    }
-
-    if (!formData.partnerPreferences.trim()) {
-      newErrors.partnerPreferences = 'Partner preferences are required';
     }
 
     setErrors(newErrors);
@@ -215,8 +203,6 @@ export default function VerifiedRegisterPage() {
       uploadData.append('faculty', formData.faculty);
       uploadData.append('username', formData.username);
       uploadData.append('password', formData.password);
-      uploadData.append('partnerPreferences', formData.partnerPreferences);
-      uploadData.append('bio', formData.bio);
       uploadData.append('proofType', proofType);
       if (proofFile) {
         uploadData.append('proofFile', proofFile);
@@ -275,15 +261,15 @@ export default function VerifiedRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4 py-12">
+    <div className="min-h-screen bg-[#FDF8F5] flex items-center justify-center p-4 py-12 font-sans text-black">
       {/* Toast Notification */}
       {toast && (
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
-          className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-xl shadow-lg max-w-md ${
-            toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+          className={`fixed top-6 right-6 z-50 px-8 py-4 rounded-xl border-4 border-black font-black uppercase tracking-wider shadow-[4px_4px_0px_rgba(0,0,0,1)] max-w-md ${
+            toast.type === 'success' ? 'bg-[#A3E635] text-black' : 'bg-[#FF6B6B] text-black'
           }`}
         >
           {toast.message}
@@ -294,10 +280,11 @@ export default function VerifiedRegisterPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-2xl"
+        className="w-full max-w-2xl z-10"
       >
-        {/* Card */}
-        <div className="glassmorphic-card p-8 rounded-3xl shadow-2xl">
+        {/* Main Card */}
+        <div className="bg-white p-8 rounded-3xl border-4 border-black shadow-[12px_12px_0px_rgba(0,0,0,1)]">
+          
           {/* Header */}
           <div className="text-center mb-8">
             <motion.div
@@ -308,187 +295,180 @@ export default function VerifiedRegisterPage() {
             >
               <Image
                 src="/logo.png"
-                alt="Ghosty Logo"
+                alt="Logo"
                 width={80}
                 height={80}
                 className="object-contain mx-auto"
               />
             </motion.div>
 
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-              Verified Registration
+            <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
+              Verified Join
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-600 font-bold uppercase tracking-widest text-sm">
               Complete your profile for full access
             </p>
 
             {/* Status Badge */}
-            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#A3E635] border-2 border-black font-black uppercase tracking-wider text-xs shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+              <ShieldCheck className="w-4 h-4 stroke-[3]" />
               Verified Account • Full Features
             </div>
           </div>
 
-          {/* Progress Steps */}
+          {/* Chunky Progress Steps */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               {[1, 2, 3].map((step) => (
                 <div key={step} className="flex items-center flex-1">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
+                    className={`w-12 h-12 flex items-center justify-center font-black text-xl border-4 border-black transition-all ${
                       step < currentStep
-                        ? 'bg-green-500 text-white'
+                        ? 'bg-[#A3E635] text-black shadow-[2px_2px_0px_rgba(0,0,0,1)]'
                         : step === currentStep
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                        ? 'bg-black text-white shadow-[4px_4px_0px_rgba(78,205,196,1)] -translate-y-1'
+                        : 'bg-white text-gray-400 border-dashed'
                     }`}
                   >
-                    {step < currentStep ? <CheckCircle className="w-6 h-6" /> : step}
+                    {step < currentStep ? <CheckCircle className="w-6 h-6 stroke-[3]" /> : step}
                   </div>
                   {step < 3 && (
                     <div
-                      className={`flex-1 h-1 mx-2 transition-all ${
-                        step < currentStep ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-700'
+                      className={`flex-1 h-2 mx-2 border-y-2 border-black transition-all ${
+                        step < currentStep ? 'bg-[#A3E635]' : 'bg-gray-100'
                       }`}
                     ></div>
                   )}
                 </div>
               ))}
             </div>
-            <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-              <span>Personal Info</span>
-              <span>Account Details</span>
-              <span>Verification</span>
+            <div className="flex justify-between text-xs font-black uppercase tracking-widest text-gray-500">
+              <span className={currentStep >= 1 ? 'text-black' : ''}>Personal Info</span>
+              <span className={currentStep >= 2 ? 'text-black' : ''}>Account Details</span>
+              <span className={currentStep >= 3 ? 'text-black' : ''}>Verification</span>
             </div>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit}>
+            
             {/* Step 1: Personal Information */}
             {currentStep === 1 && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
+                className="space-y-6"
               >
                 {/* Full Name */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-2">
                     Full Name
                   </label>
                   <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                      <User className="w-5 h-5" />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                      <User className="w-5 h-5 stroke-[3]" />
                     </div>
                     <input
                       type="text"
                       value={formData.fullName}
                       onChange={(e) => handleChange('fullName', e.target.value)}
                       placeholder="Enter your full name"
-                      className={`w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border ${
-                        errors.fullName
-                          ? 'border-red-500 focus:ring-red-500'
-                          : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                      } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
+                      className={`w-full pl-12 pr-4 py-4 bg-[#F8F9FA] border-4 ${
+                        errors.fullName ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_rgba(255,107,107,1)]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                      } rounded-xl focus:outline-none font-bold transition-shadow placeholder-gray-400`}
                     />
                   </div>
-                  {errors.fullName && <p className="mt-2 text-sm text-red-500">{errors.fullName}</p>}
+                  {errors.fullName && <p className="mt-2 text-sm font-bold text-[#FF6B6B] uppercase">{errors.fullName}</p>}
                 </div>
 
                 {/* Birthday */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-2">
                     Birthday
                   </label>
                   <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                      <Calendar className="w-5 h-5" />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                      <Calendar className="w-5 h-5 stroke-[3]" />
                     </div>
                     <input
                       type="date"
                       value={formData.birthday}
                       onChange={(e) => handleChange('birthday', e.target.value)}
-                      className={`w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border ${
-                        errors.birthday
-                          ? 'border-red-500 focus:ring-red-500'
-                          : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                      } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
+                      className={`w-full pl-12 pr-4 py-4 bg-[#F8F9FA] border-4 ${
+                        errors.birthday ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_rgba(255,107,107,1)]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                      } rounded-xl focus:outline-none font-bold transition-shadow text-black`}
                     />
                   </div>
-                  {errors.birthday && <p className="mt-2 text-sm text-red-500">{errors.birthday}</p>}
+                  {errors.birthday && <p className="mt-2 text-sm font-bold text-[#FF6B6B] uppercase">{errors.birthday}</p>}
                 </div>
 
                 {/* Gender */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-2">
                     Gender
                   </label>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-4">
                     {['male', 'female'].map((gender) => (
                       <button
                         key={gender}
                         type="button"
                         onClick={() => handleChange('gender', gender)}
-                        className={`py-3 px-4 rounded-xl font-semibold capitalize transition-all ${
+                        className={`py-4 px-4 rounded-xl font-black uppercase tracking-wider border-4 transition-all ${
                           formData.gender === gender
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            ? 'bg-black text-white border-black shadow-[4px_4px_0px_rgba(78,205,196,1)] translate-y-[-2px] translate-x-[-2px]'
+                            : 'bg-white text-black border-black hover:bg-[#F8F9FA] shadow-[4px_4px_0px_rgba(0,0,0,1)]'
                         }`}
                       >
                         {gender}
                       </button>
                     ))}
                   </div>
-                  {errors.gender && <p className="mt-2 text-sm text-red-500">{errors.gender}</p>}
+                  {errors.gender && <p className="mt-2 text-sm font-bold text-[#FF6B6B] uppercase">{errors.gender}</p>}
                 </div>
 
                 {/* University */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-2">
                     University Name
                   </label>
                   <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                      <Building className="w-5 h-5" />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                      <Building className="w-5 h-5 stroke-[3]" />
                     </div>
                     <input
                       type="text"
                       value={formData.university}
                       onChange={(e) => handleChange('university', e.target.value)}
-                      placeholder="e.g., Stanford University"
-                      className={`w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border ${
-                        errors.university
-                          ? 'border-red-500 focus:ring-red-500'
-                          : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                      } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
+                      placeholder="E.g., Stanford University"
+                      className={`w-full pl-12 pr-4 py-4 bg-[#F8F9FA] border-4 ${
+                        errors.university ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_rgba(255,107,107,1)]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                      } rounded-xl focus:outline-none font-bold transition-shadow placeholder-gray-400`}
                     />
                   </div>
-                  {errors.university && <p className="mt-2 text-sm text-red-500">{errors.university}</p>}
+                  {errors.university && <p className="mt-2 text-sm font-bold text-[#FF6B6B] uppercase">{errors.university}</p>}
                 </div>
 
                 {/* Faculty */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-2">
                     Faculty Name
                   </label>
                   <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                      <FileText className="w-5 h-5" />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                      <FileText className="w-5 h-5 stroke-[3]" />
                     </div>
                     <input
                       type="text"
                       value={formData.faculty}
                       onChange={(e) => handleChange('faculty', e.target.value)}
-                      placeholder="e.g., Computer Science"
-                      className={`w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border ${
-                        errors.faculty
-                          ? 'border-red-500 focus:ring-red-500'
-                          : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                      } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
+                      placeholder="E.g., Computer Science"
+                      className={`w-full pl-12 pr-4 py-4 bg-[#F8F9FA] border-4 ${
+                        errors.faculty ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_rgba(255,107,107,1)]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                      } rounded-xl focus:outline-none font-bold transition-shadow placeholder-gray-400`}
                     />
                   </div>
-                  {errors.faculty && <p className="mt-2 text-sm text-red-500">{errors.faculty}</p>}
+                  {errors.faculty && <p className="mt-2 text-sm font-bold text-[#FF6B6B] uppercase">{errors.faculty}</p>}
                 </div>
               </motion.div>
             )}
@@ -499,138 +479,87 @@ export default function VerifiedRegisterPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-4"
+                className="space-y-6"
               >
                 {/* Username */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-2">
                     Username
                   </label>
                   <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                      <User className="w-5 h-5" />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                      <User className="w-5 h-5 stroke-[3]" />
                     </div>
                     <input
                       type="text"
                       value={formData.username}
                       onChange={(e) => handleChange('username', e.target.value)}
                       placeholder="Choose a username"
-                      className={`w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border ${
-                        errors.username
-                          ? 'border-red-500 focus:ring-red-500'
-                          : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                      } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
+                      className={`w-full pl-12 pr-4 py-4 bg-[#F8F9FA] border-4 ${
+                        errors.username ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_rgba(255,107,107,1)]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                      } rounded-xl focus:outline-none font-bold transition-shadow placeholder-gray-400`}
                     />
                   </div>
-                  {errors.username && <p className="mt-2 text-sm text-red-500">{errors.username}</p>}
+                  {errors.username && <p className="mt-2 text-sm font-bold text-[#FF6B6B] uppercase">{errors.username}</p>}
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-2">
                     Password
                   </label>
                   <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                      <Lock className="w-5 h-5" />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                      <Lock className="w-5 h-5 stroke-[3]" />
                     </div>
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={formData.password}
                       onChange={(e) => handleChange('password', e.target.value)}
                       placeholder="Enter your password"
-                      className={`w-full pl-12 pr-12 py-3 bg-white dark:bg-gray-800 border ${
-                        errors.password
-                          ? 'border-red-500 focus:ring-red-500'
-                          : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                      } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
+                      className={`w-full pl-12 pr-12 py-4 bg-[#F8F9FA] border-4 ${
+                        errors.password ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_rgba(255,107,107,1)]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                      } rounded-xl focus:outline-none font-bold transition-shadow placeholder-gray-400`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-black hover:text-[#4ECDC4] transition-colors"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showPassword ? <EyeOff className="w-5 h-5 stroke-[3]" /> : <Eye className="w-5 h-5 stroke-[3]" />}
                     </button>
                   </div>
-                  {errors.password && <p className="mt-2 text-sm text-red-500">{errors.password}</p>}
+                  {errors.password && <p className="mt-2 text-sm font-bold text-[#FF6B6B] uppercase">{errors.password}</p>}
                 </div>
 
                 {/* Confirm Password */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-2">
                     Confirm Password
                   </label>
                   <div className="relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                      <Lock className="w-5 h-5" />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                      <Lock className="w-5 h-5 stroke-[3]" />
                     </div>
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={formData.confirmPassword}
                       onChange={(e) => handleChange('confirmPassword', e.target.value)}
                       placeholder="Confirm your password"
-                      className={`w-full pl-12 pr-12 py-3 bg-white dark:bg-gray-800 border ${
-                        errors.confirmPassword
-                          ? 'border-red-500 focus:ring-red-500'
-                          : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                      } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
+                      className={`w-full pl-12 pr-12 py-4 bg-[#F8F9FA] border-4 ${
+                        errors.confirmPassword ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_rgba(255,107,107,1)]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                      } rounded-xl focus:outline-none font-bold transition-shadow placeholder-gray-400`}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-black hover:text-[#4ECDC4] transition-colors"
                     >
-                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5 stroke-[3]" /> : <Eye className="w-5 h-5 stroke-[3]" />}
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <p className="mt-2 text-sm text-red-500">{errors.confirmPassword}</p>
-                  )}
-                </div>
-
-                {/* Bio */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Bio
-                  </label>
-                  <textarea
-                    value={formData.bio}
-                    onChange={(e) => handleChange('bio', e.target.value)}
-                    placeholder="Tell us about yourself (min 20 characters)"
-                    rows={4}
-                    className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
-                      errors.bio
-                        ? 'border-red-500 focus:ring-red-500'
-                        : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                    } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all resize-none`}
-                  ></textarea>
-                  <div className="flex justify-between items-center mt-2">
-                    {errors.bio && <p className="text-sm text-red-500">{errors.bio}</p>}
-                    <p className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
-                      {formData.bio.length} characters
-                    </p>
-                  </div>
-                </div>
-
-                {/* Partner Preferences */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    Partner Preferences
-                  </label>
-                  <textarea
-                    value={formData.partnerPreferences}
-                    onChange={(e) => handleChange('partnerPreferences', e.target.value)}
-                    placeholder="Describe your ideal partner and what you're looking for..."
-                    rows={4}
-                    className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
-                      errors.partnerPreferences
-                        ? 'border-red-500 focus:ring-red-500'
-                        : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                    } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all resize-none`}
-                  ></textarea>
-                  {errors.partnerPreferences && (
-                    <p className="mt-2 text-sm text-red-500">{errors.partnerPreferences}</p>
+                    <p className="mt-2 text-sm font-bold text-[#FF6B6B] uppercase">{errors.confirmPassword}</p>
                   )}
                 </div>
               </motion.div>
@@ -646,14 +575,14 @@ export default function VerifiedRegisterPage() {
               >
                 {/* Proof Type Selection */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-3">
                     Choose Verification Proof Type
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
                       { value: 'student_id', label: 'Student ID', icon: '🎓' },
-                      { value: 'facebook', label: 'Facebook Profile', icon: '📘' },
-                      { value: 'academic', label: 'Academic Document', icon: '📄' },
+                      { value: 'facebook', label: 'Facebook', icon: '📘' },
+                      { value: 'academic', label: 'Academic Doc', icon: '📄' },
                     ].map((type) => (
                       <button
                         key={type.value}
@@ -664,31 +593,29 @@ export default function VerifiedRegisterPage() {
                             setErrors({ ...errors, proofType: '' });
                           }
                         }}
-                        className={`py-4 px-4 rounded-xl font-semibold transition-all flex flex-col items-center gap-2 ${
+                        className={`py-6 px-4 rounded-xl font-black uppercase tracking-wider border-4 transition-all flex flex-col items-center gap-3 ${
                           proofType === type.value
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            ? 'bg-black text-white border-black shadow-[4px_4px_0px_rgba(78,205,196,1)] translate-y-[-2px] translate-x-[-2px]'
+                            : 'bg-white text-black border-black hover:bg-[#F8F9FA] shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px]'
                         }`}
                       >
-                        <span className="text-3xl">{type.icon}</span>
+                        <span className="text-4xl">{type.icon}</span>
                         <span className="text-sm">{type.label}</span>
                       </button>
                     ))}
                   </div>
-                  {errors.proofType && <p className="mt-2 text-sm text-red-500">{errors.proofType}</p>}
+                  {errors.proofType && <p className="mt-2 text-sm font-bold text-[#FF6B6B] uppercase">{errors.proofType}</p>}
                 </div>
 
                 {/* File Upload */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  <label className="block text-sm font-black uppercase tracking-widest mb-3">
                     Upload Verification Document
                   </label>
                   <div
-                    className={`relative border-2 border-dashed ${
-                      errors.proofFile
-                        ? 'border-red-500'
-                        : 'border-gray-300 dark:border-gray-600'
-                    } rounded-xl p-8 text-center transition-all hover:border-purple-600 dark:hover:border-purple-400`}
+                    className={`relative border-4 border-dashed bg-[#F8F9FA] ${
+                      errors.proofFile ? 'border-[#FF6B6B]' : 'border-black'
+                    } rounded-2xl p-10 text-center transition-all hover:bg-white`}
                   >
                     <input
                       type="file"
@@ -698,13 +625,13 @@ export default function VerifiedRegisterPage() {
                     />
 
                     {proofFile ? (
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                          <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="w-16 h-16 bg-[#A3E635] border-4 border-black rounded-full flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                          <CheckCircle className="w-8 h-8 stroke-[3] text-black" />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-800 dark:text-white">{proofFile.name}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                          <p className="font-black text-black uppercase tracking-tight">{proofFile.name}</p>
+                          <p className="text-sm font-bold text-gray-500 mt-1">
                             {(proofFile.size / 1024 / 1024).toFixed(2)} MB
                           </p>
                         </div>
@@ -714,70 +641,69 @@ export default function VerifiedRegisterPage() {
                             e.stopPropagation();
                             setProofFile(null);
                           }}
-                          className="text-sm text-red-600 hover:underline"
+                          className="mt-2 text-sm font-black uppercase text-[#FF6B6B] hover:text-red-800 transition-colors bg-white px-3 py-1 border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]"
                         >
-                          Remove file
+                          Remove File
                         </button>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-                          <Upload className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="w-20 h-20 bg-[#FFD166] border-4 border-black rounded-full flex items-center justify-center shadow-[4px_4px_0px_rgba(0,0,0,1)] group-hover:scale-105 transition-transform">
+                          <Upload className="w-10 h-10 stroke-[3] text-black" />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-800 dark:text-white mb-1">
+                          <p className="font-black uppercase tracking-widest text-black mb-2">
                             Click to upload or drag and drop
                           </p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            JPG, PNG or PDF (max 5MB)
+                          <p className="text-sm font-bold text-gray-500 uppercase">
+                            JPG, PNG or PDF (MAX 5MB)
                           </p>
                         </div>
                       </div>
                     )}
                   </div>
-                  {errors.proofFile && <p className="mt-2 text-sm text-red-500">{errors.proofFile}</p>}
+                  {errors.proofFile && <p className="mt-2 text-sm font-bold text-[#FF6B6B] uppercase">{errors.proofFile}</p>}
                 </div>
 
                 {/* Upload Progress */}
                 {isLoading && uploadProgress > 0 && (
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <div className="bg-white border-4 border-black p-4 rounded-xl shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-sm font-black uppercase tracking-widest text-black">
                         Uploading...
                       </span>
-                      <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                      <span className="text-sm font-black text-[#4ECDC4]">
                         {uploadProgress}%
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                    <div className="w-full bg-gray-200 border-2 border-black rounded-full h-4 overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${uploadProgress}%` }}
                         transition={{ duration: 0.3 }}
-                        className="h-full bg-purple-600"
+                        className="h-full bg-[#4ECDC4] border-r-2 border-black"
                       ></motion.div>
                     </div>
                   </div>
                 )}
 
                 {/* Info Box */}
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                  <p className="text-sm text-blue-800 dark:text-blue-300">
-                    <strong>Note:</strong> Your account will be reviewed by our admin team. You'll receive
-                    access once your verification is approved. This usually takes 1-2 business days.
+                <div className="bg-[#4ECDC4] border-4 border-black rounded-xl p-5 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                  <p className="text-sm font-bold text-black uppercase leading-relaxed">
+                    <strong className="font-black block mb-1">Note:</strong> Your account will be reviewed by our admin team. You'll receive access once your verification is approved. This usually takes 1-2 business days.
                   </p>
                 </div>
               </motion.div>
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex gap-3 mt-8">
+            <div className="flex gap-4 mt-10">
               {currentStep > 1 && (
                 <button
                   type="button"
                   onClick={handleBack}
                   disabled={isLoading}
-                  className="flex-1 py-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-semibold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-5 bg-white border-4 border-black text-black font-black uppercase tracking-wider text-lg rounded-2xl shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:bg-[#F8F9FA] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Back
                 </button>
@@ -787,7 +713,7 @@ export default function VerifiedRegisterPage() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="flex-1 py-4 bg-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                  className="flex-1 py-5 bg-black border-4 border-black text-white font-black uppercase tracking-wider text-lg rounded-2xl shadow-[6px_6px_0px_rgba(163,230,53,1)] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[8px_8px_0px_rgba(163,230,53,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all"
                 >
                   Next Step
                 </button>
@@ -795,24 +721,24 @@ export default function VerifiedRegisterPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 py-4 bg-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-5 bg-[#FFD166] border-4 border-black text-black font-black uppercase tracking-wider text-lg rounded-2xl shadow-[6px_6px_0px_rgba(0,0,0,1)] hover:bg-[#ffc033] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                 >
                   {isLoading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Submitting...
-                    </div>
+                    <>
+                      <div className="w-6 h-6 border-4 border-black border-t-white rounded-full animate-spin"></div>
+                      SUBMITTING...
+                    </>
                   ) : (
-                    'Submit for Review'
+                    'SUBMIT FOR REVIEW'
                   )}
                 </button>
               )}
             </div>
 
             {/* Footer */}
-            <div className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
+            <div className="text-center text-sm font-black uppercase tracking-widest text-gray-500 mt-8">
               Already have an account?{' '}
-              <Link href="/login" className="text-purple-600 dark:text-purple-400 font-semibold hover:underline">
+              <Link href="/login" className="text-black underline decoration-2 hover:text-[#4ECDC4] transition-colors">
                 Sign In
               </Link>
             </div>

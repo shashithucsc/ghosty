@@ -22,7 +22,7 @@ export default function Home() {
   }, []);
 
   if (loading) {
-    // return <LoadingScreen />;
+    return <LoadingScreen />;
   }
 
   return (
