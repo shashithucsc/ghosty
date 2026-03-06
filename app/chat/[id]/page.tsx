@@ -305,7 +305,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               setChatPartner({
                 realName: user.anonymousName || 'ANONYMOUS',
                 anonymousName: user.anonymousName || 'ANONYMOUS',
-                avatar: user.anonymousAvatarUrl || 'U',
+                avatar: user.anonymousAvatarUrl || (user.gender?.toLowerCase() === 'male' ? '🧑' : user.gender?.toLowerCase() === 'female' ? '👩' : '👤'),
                 age: user.age || 18,
                 gender: user.gender || 'UNKNOWN',
               });
@@ -320,7 +320,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         setChatPartner({
           realName: profile?.anonymous_name || 'ANONYMOUS',
           anonymousName: profile?.anonymous_name || 'ANONYMOUS',
-          avatar: profile?.anonymous_avatar_url || 'U',
+          avatar: profile?.anonymous_avatar_url || (gender.toLowerCase() === 'male' ? '🧑' : gender.toLowerCase() === 'female' ? '👩' : '👤'),
           age: calculatedAge,
           gender: gender,
         });
@@ -626,7 +626,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           >
             <div className="relative shrink-0">
               <div className="w-14 h-14 bg-[#FFD166] border-4 border-black flex items-center justify-center text-3xl font-black shadow-[2px_2px_0px_rgba(0,0,0,1)] group-hover:translate-y-[2px] group-hover:translate-x-[2px] group-hover:shadow-none transition-all">
-                {chatPartner.avatar.charAt(0)}
+                {chatPartner.avatar}
               </div>
               {isOnline && (
                 <div className="absolute -bottom-2 -right-2 w-5 h-5 bg-[#A3E635] border-2 border-black"></div>

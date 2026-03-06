@@ -573,7 +573,7 @@ export default function InboxPage() {
                             <div className="flex items-center gap-4 w-full">
                               <div className="relative shrink-0">
                                 <div className="w-16 h-16 bg-[#F8F9FA] border-4 border-black flex items-center justify-center text-3xl font-black shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-                                  {match.user.avatar.charAt(0)}
+                                  {match.user.avatar}
                                 </div>
                                 <div className="absolute -bottom-2 -right-2 bg-[#4ECDC4] border-2 border-black px-1.5 py-0.5 text-[10px] font-black uppercase shadow-[2px_2px_0px_rgba(0,0,0,1)]">
                                   NEW
@@ -655,7 +655,7 @@ export default function InboxPage() {
                               onClick={() => router.push(`/profile/${request.from.id}`)}
                             >
                               <div className="w-16 h-16 bg-[#F8F9FA] border-4 border-black flex items-center justify-center text-3xl font-black shadow-[4px_4px_0px_rgba(0,0,0,1)] shrink-0">
-                                {request.from.avatar.charAt(0)}
+                                {request.from.avatar}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
@@ -752,7 +752,7 @@ export default function InboxPage() {
                                   router.push(`/profile/${chat.otherUser.id}`);
                                 }}
                               >
-                                {chat.otherUser.avatar.charAt(0)}
+                                {chat.otherUser.avatar}
                               </div>
                               <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#A3E635] rounded-full border-4 border-black"></div>
                             </div>
