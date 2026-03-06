@@ -599,7 +599,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   }
 
   return (
-    <div className="h-screen bg-[#FDF8F5] flex flex-col overflow-hidden font-sans text-black pt-0 md:pt-20">
+    <div className="h-screen bg-[#FDF8F5] flex flex-col overflow-hidden font-sans text-black pt-0 md:pt-16 pb-0 md:pb-20">
       
       {/* Desktop Header */}
       <div className="hidden md:block">
@@ -619,30 +619,30 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
       {/* Mobile Neobrutalist Header */}
       <div className="md:hidden bg-white border-b-4 border-black shadow-[0_4px_0px_rgba(0,0,0,1)] z-20 sticky top-0">
-        <div className="px-4 py-4 flex items-center justify-between">
+        <div className="px-3 py-2 flex items-center justify-between">
           <div 
-            className="flex-1 flex items-center gap-4 cursor-pointer group"
+            className="flex-1 flex items-center gap-3 cursor-pointer group"
             onClick={otherUserId ? () => router.push(`/profile/${otherUserId}`) : undefined}
           >
             <div className="relative shrink-0">
-              <div className="w-14 h-14 bg-[#FFD166] border-4 border-black flex items-center justify-center text-3xl font-black shadow-[2px_2px_0px_rgba(0,0,0,1)] group-hover:translate-y-[2px] group-hover:translate-x-[2px] group-hover:shadow-none transition-all">
+              <div className="w-12 h-12 bg-[#FFD166] border-3 border-black flex items-center justify-center text-2xl font-black shadow-[2px_2px_0px_rgba(0,0,0,1)] group-hover:translate-y-[2px] group-hover:translate-x-[2px] group-hover:shadow-none transition-all">
                 {chatPartner.avatar}
               </div>
               {isOnline && (
-                <div className="absolute -bottom-2 -right-2 w-5 h-5 bg-[#A3E635] border-2 border-black"></div>
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#A3E635] border-2 border-black"></div>
               )}
             </div>
             
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-black uppercase truncate tracking-tight text-black">
+              <h1 className="text-xl font-black uppercase truncate tracking-tight text-black">
                 {chatPartner.realName}
               </h1>
               {isTyping ? (
-                <p className="text-sm font-black text-[#FF6B6B] uppercase tracking-widest truncate">
+                <p className="text-xs font-black text-[#FF6B6B] uppercase tracking-widest truncate">
                   Typing...
                 </p>
               ) : chatPartner.age > 0 ? (
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mt-0.5">
                   {isOnline && <span className="w-2 h-2 bg-[#A3E635] border border-black rounded-full"></span>}
                   <p className="text-xs font-bold text-gray-600 uppercase tracking-wider truncate">
                     {chatPartner.age} YRS • {chatPartner.gender}
@@ -654,26 +654,26 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           
           <button
             onClick={() => setShowBlockModal(true)}
-            className="w-12 h-12 bg-white border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:bg-[#F8F9FA] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all"
+            className="w-10 h-10 bg-white border-3 border-black flex items-center justify-center shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:bg-[#F8F9FA] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all"
           >
-            <MoreVertical className="w-6 h-6 stroke-[3] text-black" />
+            <MoreVertical className="w-5 h-5 stroke-[3] text-black" />
           </button>
         </div>
       </div>
 
       {/* Block Status Warning Banner */}
       {blockStatus?.isBlocked && (
-        <div className="bg-[#FF6B6B] border-b-4 border-black px-4 py-4 z-10 shadow-[0_4px_0px_rgba(0,0,0,1)]">
-          <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="bg-[#FF6B6B] border-b-4 border-black px-3 py-2 sm:py-3 z-10 shadow-[0_4px_0px_rgba(0,0,0,1)]">
+          <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
             <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="shrink-0 w-12 h-12 bg-white border-4 border-black flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                <AlertOctagon className="w-6 h-6 stroke-[3] text-black" />
+              <div className="shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-white border-3 sm:border-4 border-black flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                <AlertOctagon className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3] text-black" />
               </div>
               <div>
-                <p className="text-lg font-black uppercase tracking-tight text-black">
+                <p className="text-base sm:text-lg font-black uppercase tracking-tight text-black">
                   {blockStatus.blockedBy === 'you' ? `You blocked ${chatPartner.realName}` : `Blocked by ${chatPartner.realName}`}
                 </p>
-                <p className="text-sm font-bold text-black uppercase mt-1">
+                <p className="text-xs sm:text-sm font-bold text-black uppercase mt-0.5">
                   {blockStatus.blockedBy === 'you' ? 'Click Unblock to resume chat.' : 'You cannot send messages.'}
                 </p>
               </div>
@@ -682,7 +682,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             {blockStatus.blockedBy === 'you' && (
               <button
                 onClick={() => setShowUnblockModal(true)}
-                className="w-full sm:w-auto px-6 py-3 bg-[#4ECDC4] border-4 border-black text-black font-black uppercase tracking-wider rounded-xl shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all"
+                className="w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 bg-[#4ECDC4] border-3 sm:border-4 border-black text-black font-black uppercase tracking-wider text-sm rounded-lg sm:rounded-xl shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[5px_5px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all"
               >
                 Unblock
               </button>
@@ -692,8 +692,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       )}
 
       {/* Messages Area */}
-      <main className="flex-1 overflow-y-auto px-4 py-6 pb-24 space-y-6">
-        <div className="max-w-2xl mx-auto space-y-6">
+      <main className="flex-1 overflow-y-auto px-3 sm:px-4 py-3 sm:py-4 pb-20 sm:pb-24 space-y-4">
+        <div className="max-w-2xl mx-auto space-y-4">
           {messages.length === 0 ? (
             <div className="text-center py-16 bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_rgba(0,0,0,1)] mt-8">
               <div className="w-24 h-24 bg-[#FFD166] border-4 border-black rounded-full flex items-center justify-center mx-auto mb-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]">

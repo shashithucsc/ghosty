@@ -214,7 +214,7 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       )}
 
       {/* Card Stack */}
-      <div className="relative flex-1 w-full mt-4">
+      <div className="relative flex-1 w-full mt-1 sm:mt-2">
         {profiles.slice(currentIndex, currentIndex + 3).map((profile, index) => (
           <div
             key={profile.id}
@@ -239,12 +239,12 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       </div>
 
       {/* Chunky Progress Bar */}
-      <div className="mt-8 mb-4 px-4">
-        <div className="flex justify-between text-black font-black text-sm mb-3 uppercase tracking-wider">
+      <div className="mt-3 mb-2 px-4">
+        <div className="flex justify-between text-black font-black text-xs sm:text-sm mb-2 uppercase tracking-wider">
           <span>Discover</span>
           <span>{currentIndex + 1} / {profiles.length}</span>
         </div>
-        <div className="w-full h-4 bg-white border-4 border-black rounded-full overflow-hidden shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+        <div className="w-full h-3 sm:h-4 bg-white border-3 sm:border-4 border-black rounded-full overflow-hidden shadow-[2px_2px_0px_rgba(0,0,0,1)]">
           <div
             className="h-full bg-[#4ECDC4] border-r-4 border-black transition-all duration-300"
             style={{ width: `${((currentIndex + 1) / profiles.length) * 100}%` }}

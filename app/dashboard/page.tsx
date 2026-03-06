@@ -158,13 +158,14 @@ export default function DashboardPage() {
       {/* Main Content - Flex layout to fill screen */}
       <main className="container mx-auto px-4 h-full max-w-2xl flex flex-col">
         {/* Filter Button */}
-        <div className="py-4 flex-shrink-0">
+        <div className="py-2 flex-shrink-0">
           <button
             onClick={() => setShowFilters(true)}
-            className="w-full bg-white border-4 border-black px-6 py-4 rounded-xl flex items-center justify-center gap-3 text-black font-black uppercase tracking-wide shadow-[6px_6px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] active:translate-y-[6px] active:translate-x-[6px] active:shadow-none transition-all duration-200"
+            className="w-full bg-white border-4 border-black px-4 py-3 rounded-xl flex items-center justify-center gap-2 text-black font-black uppercase tracking-wide text-sm shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all duration-200"
           >
-            <SlidersHorizontal className="w-6 h-6 stroke-[3]" />
-            <span>Filters & Preferences</span>
+            <SlidersHorizontal className="w-5 h-5 stroke-[3]" />
+            <span className="hidden sm:inline">Filters & Preferences</span>
+            <span className="sm:hidden">Filters</span>
             {(filters.universities.length > 0 || filters.interests.length > 0) && (
               <span className="bg-[#4ECDC4] text-black text-sm font-black px-3 py-1 border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]">
                 {filters.universities.length + filters.interests.length}
@@ -174,7 +175,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Recommendation Feed - Takes remaining space */}
-        <div className="flex-1 min-h-0 overflow-hidden mt-2">
+        <div className="flex-1 min-h-0 overflow-hidden">
           {user?.userId ? (
             <RecommendationFeed
               filters={filters}
