@@ -19,7 +19,7 @@ const SimpleRegistrationSchema = z.object({
     .max(20, 'Username must be less than 20 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  gender: z.enum(['Male', 'Female'], { message: 'Please select your gender' }),
+  gender: z.enum(['male', 'female'], { message: 'Please select your gender' }),
 });
 
 export async function POST(request: NextRequest) {
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         email_verified: false,
         registration_type: 'simple',
         verification_status: 'unverified',
-        gender: gender,
+        gender: gender.toLowerCase(),
       })
       .select()
       .single();
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       .insert({
         user_id: newUser.id,
         anonymous_name: sanitizedUsername,
-        anonymous_avatar_url: gender === 'Male' ? '🧑' : '👩',
+        anonymous_avatar_url: gender.toLowerCase() === 'male' ? '🧑' : '👩',
         public: true,
       });
 

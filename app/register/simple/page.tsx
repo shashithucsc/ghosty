@@ -281,9 +281,9 @@ export default function SimpleRegisterPage() {
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onClick={() => handleChange('gender', 'Male')}
+                  onClick={() => handleChange('gender', 'male')}
                   className={`py-4 px-4 rounded-xl border-4 font-black transition-all ${
-                    formData.gender === 'Male'
+                    formData.gender === 'male'
                       ? 'border-black bg-[#4ECDC4] text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-y-[-2px] translate-x-[-2px]'
                       : 'border-black bg-white text-black hover:bg-[#F8F9FA]'
                   }`}
@@ -292,9 +292,9 @@ export default function SimpleRegisterPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleChange('gender', 'Female')}
+                  onClick={() => handleChange('gender', 'female')}
                   className={`py-4 px-4 rounded-xl border-4 font-black transition-all ${
-                    formData.gender === 'Female'
+                    formData.gender === 'female'
                       ? 'border-black bg-[#4ECDC4] text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-y-[-2px] translate-x-[-2px]'
                       : 'border-black bg-white text-black hover:bg-[#F8F9FA]'
                   }`}

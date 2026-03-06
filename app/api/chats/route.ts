@@ -94,6 +94,8 @@ export async function GET(request: NextRequest) {
       text: chat.message,
       timestamp: chat.created_at,
       isOwn: chat.sender_id === userId,
+      isRead: chat.is_read || false,
+      readAt: chat.read_at || null,
     }));
 
     // Mark all received messages as read for this user
