@@ -23,6 +23,11 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
   const [viewedProfiles, setViewedProfiles] = useState<string[]>([]);
   const [matchedUser, setMatchedUser] = useState<{ user: UserProfile } | null>(null);
 
+  // Debug: Watch matchedUser state changes
+  useEffect(() => {
+    console.log('🎭 matchedUser state changed:', matchedUser);
+  }, [matchedUser]);
+
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
@@ -107,14 +112,29 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
       });
 
       const data = await response.json();
-      if (!response.ok && response.status !== 409) throw new Error(data.error);
+      console.log('🎯 Swipe API Response:', { status: response.status, data });
+      
+      // Handle 409 (already swiped) silently - this is expected behavior
+      if (response.status === 409) {
+        console.log('Profile already swiped, skipping...');
+        setSendingRequest(false);
+        return;
+      }
+      
+      if (!response.ok) throw new Error(data.error);
 
+      console.log(`🔍 Checking match: data.isMatch=${data.isMatch}, currentProfile:`, currentProfile);
       if (data.isMatch) {
-        setMatchedUser({ user: currentProfile });
+        console.log('🎉 MATCH DETECTED! Setting matchedUser state');
+        const matchData = { user: currentProfile };
+        console.log('📦 About to set matchedUser with:', matchData);
+        setMatchedUser(matchData);
+        console.log('✅ setMatchedUser called');
       } else {
         setToast({ message: 'Liked! Hope they like you back.', type: 'success' });
       }
     } catch (error: any) {
+      console.error('Error liking profile:', error);
       setToast({ message: 'Failed to like profile.', type: 'error' });
     } finally {
       setSendingRequest(false);
@@ -181,6 +201,8 @@ export function RecommendationFeed({ filters, onRequestSent }: RecommendationFee
   }
 
   if (profiles.length === 0) return <EmptyState />;
+
+  console.log('🔄 RecommendationFeed render: matchedUser=', matchedUser);
 
   return (
     <div className="relative flex flex-col h-full w-full max-w-md mx-auto font-sans">

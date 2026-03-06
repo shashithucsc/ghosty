@@ -213,6 +213,7 @@ export async function GET(request: NextRequest) {
         .select('target_user_id')
         .eq('swiper_user_id', userId);
       interactedUserIds = interactions?.map((interaction) => interaction.target_user_id) || [];
+      console.log(`📊 User ${userId} has already swiped on ${interactedUserIds.length} profiles`);
     } catch (error) {
       console.log('Swipes table not found, skipping interaction filter');
     }
@@ -480,6 +481,7 @@ export async function POST(request: NextRequest) {
 
     if (existingSwipe) {
       // Don't allow re-swiping - return conflict
+      console.log(`⚠️ Duplicate swipe attempt: User ${swiperId} already ${existingSwipe.action}d user ${targetId}`);
       return NextResponse.json(
         {
           success: false,
@@ -544,6 +546,8 @@ export async function POST(request: NextRequest) {
         }
       }
     }
+
+    console.log(`🎯 API Response: action=${action}, isMatch=${isMatch}`);
 
     return NextResponse.json(
       {

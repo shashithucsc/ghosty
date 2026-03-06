@@ -13,11 +13,13 @@ interface MatchModalProps {
 }
 
 export function MatchModal({ user, onClose, conversationId }: MatchModalProps) {
+  console.log('🎊 MatchModal RENDERED with user:', user);
   const router = useRouter();
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const [showConfetti, setShowConfetti] = useState(true);
 
   useEffect(() => {
+    console.log('🎊 MatchModal mounted!');
     setShowConfetti(true);
     const timer = setTimeout(() => setShowConfetti(false), 3000);
     return () => clearTimeout(timer);
