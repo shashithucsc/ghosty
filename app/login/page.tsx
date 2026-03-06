@@ -160,7 +160,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
       {/* Toast Notification */}
       {toast && (
         <motion.div
@@ -339,7 +339,7 @@ export default function LoginPage() {
            
               <Link
                 href="/register/verified"
-                className="py-4 px-4 text-center bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400 font-semibold rounded-xl hover:bg-pink-200 dark:hover:bg-pink-900/50 transition-all"
+                className="py-4 px-4 text-center bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 font-semibold rounded-xl hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-all"
               >
                 Verified Join
               </Link>

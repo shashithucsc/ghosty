@@ -64,10 +64,9 @@ const EDUCATION_LEVELS = [
   'Arts Degree',
   'Technology Degree',
   'Engineering Degree',
-    'IT Degree',
-    'Medicine Degree',
+  'IT Degree',
+  'Medicine Degree',
   'Other Degree',
-
 ];
 
 const SKIN_TONES = ['Fair', 'Light Brown', 'Medium Brown', 'Dark'];
@@ -348,52 +347,53 @@ export default function SetupProfilePage() {
 
   if (!currentUserId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+      <div className="min-h-screen bg-[#FDF8F5] flex items-center justify-center font-sans">
+        <Loader2 className="w-16 h-16 text-black stroke-[3] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-20">
+    <div className="min-h-screen bg-[#FDF8F5] pb-20 font-sans text-black">
       {/* Toast */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Header */}
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-4">
+      <div className="bg-[#FFD166] border-b-4 border-black sticky top-0 z-20">
+        <div className="max-w-2xl mx-auto px-4 py-6 flex items-center gap-4">
           <button
             onClick={() => router.back()}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="p-3 bg-white border-4 border-black rounded-xl shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            <ArrowLeft className="w-6 h-6 stroke-[3]" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-800 dark:text-white">Complete Your Profile</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Help us find your perfect match</p>
+            <h1 className="text-3xl font-black uppercase tracking-tight">Complete Profile</h1>
+            <p className="text-black font-bold text-sm">Set your details & match preferences</p>
           </div>
         </div>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <form onSubmit={handleSubmit} className="max-w-2xl mx-auto px-4 py-8 space-y-10">
+        
         {/* Section A: About You (Qualifications) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glassmorphic-card p-6 rounded-2xl space-y-6"
+          className="bg-white p-8 rounded-2xl border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] space-y-8"
         >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-              <User className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          <div className="flex items-center gap-4 mb-2 border-b-4 border-black pb-4">
+            <div className="w-12 h-12 bg-[#4ECDC4] border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+              <User className="w-6 h-6 stroke-[3]" />
             </div>
-            <h2 className="text-lg font-bold text-gray-800 dark:text-white">About You (Qualifications)</h2>
+            <h2 className="text-2xl font-black uppercase tracking-tight">About You</h2>
           </div>
 
           {/* Age */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Age <span className="text-red-500">*</span>
+            <label className="block text-sm font-black uppercase mb-3">
+              Age <span className="text-[#FF6B6B] text-lg">*</span>
             </label>
             <input
               type="number"
@@ -402,50 +402,50 @@ export default function SetupProfilePage() {
               placeholder="e.g., 24"
               min="18"
               max="100"
-              className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
-                errors.age ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-              } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+              className={`w-full px-4 py-4 bg-[#F8F9FA] border-4 ${
+                errors.age ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+              } rounded-xl focus:outline-none font-bold text-lg transition-shadow`}
             />
-            {errors.age && <p className="mt-1 text-sm text-red-500">{errors.age}</p>}
+            {errors.age && <p className="mt-2 text-sm font-bold text-[#FF6B6B]">{errors.age}</p>}
           </div>
 
           {/* Height */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-black uppercase mb-3">
               Height
             </label>
             
             {/* Unit Toggle */}
-            <div className="flex gap-2 mb-3">
+            <div className="flex gap-4 mb-4">
               <button
                 type="button"
                 onClick={() => setHeightUnit('cm')}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+                className={`flex-1 py-3 px-4 rounded-xl border-4 font-black uppercase transition-all ${
                   heightUnit === 'cm'
-                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                    ? 'bg-[#A3E635] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-y-[-2px] translate-x-[-2px]'
+                    : 'bg-white border-black hover:bg-[#F8F9FA]'
                 }`}
               >
-                Centimeters (cm)
+                CM
               </button>
               <button
                 type="button"
                 onClick={() => setHeightUnit('ft')}
-                className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all ${
+                className={`flex-1 py-3 px-4 rounded-xl border-4 font-black uppercase transition-all ${
                   heightUnit === 'ft'
-                    ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                    ? 'bg-[#A3E635] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-y-[-2px] translate-x-[-2px]'
+                    : 'bg-white border-black hover:bg-[#F8F9FA]'
                 }`}
               >
-                Feet & Inches
+                FT & IN
               </button>
             </div>
 
             {/* CM Input */}
             {heightUnit === 'cm' && (
-              <div>
+              <div className="animate-in fade-in slide-in-from-top-2">
                 <div className="relative">
-                  <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 stroke-[3]" />
                   <input
                     type="number"
                     value={qualifications.height_cm}
@@ -453,15 +453,15 @@ export default function SetupProfilePage() {
                     placeholder="e.g., 170"
                     min="100"
                     max="250"
-                    className={`w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border ${
-                      errors.height_cm ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+                    className={`w-full pl-14 pr-4 py-4 bg-[#F8F9FA] border-4 ${
+                      errors.height_cm ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                    } rounded-xl focus:outline-none font-bold text-lg transition-shadow`}
                   />
                 </div>
                 {qualifications.height_cm && heightFeet && (
-                  <div className="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <p className="text-sm text-purple-700 dark:text-purple-300">
-                      ≈ <span className="font-semibold">{heightFeet}' {heightInches}"</span> (Feet & Inches)
+                  <div className="mt-3 p-4 bg-white border-4 border-black rounded-xl shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                    <p className="text-sm font-black uppercase">
+                      ≈ <span className="text-[#FF9F1C] text-lg">{heightFeet}' {heightInches}"</span>
                     </p>
                   </div>
                 )}
@@ -470,156 +470,136 @@ export default function SetupProfilePage() {
 
             {/* Feet & Inches Input */}
             {heightUnit === 'ft' && (
-              <div>
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={heightFeet}
-                        onChange={(e) => handleHeightFeetInchesChange(e.target.value, heightInches)}
-                        placeholder="Feet"
-                        min="3"
-                        max="8"
-                        className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
-                          errors.height_cm ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                        } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm font-medium">
-                        ft
-                      </span>
-                    </div>
+              <div className="animate-in fade-in slide-in-from-top-2">
+                <div className="flex gap-4">
+                  <div className="flex-1 relative">
+                    <input
+                      type="number"
+                      value={heightFeet}
+                      onChange={(e) => handleHeightFeetInchesChange(e.target.value, heightInches)}
+                      placeholder="Feet"
+                      min="3"
+                      max="8"
+                      className={`w-full px-4 py-4 bg-[#F8F9FA] border-4 ${
+                        errors.height_cm ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                      } rounded-xl focus:outline-none font-bold text-lg transition-shadow`}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black uppercase text-gray-500">ft</span>
                   </div>
-                  <div className="flex-1">
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={heightInches}
-                        onChange={(e) => handleHeightFeetInchesChange(heightFeet, e.target.value)}
-                        placeholder="Inches"
-                        min="0"
-                        max="11"
-                        className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
-                          errors.height_cm ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                        } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm font-medium">
-                        in
-                      </span>
-                    </div>
+                  <div className="flex-1 relative">
+                    <input
+                      type="number"
+                      value={heightInches}
+                      onChange={(e) => handleHeightFeetInchesChange(heightFeet, e.target.value)}
+                      placeholder="Inches"
+                      min="0"
+                      max="11"
+                      className={`w-full px-4 py-4 bg-[#F8F9FA] border-4 ${
+                        errors.height_cm ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                      } rounded-xl focus:outline-none font-bold text-lg transition-shadow`}
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black uppercase text-gray-500">in</span>
                   </div>
                 </div>
                 {qualifications.height_cm && (
-                  <div className="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <p className="text-sm text-purple-700 dark:text-purple-300">
-                      ≈ <span className="font-semibold">{qualifications.height_cm} cm</span> (Centimeters)
+                  <div className="mt-3 p-4 bg-white border-4 border-black rounded-xl shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                    <p className="text-sm font-black uppercase">
+                      ≈ <span className="text-[#FF9F1C] text-lg">{qualifications.height_cm} cm</span>
                     </p>
                   </div>
                 )}
               </div>
             )}
-
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Choose your preferred unit - we'll store it in centimeters
-            </p>
-            {errors.height_cm && <p className="mt-1 text-sm text-red-500">{errors.height_cm}</p>}
+            {errors.height_cm && <p className="mt-2 text-sm font-bold text-[#FF6B6B]">{errors.height_cm}</p>}
           </div>
 
           {/* University */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-black uppercase mb-3">
               University
             </label>
             <div className="relative">
-              <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 stroke-[3]" />
               <select
                 value={qualifications.university}
                 onChange={(e) => handleQualificationChange('university', e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border ${
-                  errors.university ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+                className={`w-full pl-14 pr-4 py-4 bg-[#F8F9FA] border-4 ${
+                  errors.university ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                } rounded-xl focus:outline-none font-bold text-lg appearance-none transition-shadow`}
               >
-                <option value="">Select your university</option>
+                <option value="">Select University</option>
                 {SRI_LANKAN_UNIVERSITIES.map((uni) => (
-                  <option key={uni} value={uni}>
-                    {uni}
-                  </option>
+                  <option key={uni} value={uni}>{uni}</option>
                 ))}
               </select>
             </div>
-            {errors.university && <p className="mt-1 text-sm text-red-500">{errors.university}</p>}
+            {errors.university && <p className="mt-2 text-sm font-bold text-[#FF6B6B]">{errors.university}</p>}
           </div>
 
           {/* Degree */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-black uppercase mb-3">
               Degree
             </label>
             <select
               value={qualifications.degree}
               onChange={(e) => handleQualificationChange('degree', e.target.value)}
-              className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
-                errors.degree ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-              } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+              className={`w-full px-4 py-4 bg-[#F8F9FA] border-4 ${
+                errors.degree ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+              } rounded-xl focus:outline-none font-bold text-lg appearance-none transition-shadow`}
             >
-              <option value="">Select your degree</option>
+              <option value="">Select Degree</option>
               {DEGREE_OPTIONS.map((degree) => (
-                <option key={degree} value={degree}>
-                  {degree}
-                </option>
+                <option key={degree} value={degree}>{degree}</option>
               ))}
             </select>
-            {errors.degree && <p className="mt-1 text-sm text-red-500">{errors.degree}</p>}
+            {errors.degree && <p className="mt-2 text-sm font-bold text-[#FF6B6B]">{errors.degree}</p>}
           </div>
 
           {/* Hometown */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-black uppercase mb-3">
               Hometown
             </label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 stroke-[3]" />
               <select
                 value={qualifications.hometown}
                 onChange={(e) => handleQualificationChange('hometown', e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border ${
-                  errors.hometown ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+                className={`w-full pl-14 pr-4 py-4 bg-[#F8F9FA] border-4 ${
+                  errors.hometown ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                } rounded-xl focus:outline-none font-bold text-lg appearance-none transition-shadow`}
               >
-                <option value="">Select your hometown</option>
+                <option value="">Select Hometown</option>
                 {MAJOR_TOWNS.map((town) => (
-                  <option key={town} value={town}>
-                    {town}
-                  </option>
+                  <option key={town} value={town}>{town}</option>
                 ))}
               </select>
             </div>
-            {errors.hometown && <p className="mt-1 text-sm text-red-500">{errors.hometown}</p>}
+            {errors.hometown && <p className="mt-2 text-sm font-bold text-[#FF6B6B]">{errors.hometown}</p>}
           </div>
 
           {/* Skin Tone */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-black uppercase mb-3">
               Skin Tone
             </label>
             <div className="relative">
-              <Palette className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Palette className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 stroke-[3]" />
               <select
                 value={qualifications.skin_tone}
                 onChange={(e) => handleQualificationChange('skin_tone', e.target.value)}
-                className={`w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border ${
-                  errors.skin_tone ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+                className={`w-full pl-14 pr-4 py-4 bg-[#F8F9FA] border-4 ${
+                  errors.skin_tone ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                } rounded-xl focus:outline-none font-bold text-lg appearance-none transition-shadow`}
               >
-                <option value="">Select skin tone</option>
+                <option value="">Select Skin Tone</option>
                 {SKIN_TONES.map((tone) => (
-                  <option key={tone} value={tone}>
-                    {tone}
-                  </option>
+                  <option key={tone} value={tone}>{tone}</option>
                 ))}
               </select>
             </div>
-            {errors.skin_tone && <p className="mt-1 text-sm text-red-500">{errors.skin_tone}</p>}
+            {errors.skin_tone && <p className="mt-2 text-sm font-bold text-[#FF6B6B]">{errors.skin_tone}</p>}
           </div>
 
         </motion.div>
@@ -629,19 +609,19 @@ export default function SetupProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glassmorphic-card p-6 rounded-2xl space-y-6"
+          className="bg-white p-8 rounded-2xl border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] space-y-8"
         >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center">
-              <Heart className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+          <div className="flex items-center gap-4 mb-2 border-b-4 border-black pb-4">
+            <div className="w-12 h-12 bg-[#FF9F1C] border-4 border-black flex items-center justify-center shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+              <Heart className="w-6 h-6 stroke-[3]" />
             </div>
-            <h2 className="text-lg font-bold text-gray-800 dark:text-white">Partner Preferences</h2>
+            <h2 className="text-2xl font-black uppercase tracking-tight">Preferences</h2>
           </div>
 
           {/* Age Range */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Age Range <span className="text-red-500">*</span>
+            <label className="block text-sm font-black uppercase mb-3">
+              Age Range <span className="text-[#FF6B6B] text-lg">*</span>
             </label>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -651,9 +631,10 @@ export default function SetupProfilePage() {
                   onChange={(e) => handlePreferenceChange('age_min', e.target.value)}
                   min="18"
                   max="100"
-                  className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white"
+                  placeholder="Min"
+                  className="w-full px-4 py-4 bg-[#F8F9FA] border-4 border-black rounded-xl focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] font-bold text-lg transition-shadow"
                 />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Min age</p>
+                <p className="mt-2 text-sm font-black uppercase text-gray-500">Min Age</p>
               </div>
               <div>
                 <input
@@ -662,58 +643,63 @@ export default function SetupProfilePage() {
                   onChange={(e) => handlePreferenceChange('age_max', e.target.value)}
                   min="18"
                   max="100"
-                  className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white"
+                  placeholder="Max"
+                  className="w-full px-4 py-4 bg-[#F8F9FA] border-4 border-black rounded-xl focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] font-bold text-lg transition-shadow"
                 />
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Max age</p>
+                <p className="mt-2 text-sm font-black uppercase text-gray-500">Max Age</p>
               </div>
             </div>
-            {errors.age_range && <p className="mt-1 text-sm text-red-500">{errors.age_range}</p>}
+            {errors.age_range && <p className="mt-2 text-sm font-bold text-[#FF6B6B]">{errors.age_range}</p>}
           </div>
 
-          {/* Education Level */}
+          {/* Education Level (Chunky Checkboxes) */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Education Level <span className="text-red-500">*</span>
+            <label className="block text-sm font-black uppercase mb-3">
+              Education Level <span className="text-[#FF6B6B] text-lg">*</span>
             </label>
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {EDUCATION_LEVELS.map((level) => (
                 <label
                   key={level}
-                  className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className={`flex items-center gap-3 p-4 border-4 border-black rounded-xl cursor-pointer transition-all ${
+                    partnerPreferences.education_levels.includes(level)
+                      ? 'bg-[#A3E635] shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]'
+                      : 'bg-white hover:bg-[#F8F9FA]'
+                  }`}
                 >
                   <input
                     type="checkbox"
                     checked={partnerPreferences.education_levels.includes(level)}
                     onChange={() => toggleEducationLevel(level)}
-                    className="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-600"
+                    className="w-6 h-6 border-4 border-black rounded-none accent-black bg-white"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">{level}</span>
+                  <span className="font-black uppercase text-sm">{level}</span>
                 </label>
               ))}
             </div>
-            {errors.education_levels && <p className="mt-1 text-sm text-red-500">{errors.education_levels}</p>}
+            {errors.education_levels && <p className="mt-2 text-sm font-bold text-[#FF6B6B]">{errors.education_levels}</p>}
           </div>
 
           {/* Height Preference */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-black uppercase mb-3">
               Height Preference
             </label>
-            <div className="space-y-3">
-              <div className="flex gap-2">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
-                  { value: 'no_preference', label: 'No preference' },
-                  { value: 'less', label: 'Less than' },
-                  { value: 'greater', label: 'Greater than' },
+                  { value: 'no_preference', label: 'No Preference' },
+                  { value: 'less', label: 'Less Than' },
+                  { value: 'greater', label: 'Greater Than' },
                 ].map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     onClick={() => handlePreferenceChange('height_pref_type', option.value)}
-                    className={`flex-1 px-4 py-2 rounded-xl border-2 font-semibold transition-all text-sm ${
+                    className={`px-2 py-4 rounded-xl border-4 font-black uppercase text-xs transition-all tracking-tight ${
                       partnerPreferences.height_pref_type === option.value
-                        ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
-                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                        ? 'bg-[#FF9F1C] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-y-[-2px] translate-x-[-2px]'
+                        : 'bg-white border-black hover:bg-[#F8F9FA]'
                     }`}
                   >
                     {option.label}
@@ -722,16 +708,14 @@ export default function SetupProfilePage() {
               </div>
 
               {partnerPreferences.height_pref_type !== 'no_preference' && (
-                <div>
-                  {/* Unit Toggle */}
-                  <div className="flex gap-2 mb-3">
+                <div className="animate-in fade-in slide-in-from-top-2 p-4 border-4 border-black bg-white shadow-[4px_4px_0px_rgba(0,0,0,1)] mt-4">
+                  {/* Unit Toggle for Partner */}
+                  <div className="flex gap-4 mb-4">
                     <button
                       type="button"
                       onClick={() => setPartnerHeightUnit('cm')}
-                      className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all ${
-                        partnerHeightUnit === 'cm'
-                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                      className={`flex-1 py-2 px-4 border-4 font-black uppercase transition-all ${
+                        partnerHeightUnit === 'cm' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'
                       }`}
                     >
                       CM
@@ -739,17 +723,15 @@ export default function SetupProfilePage() {
                     <button
                       type="button"
                       onClick={() => setPartnerHeightUnit('ft')}
-                      className={`flex-1 py-2 px-4 rounded-lg font-medium text-sm transition-all ${
-                        partnerHeightUnit === 'ft'
-                          ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                      className={`flex-1 py-2 px-4 border-4 font-black uppercase transition-all ${
+                        partnerHeightUnit === 'ft' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'
                       }`}
                     >
-                      Feet & Inches
+                      FT & IN
                     </button>
                   </div>
 
-                  {/* CM Input */}
+                  {/* CM Input Partner */}
                   {partnerHeightUnit === 'cm' && (
                     <div>
                       <input
@@ -759,105 +741,89 @@ export default function SetupProfilePage() {
                         placeholder="Height in cm"
                         min="100"
                         max="250"
-                        className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
-                          errors.height_pref ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                        } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
+                        className={`w-full px-4 py-4 bg-[#F8F9FA] border-4 ${
+                          errors.height_pref ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                        } rounded-xl focus:outline-none font-bold text-lg transition-shadow`}
                       />
                       {partnerPreferences.height_pref_value && partnerHeightFeet && (
-                        <div className="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                          <p className="text-sm text-purple-700 dark:text-purple-300">
-                            ≈ <span className="font-semibold">{partnerHeightFeet}' {partnerHeightInches}"</span>
-                          </p>
-                        </div>
+                        <p className="mt-3 text-sm font-black uppercase">
+                          ≈ <span className="text-[#FF9F1C] text-lg">{partnerHeightFeet}' {partnerHeightInches}"</span>
+                        </p>
                       )}
                     </div>
                   )}
 
-                  {/* Feet & Inches Input */}
+                  {/* Feet & Inches Partner */}
                   {partnerHeightUnit === 'ft' && (
-                    <div>
-                      <div className="flex gap-3">
-                        <div className="flex-1">
-                          <div className="relative">
-                            <input
-                              type="number"
-                              value={partnerHeightFeet}
-                              onChange={(e) => handlePartnerHeightFeetInchesChange(e.target.value, partnerHeightInches)}
-                              placeholder="Feet"
-                              min="3"
-                              max="8"
-                              className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
-                                errors.height_pref ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                              } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
-                            />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm font-medium">
-                              ft
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <div className="relative">
-                            <input
-                              type="number"
-                              value={partnerHeightInches}
-                              onChange={(e) => handlePartnerHeightFeetInchesChange(partnerHeightFeet, e.target.value)}
-                              placeholder="Inches"
-                              min="0"
-                              max="11"
-                              className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${
-                                errors.height_pref ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                              } rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white`}
-                            />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm font-medium">
-                              in
-                            </span>
-                          </div>
-                        </div>
+                    <div className="flex gap-4">
+                      <div className="flex-1 relative">
+                        <input
+                          type="number"
+                          value={partnerHeightFeet}
+                          onChange={(e) => handlePartnerHeightFeetInchesChange(e.target.value, partnerHeightInches)}
+                          placeholder="Feet"
+                          min="3"
+                          max="8"
+                          className={`w-full px-4 py-4 bg-[#F8F9FA] border-4 ${
+                            errors.height_pref ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                          } rounded-xl focus:outline-none font-bold text-lg transition-shadow`}
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black uppercase text-gray-500">ft</span>
                       </div>
-                      {partnerPreferences.height_pref_value && (
-                        <div className="mt-2 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                          <p className="text-sm text-purple-700 dark:text-purple-300">
-                            ≈ <span className="font-semibold">{partnerPreferences.height_pref_value} cm</span>
-                          </p>
-                        </div>
-                      )}
+                      <div className="flex-1 relative">
+                        <input
+                          type="number"
+                          value={partnerHeightInches}
+                          onChange={(e) => handlePartnerHeightFeetInchesChange(partnerHeightFeet, e.target.value)}
+                          placeholder="Inches"
+                          min="0"
+                          max="11"
+                          className={`w-full px-4 py-4 bg-[#F8F9FA] border-4 ${
+                            errors.height_pref ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]' : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                          } rounded-xl focus:outline-none font-bold text-lg transition-shadow`}
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black uppercase text-gray-500">in</span>
+                      </div>
                     </div>
+                  )}
+                  {partnerPreferences.height_pref_value && partnerHeightUnit === 'ft' && (
+                    <p className="mt-3 text-sm font-black uppercase">
+                      ≈ <span className="text-[#FF9F1C] text-lg">{partnerPreferences.height_pref_value} cm</span>
+                    </p>
                   )}
                 </div>
               )}
             </div>
-            {errors.height_pref && <p className="mt-1 text-sm text-red-500">{errors.height_pref}</p>}
+            {errors.height_pref && <p className="mt-2 text-sm font-bold text-[#FF6B6B]">{errors.height_pref}</p>}
           </div>
 
           {/* Hometown Preference */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Hometown Preference (Optional)
+            <label className="block text-sm font-black uppercase mb-3">
+              Hometown Pref (Optional)
             </label>
             <input
               type="text"
               value={partnerPreferences.hometown}
               onChange={(e) => handlePreferenceChange('hometown', e.target.value)}
-              placeholder="e.g., Near Colombo"
-              className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white"
+              placeholder="e.g., Colombo"
+              className="w-full px-4 py-4 bg-[#F8F9FA] border-4 border-black rounded-xl focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] font-bold text-lg transition-shadow"
             />
           </div>
 
           {/* Skin Tone Preference */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-black uppercase mb-3">
               Skin Tone Preference
             </label>
             <select
               value={partnerPreferences.skin_tone}
               onChange={(e) => handlePreferenceChange('skin_tone', e.target.value)}
-              className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-600 text-gray-800 dark:text-white"
+              className="w-full px-4 py-4 bg-[#F8F9FA] border-4 border-black rounded-xl focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] font-bold text-lg appearance-none transition-shadow"
             >
-              <option value="No preference">No preference</option>
+              <option value="No preference">No Preference</option>
               {SKIN_TONES.map((tone) => (
-                <option key={tone} value={tone}>
-                  {tone}
-                </option>
+                <option key={tone} value={tone}>{tone}</option>
               ))}
             </select>
           </div>
@@ -870,24 +836,24 @@ export default function SetupProfilePage() {
           transition={{ delay: 0.2 }}
           type="submit"
           disabled={!isFormComplete() || isLoading}
-          className="w-full py-4 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-5 bg-[#4ECDC4] border-4 border-black text-black font-black text-2xl uppercase tracking-wider rounded-2xl shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:shadow-[10px_10px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px] active:shadow-none active:translate-y-[8px] active:translate-x-[8px] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Saving...
+              <Loader2 className="w-8 h-8 stroke-[3] animate-spin" />
+              Saving Profile...
             </>
           ) : (
             <>
-              <CheckCircle2 className="w-5 h-5" />
+              <CheckCircle2 className="w-8 h-8 stroke-[3]" />
               Complete Setup
             </>
           )}
         </motion.button>
 
         {!isFormComplete() && (
-          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-            Please fill all required fields to continue
+          <p className="text-center font-black uppercase text-sm text-[#FF6B6B]">
+            * Please fill all required fields to continue
           </p>
         )}
       </form>

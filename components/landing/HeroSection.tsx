@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Heart, Sparkles, Ghost, Globe, ChevronRight } from 'lucide-react';
+import { Heart, ChevronRight, ShieldCheck, Zap } from 'lucide-react';
 import { SignInModal } from './SignInModal';
 
 export function HeroSection() {
@@ -11,127 +11,89 @@ export function HeroSection() {
   const router = useRouter();
 
   const handleStartDating = () => {
-    // Check if user is already logged in with proper validation
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
     
-    // Only redirect to dashboard if userId exists, is not "null" string, and is not empty
     if (userId && userId !== 'null' && userId !== 'undefined' && userId.trim() !== '' && username) {
-      // User is logged in, redirect to dashboard
       router.push('/dashboard');
     } else {
-      // User is not logged in or session is invalid, show sign in modal
       setIsModalOpen(true);
     }
   };
 
   return (
-    <div className="relative min-h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden bg-[#030014]">
+    <div className="relative min-h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden bg-background">
       
-      {/* --- Ambient Background Effects --- */}
-      <div className="absolute inset-0 w-full h-full">
-        {/* Grain/Noise Texture Overlay */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-[1]" 
-             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} 
-        />
-
-        {/* Deep Plasma Gradients */}
-        <div className="absolute top-[-10%] left-[-20%] w-[70vw] h-[70vw] bg-purple-900/30 blur-[120px] rounded-full mix-blend-screen animate-pulse-slow" />
-        <div className="absolute bottom-[-10%] right-[-20%] w-[70vw] h-[70vw] bg-indigo-900/20 blur-[120px] rounded-full mix-blend-screen animate-pulse-slow animation-delay-2000" />
-        <div className="absolute top-[20%] left-[50%] -translate-x-1/2 w-[500px] h-[500px] bg-fuchsia-600/10 blur-[100px] rounded-full pointer-events-none" />
+      {/* --- Premium Matte Background --- */}
+      <div className="absolute inset-0 w-full h-full bg-background">
+        {/* Subtle Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#27272a_1px,transparent_1px),linear-gradient(to_bottom,#27272a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20" />
+        {/* Top Spotlight */}
+        <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-zinc-900/50 to-transparent pointer-events-none" />
       </div>
 
       {/* --- Main Content --- */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 flex flex-col items-center justify-center text-center mt-[-5vh]">
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 flex flex-col items-center justify-center text-center">
         
-        {/* Glass Badge */}
+        {/* High-End Pill Badge */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "circOut" }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-xl mb-8 shadow-lg shadow-purple-500/10"
+          transition={{ duration: 0.5, ease: "circOut" }}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-zinc-700 bg-zinc-900/50 mb-8"
         >
-          <Sparkles className="w-4 h-4 text-purple-400" />
-          <span className="text-xs sm:text-sm font-medium text-purple-200/80 tracking-wide uppercase">
-            Anonymous Campus Dating
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+          </span>
+          <span className="text-xs font-semibold text-zinc-300 tracking-widest uppercase">
+            Exclusive Campus Network
           </span>
         </motion.div>
 
         {/* Hero Title */}
-        {/* <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-          className="relative mb-6"
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-6"
         >
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight leading-[0.9]">
-            <span className="block text-white drop-shadow-xl">
-             Welcome to
-            </span>
-            <span className="relative inline-block mt-2">
-              <span className="absolute inset-0 blur-3xl bg-purple-600/40" />
-              <span className="relative bg-clip-text text-transparent bg-purple-400 text-glow">
-                අතැගිලි
-              </span>
-            </span>
+          <h1 className="text-5xl sm:text-7xl md:text-8xl font-bold tracking-tight text-primary leading-tight">
+            Connect without <br />
+            <span className="text-zinc-500">Expectations.</span>
           </h1>
-        </motion.div> */}
+        </motion.div>
 
         {/* Subtitle */}
         <motion.p 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="max-w-xl text-lg sm:text-xl text-gray-400 mb-10 leading-relaxed font-light"
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="max-w-xl text-lg sm:text-xl text-secondary mb-10 font-normal leading-relaxed"
         >
-          Dating without the bias. <br className="hidden sm:block" />
-          <span className="text-gray-200 font-normal">Chat first, reveal later.</span>
+          A private, verified dating space for university students. 
+          <span className="block text-zinc-300 mt-1">Chat anonymously. Reveal when ready.</span>
         </motion.p>
 
         {/* Action Buttons */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
           className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
         >
           <button
             onClick={handleStartDating}
-            className="btn-glass-primary px-8 py-4 flex items-center justify-center gap-3 group"
+            className="group relative px-8 py-4 bg-primary text-black font-bold text-lg rounded-xl transition-all hover:bg-white/90 hover:scale-[1.02] flex items-center justify-center gap-3"
           >
-            <Heart className="w-5 h-5 fill-current text-purple-600 group-hover:scale-110 transition-transform" />
-            <span className="text-lg">Start Dating</span>
-            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
+            Start Matching
+            <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
-
-         
         </motion.div>
+
+      
       </div>
 
-      {/* --- Floating Glass Elements (3D Decoration) --- */}
-      {/* Left Element */}
-      <motion.div 
-        animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }} 
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[20%] left-[5%] hidden lg:block"
-      >
-        <div className="w-24 h-24 rounded-3xl bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center shadow-2xl transform -rotate-12">
-           <Ghost className="w-10 h-10 text-purple-300 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
-        </div>
-      </motion.div>
-
-      {/* Right Element */}
-      <motion.div 
-        animate={{ y: [0, 25, 0], rotate: [0, -5, 0] }} 
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute bottom-[20%] right-[5%] hidden lg:block"
-      >
-        <div className="w-20 h-20 rounded-full bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center shadow-2xl">
-           <Heart className="w-8 h-8 text-pink-400 fill-pink-400/20 drop-shadow-[0_0_10px_rgba(236,72,153,0.5)]" />
-        </div>
-      </motion.div>
-
-      {/* SignIn Modal (Logic Preserved) */}
       <SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );

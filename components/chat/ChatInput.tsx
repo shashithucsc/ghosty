@@ -30,11 +30,11 @@ export function ChatInput({ onSend, onTyping, disabled = false, disabledMessage 
   };
 
   return (
-    <div className="sticky bottom-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700/50 px-4 py-3 sm:py-4 pb-20 sm:pb-4 shadow-lg">
+    <div className="sticky bottom-0 bg-white border-t-4 border-black px-4 py-3 sm:py-4 pb-20 sm:pb-4 z-10 font-sans text-black">
       <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
         {/* Disabled Message */}
         {disabled && disabledMessage && (
-          <div className="mb-2 text-center text-sm text-red-700 dark:text-red-400 font-medium">
+          <div className="mb-2 text-center text-xs font-black uppercase tracking-widest text-[#FF6B6B]">
             {disabledMessage}
           </div>
         )}
@@ -51,20 +51,20 @@ export function ChatInput({ onSend, onTyping, disabled = false, disabledMessage 
                   handleSubmit(e);
                 }
               }}
-              placeholder={disabled && disabledMessage ? disabledMessage : "Type a message..."}
+              placeholder={disabled && disabledMessage ? disabledMessage.toUpperCase() : "TYPE A MESSAGE..."}
               rows={1}
               disabled={disabled}
-              className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all duration-200 resize-none max-h-32 text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full px-4 py-3 pr-12 bg-[#F8F9FA] border-4 border-black rounded-2xl text-black font-bold placeholder-gray-500 focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow resize-none max-h-32 text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed"
               style={{ minHeight: '48px' }}
             />
             
             {/* Emoji Button (placeholder) */}
             <button
               type="button"
-              className="absolute right-3 bottom-3 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="absolute right-3 bottom-3 p-1 text-black hover:text-[#4ECDC4] transition-colors"
               title="Emoji (coming soon)"
             >
-              <Smile className="w-5 h-5" />
+              <Smile className="w-5 h-5 stroke-[3]" />
             </button>
           </div>
 
@@ -72,9 +72,9 @@ export function ChatInput({ onSend, onTyping, disabled = false, disabledMessage 
           <button
             type="submit"
             disabled={!text.trim() || disabled}
-            className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-purple-600 text-white rounded-full hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center"
+            className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-[#4ECDC4] border-4 border-black text-black rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none flex items-center justify-center"
           >
-            <Send className="w-5 h-5 sm:w-6 sm:h-6" />
+            <Send className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3]" />
           </button>
         </div>
       </form>

@@ -275,7 +275,7 @@ export default function VerifiedRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex items-center justify-center p-4 py-12">
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4 py-12">
       {/* Toast Notification */}
       {toast && (
         <motion.div
@@ -425,7 +425,7 @@ export default function VerifiedRegisterPage() {
                     Gender
                   </label>
                   <div className="grid grid-cols-3 gap-3">
-                    {['male', 'female', 'other'].map((gender) => (
+                    {['male', 'female'].map((gender) => (
                       <button
                         key={gender}
                         type="button"
@@ -754,7 +754,7 @@ export default function VerifiedRegisterPage() {
                         initial={{ width: 0 }}
                         animate={{ width: `${uploadProgress}%` }}
                         transition={{ duration: 0.3 }}
-                        className="h-full bg-linear-to-r from-purple-600 to-pink-600"
+                        className="h-full bg-purple-600"
                       ></motion.div>
                     </div>
                   </div>
@@ -787,7 +787,7 @@ export default function VerifiedRegisterPage() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="flex-1 py-4 bg-linear-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                  className="flex-1 py-4 bg-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105"
                 >
                   Next Step
                 </button>
@@ -795,7 +795,7 @@ export default function VerifiedRegisterPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex-1 py-4 bg-linear-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-4 bg-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center gap-2">

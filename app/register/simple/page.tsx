@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { User, Lock, Eye, EyeOff, Zap, ArrowLeft } from 'lucide-react';
+import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -82,7 +82,6 @@ export default function SimpleRegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store user data in localStorage for auto-login
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('username', data.username);
         localStorage.setItem('token', data.token);
@@ -94,7 +93,6 @@ export default function SimpleRegisterPage() {
         setToast({ message: 'Account created successfully! Redirecting...', type: 'success' });
         
         setTimeout(() => {
-          // Redirect to setup-profile for profile completion
           router.push('/setup-profile');
         }, 1500);
       } else {
@@ -109,24 +107,23 @@ export default function SimpleRegisterPage() {
 
   const handleChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
-    // Clear error for this field
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' });
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#FDF8F5] flex items-center justify-center p-4 font-sans">
       {/* Toast Notification */}
       {toast && (
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
-          className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-xl shadow-lg ${
+          className={`fixed top-6 right-6 z-50 px-8 py-4 rounded-xl font-black border-4 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] ${
             toast.type === 'success'
-              ? 'bg-green-500 text-white'
-              : 'bg-red-500 text-white'
+              ? 'bg-[#A3E635] text-black'
+              : 'bg-[#FF6B6B] text-white'
           }`}
         >
           {toast.message}
@@ -137,10 +134,10 @@ export default function SimpleRegisterPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        className="w-full max-w-md z-10"
       >
-        {/* Card */}
-        <div className="glassmorphic-card p-8 rounded-3xl shadow-2xl">
+        {/* Bold Solid Card */}
+        <div className="bg-white p-8 rounded-2xl border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)]">
           {/* Header */}
           <div className="text-center mb-8">
             <motion.div
@@ -151,26 +148,19 @@ export default function SimpleRegisterPage() {
             >
               <Image
                 src="/logo.png"
-                alt="Ghosty Logo"
+                alt="Logo"
                 width={80}
                 height={80}
                 className="object-contain mx-auto"
               />
             </motion.div>
 
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-              Quick Join
+            <h1 className="text-4xl font-black text-black mb-2 uppercase tracking-tight">
+              Join Now
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Get started in seconds
+            <p className="text-gray-600 font-bold">
+              Find your match in seconds.
             </p>
-            
-
-            {/* Status Badge */}
-            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-sm">
-              <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              Unverified Account • Limited Features
-            </div>
           </div>
 
           {/* Form */}
@@ -181,27 +171,27 @@ export default function SimpleRegisterPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-black text-black mb-2 uppercase">
                 Username
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  <User className="w-5 h-5" />
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                  <User className="w-5 h-5 stroke-[3]" />
                 </div>
                 <input
                   type="text"
                   value={formData.username}
                   onChange={(e) => handleChange('username', e.target.value)}
                   placeholder="Enter your username"
-                  className={`w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border ${
+                  className={`w-full pl-12 pr-4 py-4 bg-[#F8F9FA] border-4 ${
                     errors.username
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                  } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
+                      ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]'
+                      : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                  } rounded-xl focus:outline-none text-black font-bold transition-shadow`}
                 />
               </div>
               {errors.username && (
-                <p className="mt-2 text-sm text-red-500">{errors.username}</p>
+                <p className="mt-2 text-sm text-[#FF6B6B] font-bold">{errors.username}</p>
               )}
             </motion.div>
 
@@ -211,34 +201,34 @@ export default function SimpleRegisterPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-black text-black mb-2 uppercase">
                 Password
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Lock className="w-5 h-5" />
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                  <Lock className="w-5 h-5 stroke-[3]" />
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => handleChange('password', e.target.value)}
-                  placeholder="Enter your password"
-                  className={`w-full pl-12 pr-12 py-3 bg-white dark:bg-gray-800 border ${
+                  placeholder="Create a password"
+                  className={`w-full pl-12 pr-12 py-4 bg-[#F8F9FA] border-4 ${
                     errors.password
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                  } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
+                      ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]'
+                      : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                  } rounded-xl focus:outline-none text-black font-bold transition-shadow`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-black hover:scale-110 transition-transform"
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-5 h-5 stroke-[3]" /> : <Eye className="w-5 h-5 stroke-[3]" />}
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-2 text-sm text-red-500">{errors.password}</p>
+                <p className="mt-2 text-sm text-[#FF6B6B] font-bold">{errors.password}</p>
               )}
             </motion.div>
 
@@ -248,34 +238,34 @@ export default function SimpleRegisterPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
             >
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-black text-black mb-2 uppercase">
                 Confirm Password
               </label>
               <div className="relative">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Lock className="w-5 h-5" />
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                  <Lock className="w-5 h-5 stroke-[3]" />
                 </div>
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={(e) => handleChange('confirmPassword', e.target.value)}
                   placeholder="Confirm your password"
-                  className={`w-full pl-12 pr-12 py-3 bg-white dark:bg-gray-800 border ${
+                  className={`w-full pl-12 pr-12 py-4 bg-[#F8F9FA] border-4 ${
                     errors.confirmPassword
-                      ? 'border-red-500 focus:ring-red-500'
-                      : 'border-gray-300 dark:border-gray-600 focus:ring-purple-600'
-                  } rounded-xl focus:outline-none focus:ring-2 text-gray-800 dark:text-white transition-all`}
+                      ? 'border-[#FF6B6B] focus:shadow-[4px_4px_0px_#FF6B6B]'
+                      : 'border-black focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'
+                  } rounded-xl focus:outline-none text-black font-bold transition-shadow`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-black hover:scale-110 transition-transform"
                 >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showConfirmPassword ? <EyeOff className="w-5 h-5 stroke-[3]" /> : <Eye className="w-5 h-5 stroke-[3]" />}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="mt-2 text-sm text-red-500">{errors.confirmPassword}</p>
+                <p className="mt-2 text-sm text-[#FF6B6B] font-bold">{errors.confirmPassword}</p>
               )}
             </motion.div>
 
@@ -285,35 +275,35 @@ export default function SimpleRegisterPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6 }}
             >
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                Gender
+              <label className="block text-sm font-black text-black mb-2 uppercase">
+                I am a...
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
                   onClick={() => handleChange('gender', 'Male')}
-                  className={`py-3 px-4 rounded-xl border-2 font-semibold transition-all ${
+                  className={`py-4 px-4 rounded-xl border-4 font-black transition-all ${
                     formData.gender === 'Male'
-                      ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
-                      : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-purple-400'
+                      ? 'border-black bg-[#4ECDC4] text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-y-[-2px] translate-x-[-2px]'
+                      : 'border-black bg-white text-black hover:bg-[#F8F9FA]'
                   }`}
                 >
-                  👨 Male
+                  Male
                 </button>
                 <button
                   type="button"
                   onClick={() => handleChange('gender', 'Female')}
-                  className={`py-3 px-4 rounded-xl border-2 font-semibold transition-all ${
+                  className={`py-4 px-4 rounded-xl border-4 font-black transition-all ${
                     formData.gender === 'Female'
-                      ? 'border-purple-600 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
-                      : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-purple-400'
+                      ? 'border-black bg-[#4ECDC4] text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] translate-y-[-2px] translate-x-[-2px]'
+                      : 'border-black bg-white text-black hover:bg-[#F8F9FA]'
                   }`}
                 >
-                  👩 Female
+                  Female
                 </button>
               </div>
               {errors.gender && (
-                <p className="mt-2 text-sm text-red-500">{errors.gender}</p>
+                <p className="mt-2 text-sm text-[#FF6B6B] font-bold">{errors.gender}</p>
               )}
             </motion.div>
 
@@ -322,16 +312,14 @@ export default function SimpleRegisterPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-8 py-4 bg-[#FFD166] border-4 border-black text-black font-black text-xl uppercase tracking-wider rounded-xl shadow-[6px_6px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px] active:shadow-none active:translate-y-[6px] active:translate-x-[6px] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
             >
               {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Creating Account...
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-5 h-5 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+                  Loading...
                 </div>
               ) : (
                 'Create Account'
@@ -339,26 +327,15 @@ export default function SimpleRegisterPage() {
             </motion.button>
 
             {/* Footer */}
-            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              Already have an account?{' '}
+            <div className="text-center mt-6">
+              <span className="text-black font-bold">Already have an account? </span>
               <Link
                 href="/login"
-                className="text-purple-600 dark:text-purple-400 font-semibold hover:underline"
+                className="text-[#4ECDC4] font-black underline decoration-4 underline-offset-4 hover:text-black transition-colors"
               >
                 Sign In
               </Link>
             </div>
-
-            {/* Verified Join temporarily hidden
-            <div className="text-center">
-              <Link
-                href="/register/verified"
-                className="text-sm text-green-600 dark:text-green-400 font-semibold hover:underline"
-              >
-                Want full features? Upgrade to Verified Join →
-              </Link>
-            </div>
-            */}
           </form>
         </div>
       </motion.div>

@@ -1,105 +1,92 @@
 @import "tailwindcss";
 
-:root {
-  --background: #030014;
-  --foreground: #ffffff;
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-surface: rgba(255, 255, 255, 0.03);
-  --primary-glow: rgba(147, 51, 234, 0.5);
+/* In Tailwind v4, we define the theme directly here. 
+   This avoids the build error you just saw.
+*/
+@theme {
+  /* --- The Premium Dark Palette --- */
+  
+  /* Backgrounds */
+  --color-background: #09090b; /* Deepest matte black (Zinc 950) */
+  --color-surface: #18181b;    /* Slightly lighter for cards (Zinc 900) */
+  --color-elevated: #27272a;   /* For hovers/modals (Zinc 800) */
+  
+  /* Borders */
+  --color-border: #27272a;     /* Subtle dark grey border */
+  
+  /* Typography */
+  --color-primary: #f4f4f5;    /* Almost white (Zinc 100) */
+  --color-secondary: #a1a1aa;  /* Muted grey (Zinc 400) */
+  
+  /* Brand Accent (Solid Royal Violet) */
+  --color-accent: #7c3aed;
+  --color-accent-hover: #6d28d9;
+  --color-accent-foreground: #ffffff;
+  
+  /* Semantic */
+  --color-danger: #ef4444;
+  --color-success: #10b981;
+
+  /* Custom Shadows */
+  --shadow-glow: 0 0 20px -10px rgba(124, 58, 237, 0.3);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  
-  /* Custom Animations */
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
-  }
-  
-  @keyframes pulse-glow {
-    0%, 100% { opacity: 0.5; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.05); }
-  }
-}
+/* --- Base Styles --- */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  /* Use CSS variables directly here to prevent build errors */
+  background-color: var(--color-background);
+  color: var(--color-primary);
   font-family: var(--font-sans), sans-serif;
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
-/* --- Dark Glass Utilities --- */
+/* --- Premium UI Utilities --- */
 
-/* The base glass effect */
-.glass-panel {
-  @apply bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
-}
-
-/* A more intense glass effect for cards/modals */
-.glass-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+/* The new Card style: Solid, Matte, Crisp Border */
+.premium-card {
+  @apply bg-surface border border-border rounded-xl transition-all duration-200;
 }
 
-/* Neon text glow */
-.text-glow {
-  text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+.premium-card:hover {
+  @apply border-zinc-700;
 }
 
-/* Primary Button with Glass feel */
-.btn-glass-primary {
-  @apply relative overflow-hidden rounded-2xl bg-white text-black font-bold transition-all duration-300;
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
-}
-.btn-glass-primary:hover {
-  box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);
-  transform: translateY(-2px);
+/* Inputs */
+.premium-input {
+  @apply bg-surface border border-border rounded-lg px-4 py-3 text-primary placeholder-zinc-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all;
 }
 
-/* Secondary Button with Glass feel */
-.btn-glass-secondary {
-  @apply relative rounded-2xl bg-white/5 border border-white/10 text-white font-medium backdrop-blur-md transition-all duration-300;
+/* Buttons */
+.btn-primary {
+  @apply bg-accent hover:bg-accent-hover text-white font-semibold rounded-lg px-6 py-2.5 transition-all active:scale-95 shadow-sm;
 }
-.btn-glass-secondary:hover {
-  @apply bg-white/10 border-white/20;
-  transform: translateY(-2px);
+
+.btn-secondary {
+  @apply bg-surface hover:bg-elevated text-primary border border-border font-medium rounded-lg px-6 py-2.5 transition-all active:scale-95;
+}
+
+.btn-ghost {
+  @apply hover:bg-elevated text-secondary hover:text-primary transition-colors rounded-lg px-4 py-2;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #030014;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 3px;
+  @apply bg-zinc-800 rounded-full;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #4c1d95;
+  @apply bg-zinc-600;
 }
 
-/* Mobile bottom nav spacing */
-@media (max-width: 768px) {
-  .page-container {
-    padding-bottom: 5rem; /* Space for bottom nav */
-  }
-}
-
-/* Safe area for iOS devices */
+/* Mobile Safe Area */
 .safe-area-inset-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }

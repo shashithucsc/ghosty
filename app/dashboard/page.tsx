@@ -71,7 +71,7 @@ export default function DashboardPage() {
     if (isAdmin) {
       setUser({
         anonymousName: username || 'Admin',
-        avatar: avatar || '👤',
+        avatar: avatar || 'User', // Removed emoji fallback
         userId,
       });
       setIsCheckingAuth(false);
@@ -100,7 +100,7 @@ export default function DashboardPage() {
     // 6. User is authenticated and authorized
     setUser({
       anonymousName: username || 'User',
-      avatar: avatar || '👤',
+      avatar: avatar || 'User', // Removed emoji fallback
       userId,
     });
     setIsCheckingAuth(false);
@@ -130,17 +130,18 @@ export default function DashboardPage() {
   // Show loading while checking authentication
   if (isCheckingAuth) {
     return (
-      <div className="fixed inset-0 pt-16 sm:pt-20 pb-16 sm:pb-20 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+      <div className="fixed inset-0 pt-16 sm:pt-20 pb-16 sm:pb-20 bg-[#FDF8F5] flex items-center justify-center font-sans text-black">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Verifying access...</p>
+          {/* Neobrutalist Spinner */}
+          <div className="w-16 h-16 border-4 border-black border-t-[#FFD166] rounded-full animate-spin mx-auto mb-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]"></div>
+          <p className="text-black font-black uppercase tracking-wider text-xl">Verifying access...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 pt-16 sm:pt-20 pb-16 sm:pb-20 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 overflow-hidden">
+    <div className="fixed inset-0 pt-16 sm:pt-20 pb-16 sm:pb-20 bg-[#FDF8F5] overflow-hidden font-sans text-black">
       {/* Notifications */}
       {notifications.length > 0 && (
         <div className="fixed top-20 left-0 right-0 z-40 px-4">
@@ -155,17 +156,17 @@ export default function DashboardPage() {
       )}
 
       {/* Main Content - Flex layout to fill screen */}
-      <main className="container mx-auto px-2 sm:px-4 h-full max-w-2xl flex flex-col">
-        {/* Filter Button - Compact for mobile */}
-        <div className="py-2 sm:py-4 flex-shrink-0">
+      <main className="container mx-auto px-4 h-full max-w-2xl flex flex-col">
+        {/* Filter Button */}
+        <div className="py-4 flex-shrink-0">
           <button
             onClick={() => setShowFilters(true)}
-            className="w-full sm:w-auto bg-white shadow-lg border border-gray-200 px-4 sm:px-6 py-2 sm:py-3 rounded-xl flex items-center justify-center gap-2 text-gray-800 font-semibold hover:shadow-xl hover:border-purple-300 transition-all duration-300 text-sm sm:text-base"
+            className="w-full bg-white border-4 border-black px-6 py-4 rounded-xl flex items-center justify-center gap-3 text-black font-black uppercase tracking-wide shadow-[6px_6px_0px_rgba(0,0,0,1)] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] active:translate-y-[6px] active:translate-x-[6px] active:shadow-none transition-all duration-200"
           >
-            <SlidersHorizontal className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+            <SlidersHorizontal className="w-6 h-6 stroke-[3]" />
             <span>Filters & Preferences</span>
             {(filters.universities.length > 0 || filters.interests.length > 0) && (
-              <span className="bg-purple-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+              <span className="bg-[#4ECDC4] text-black text-sm font-black px-3 py-1 border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]">
                 {filters.universities.length + filters.interests.length}
               </span>
             )}
@@ -173,7 +174,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Recommendation Feed - Takes remaining space */}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0 overflow-hidden mt-2">
           {user?.userId ? (
             <RecommendationFeed
               filters={filters}
@@ -182,8 +183,9 @@ export default function DashboardPage() {
           ) : (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <div className="spinner-large mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading your recommendations...</p>
+                {/* Neobrutalist Spinner */}
+                <div className="w-16 h-16 border-4 border-black border-t-[#4ECDC4] rounded-full animate-spin mx-auto mb-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]"></div>
+                <p className="text-black font-black uppercase tracking-wider text-xl">Loading Matches...</p>
               </div>
             </div>
           )}

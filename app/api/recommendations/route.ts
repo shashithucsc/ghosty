@@ -201,8 +201,46 @@ export async function GET(request: NextRequest) {
       console.log('Swipes table not found, skipping interaction filter');
     }
 
+    // Get users already matched with (from matches table - check both directions)
+    let matchedUserIds: string[] = [];
+    try {
+      const { data: matches } = await supabaseAdmin
+        .from('matches')
+        .select('user1_id, user2_id')
+        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
+      
+      if (matches) {
+        matchedUserIds = matches.map((match: any) => 
+          match.user1_id === userId ? match.user2_id : match.user1_id
+        );
+      }
+    } catch (error) {
+      console.log('Matches table not found or error fetching matches:', error);
+    }
+
+    // Get users with existing chats (from chats table - check both directions)
+    let chatUserIds: string[] = [];
+    try {
+      const { data: chats } = await supabaseAdmin
+        .from('chats')
+        .select('sender_id, receiver_id')
+        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
+      
+      if (chats) {
+        // Get unique user IDs from chats (excluding current user)
+        const chatPartners = new Set<string>();
+        chats.forEach((chat: any) => {
+          if (chat.sender_id !== userId) chatPartners.add(chat.sender_id);
+          if (chat.receiver_id !== userId) chatPartners.add(chat.receiver_id);
+        });
+        chatUserIds = Array.from(chatPartners);
+      }
+    } catch (error) {
+      console.log('Chats table not found or error fetching chats:', error);
+    }
+
     // Combine all excluded user IDs
-    const excludedUserIds = [...new Set([...blockedIds, ...blockedByIds, ...interactedUserIds, userId])];
+    const excludedUserIds = [...new Set([...blockedIds, ...blockedByIds, ...interactedUserIds, ...matchedUserIds, ...chatUserIds, userId])];
 
     // Step 3: Fetch candidates from profiles_v2 (public anonymous personas)
     let query = supabaseAdmin
