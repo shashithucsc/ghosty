@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { 
   User, 
-  Calendar, 
   GraduationCap, 
   BookOpen, 
   Heart, 
@@ -13,7 +12,9 @@ import {
   Shield,
   ShieldAlert,
   ArrowLeft,
-  Cake
+  Cake,
+  Ruler,
+  Palette
 } from 'lucide-react';
 import { useState } from 'react';
 import { Toast } from '@/components/ui/Toast';
@@ -44,6 +45,10 @@ interface FullProfile extends BaseProfile {
   verificationType?: string;
   isPublic?: boolean;
   memberSince?: string;
+  height_cm?: number;
+  skinTone?: string;
+  degree_type?: string;
+  hometown?: string;
 }
 
 interface ProfileViewProps {
@@ -98,9 +103,9 @@ export default function ProfileView({
       const data = await response.json();
 
       if (response.ok) {
-        setToast({ message: '✅ Message request sent! 💌', type: 'success' });
+        setToast({ message: 'Message request sent', type: 'success' });
       } else if (response.status === 409) {
-        setToast({ message: 'You already sent a request to this user', type: 'info' });
+        setToast({ message: 'Request already sent', type: 'info' });
       } else {
         setToast({ message: data.error || 'Failed to send request', type: 'error' });
       }
@@ -118,129 +123,70 @@ export default function ProfileView({
   
   if (isLimited) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-20">
-       
-
-        {/* Profile Card */}
-        <div className="max-w-2xl mx-auto px-4 py-6">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            {/* Avatar Section */}
-            <div className="bg-purple-600 p-8 text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-700 opacity-90"></div>
-              <div className="relative z-10">
-                <div className="w-28 h-28 mx-auto bg-white rounded-full flex items-center justify-center text-5xl shadow-xl">
-                  {profile.avatar}
-                </div>
-                <h2 className="text-2xl font-bold text-white mt-4">
-                  {profile.username}
-                </h2>
-                
-                {/* Unverified Badge */}
-                <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full mt-3 shadow-md">
-                  <ShieldAlert className="w-4 h-4 text-orange-500" />
-                  <span className="text-sm font-medium text-orange-700">Unverified User</span>
-                </div>
-              </div>
+      <div className="min-h-screen bg-background pb-20 pt-16 md:pt-20">
+        <div className="max-w-xl mx-auto px-4">
+          <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+            
+            {/* Header / Avatar */}
+            <div className="bg-zinc-900/50 p-8 text-center border-b border-border relative">
+               <div className="w-28 h-28 mx-auto bg-surface rounded-2xl border border-border flex items-center justify-center text-6xl shadow-xl">
+                 {profile.avatar}
+               </div>
+               <h2 className="text-2xl font-bold text-primary mt-4">
+                 {profile.username}
+               </h2>
+               
+               {/* Unverified Badge */}
+               <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-full mt-3">
+                 <ShieldAlert className="w-4 h-4 text-red-500" />
+                 <span className="text-xs font-semibold text-red-400 uppercase tracking-wide">Unverified</span>
+               </div>
             </div>
 
             {/* Limited Info Section */}
             <div className="p-6 space-y-4">
-              <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+              <div className="bg-background border border-border rounded-xl p-4 space-y-3">
                 {/* Age */}
                 {profile.age && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                      <Cake className="w-5 h-5 text-purple-600" />
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-400">
+                      <Cake className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Age</p>
-                      <p className="text-base font-semibold text-gray-800">{profile.age} years old</p>
+                      <p className="text-[10px] uppercase font-bold text-zinc-500">Age</p>
+                      <p className="text-base font-semibold text-primary">{profile.age} years old</p>
                     </div>
                   </div>
                 )}
+                
+                <div className="h-px bg-border w-full" />
 
-                {/* University */}
-                {(profile as any).university && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <GraduationCap className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">University</p>
-                      <p className="text-base font-semibold text-gray-800">{(profile as any).university}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Degree */}
-                {(profile as any).degree_type && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-indigo-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Degree</p>
-                      <p className="text-base font-semibold text-gray-800">{(profile as any).degree_type}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Height */}
-                {(profile as any).height_cm && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 text-teal-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Height</p>
-                      <p className="text-base font-semibold text-gray-800">{(profile as any).height_cm} cm</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Hometown */}
-                {(profile as any).hometown && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                      <MapPin className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Hometown</p>
-                      <p className="text-base font-semibold text-gray-800">{(profile as any).hometown}</p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Report Count */}
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    profile.reportCount > 0 ? 'bg-red-100' : 'bg-green-100'
+                {/* Reports */}
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    profile.reportCount > 0 ? 'bg-red-900/20 text-red-500' : 'bg-green-900/20 text-green-500'
                   }`}>
-                    <Flag className={`w-5 h-5 ${
-                      profile.reportCount > 0 ? 'text-red-600' : 'text-green-600'
-                    }`} />
+                    <Flag className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Reports</p>
-                    <p className={`text-base font-semibold ${
-                      profile.reportCount > 0 ? 'text-red-600' : 'text-green-600'
+                    <p className="text-[10px] uppercase font-bold text-zinc-500">Status</p>
+                    <p className={`text-sm font-semibold ${
+                      profile.reportCount > 0 ? 'text-red-400' : 'text-green-400'
                     }`}>
-                      {profile.reportCount} {profile.reportCount === 1 ? 'report' : 'reports'}
+                      {profile.reportCount > 0 ? `${profile.reportCount} Reports` : 'Good Standing'}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Limited Profile Notice */}
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <div className="flex gap-3">
-                  <ShieldAlert className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-amber-800">Limited Profile</p>
-                    <p className="text-xs text-amber-700 mt-1">
-                      This user hasn't verified their account yet. Only basic information is available.
-                    </p>
-                  </div>
+              {/* Limited Notice */}
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 flex gap-3">
+                <ShieldAlert className="w-5 h-5 text-zinc-500 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-zinc-300">Limited Profile</p>
+                  <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
+                    This user is not verified. Full details are hidden to ensure community safety.
+                  </p>
                 </div>
               </div>
 
@@ -249,24 +195,16 @@ export default function ProfileView({
                 <button
                   onClick={handleSendMessageRequest}
                   disabled={sendingRequest}
-                  className="w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white py-4 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-accent hover:bg-accent-hover disabled:bg-zinc-800 disabled:text-zinc-500 text-white py-3.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
                 >
-                  <MessageCircle className="w-5 h-5" />
+                  <MessageCircle className="w-4 h-4" />
                   {sendingRequest ? 'Sending...' : 'Send Message Request'}
                 </button>
               )}
             </div>
           </div>
         </div>
-
-        {/* Toast Notification */}
-        {toast && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            onClose={() => setToast(null)}
-          />
-        )}
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       </div>
     );
   }
@@ -278,174 +216,160 @@ export default function ProfileView({
   const fullProfile = profile as FullProfile;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 pb-20">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
+    <div className="min-h-screen bg-background pb-20">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-surface rounded-full transition-colors text-zinc-400 hover:text-white"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-lg font-semibold text-gray-800">
-            {isOwnProfile ? 'My Profile' : 'Profile'}
+          <h1 className="text-base font-semibold text-primary">
+            {isOwnProfile ? 'My Profile' : fullProfile.username}
           </h1>
         </div>
       </div>
 
-      {/* Profile Content */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
-        {/* Main Profile Card */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          {/* Avatar & Header Section */}
-          <div className="bg-purple-600 p-8 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-purple-700 opacity-90"></div>
-            <div className="relative z-10">
-            <div className="w-28 h-28 mx-auto bg-white rounded-full flex items-center justify-center text-5xl shadow-xl">
+        {/* Main Card */}
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+          
+          {/* Header */}
+          <div className="bg-zinc-900/50 p-8 text-center border-b border-border relative">
+            <div className="w-32 h-32 mx-auto bg-surface border border-zinc-700 rounded-2xl flex items-center justify-center text-7xl shadow-2xl">
               {fullProfile.avatar}
             </div>
-            <h2 className="text-2xl font-bold text-white mt-4">
+            <h2 className="text-3xl font-bold text-primary mt-4 tracking-tight">
               {fullProfile.realName || fullProfile.username}
             </h2>
             {fullProfile.anonymousName && fullProfile.anonymousName !== fullProfile.username && (
-              <p className="text-white/90 text-sm mt-1">@{fullProfile.anonymousName}</p>
+              <p className="text-zinc-500 text-sm mt-1">@{fullProfile.anonymousName}</p>
             )}
-              
-              {/* Verified Badge */}
-              <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full mt-3 shadow-md">
-              <Shield className="w-4 h-4 text-green-600" />
-                <span className="text-sm font-medium text-green-700">Verified User</span>
-              </div>
+            
+            {/* Verified Badge */}
+            <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 px-4 py-1.5 rounded-full mt-4">
+              <Shield className="w-3 h-3 text-green-500" fill="currentColor" />
+              <span className="text-xs font-bold text-green-500 uppercase tracking-wider">Verified Student</span>
             </div>
           </div>
 
-          {/* Bio Section */}
+          {/* Bio */}
           {fullProfile.bio && (
-            <div className="p-6 border-b border-gray-100">
-              <p className="text-gray-700 text-sm leading-relaxed">{fullProfile.bio}</p>
+            <div className="p-6 border-b border-border">
+              <p className="text-zinc-400 text-sm leading-relaxed text-center italic">"{fullProfile.bio}"</p>
             </div>
           )}
 
-          {/* Details Section */}
-          <div className="p-6 space-y-3">
-            {/* Age & Gender */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-purple-600" />
+          {/* Details Grid */}
+          <div className="p-6 grid grid-cols-1 gap-4">
+            
+            {/* Basic Info Row */}
+            <div className="flex items-center gap-4 p-3 rounded-xl bg-background border border-border">
+              <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-400">
+                <User className="w-5 h-5" />
               </div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-500">Personal Info</p>
-                <p className="text-sm font-medium text-gray-800">
-                  {fullProfile.age ? `${fullProfile.age} years old` : 'Age not specified'}
-                  {fullProfile.gender && ` • ${fullProfile.gender}`}
+              <div>
+                <p className="text-[10px] uppercase font-bold text-zinc-500">Identity</p>
+                <p className="text-sm font-semibold text-zinc-200">
+                  {fullProfile.age ? `${fullProfile.age} Years` : 'N/A'} 
+                  {fullProfile.gender && <span className="text-zinc-600 mx-2">•</span>}
+                  {fullProfile.gender}
                 </p>
               </div>
             </div>
 
-            {/* University */}
+            {/* University Row */}
             {fullProfile.university && (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <GraduationCap className="w-5 h-5 text-blue-600" />
+              <div className="flex items-center gap-4 p-3 rounded-xl bg-background border border-border">
+                <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-400">
+                  <GraduationCap className="w-5 h-5" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500">University</p>
-                  <p className="text-sm font-medium text-gray-800">{fullProfile.university}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Degree */}
-            {(fullProfile as any).degree_type && (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-indigo-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500">Degree</p>
-                  <p className="text-sm font-medium text-gray-800">{(fullProfile as any).degree_type}</p>
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase font-bold text-zinc-500">Education</p>
+                  <p className="text-sm font-semibold text-zinc-200 truncate">{fullProfile.university}</p>
+                  <p className="text-xs text-zinc-500 truncate">{fullProfile.faculty}</p>
                 </div>
               </div>
             )}
 
-            {/* Faculty */}
-            {fullProfile.faculty && (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-indigo-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500">Faculty</p>
-                  <p className="text-sm font-medium text-gray-800">{fullProfile.faculty}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Height */}
-            {(fullProfile as any).height_cm && (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-teal-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500">Height</p>
-                  <p className="text-sm font-medium text-gray-800">{(fullProfile as any).height_cm} cm</p>
-                </div>
-              </div>
-            )}
+            {/* Physical Traits Grid */}
+            <div className="grid grid-cols-2 gap-4">
+               {/* Height */}
+               {fullProfile.height_cm && (
+                 <div className="flex items-center gap-3 p-3 rounded-xl bg-background border border-border">
+                   <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-400">
+                     <Ruler className="w-4 h-4" />
+                   </div>
+                   <div>
+                     <p className="text-[10px] uppercase font-bold text-zinc-500">Height</p>
+                     <p className="text-sm font-semibold text-zinc-200">{fullProfile.height_cm} cm</p>
+                   </div>
+                 </div>
+               )}
+               
+               {/* Skin Tone */}
+               {fullProfile.skinTone && (
+                 <div className="flex items-center gap-3 p-3 rounded-xl bg-background border border-border">
+                   <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-400">
+                     <Palette className="w-4 h-4" />
+                   </div>
+                   <div>
+                     <p className="text-[10px] uppercase font-bold text-zinc-500">Complexion</p>
+                     <p className="text-sm font-semibold text-zinc-200">{fullProfile.skinTone}</p>
+                   </div>
+                 </div>
+               )}
+            </div>
 
             {/* Hometown */}
-            {(fullProfile as any).hometown && (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-orange-600" />
+            {fullProfile.hometown && (
+              <div className="flex items-center gap-4 p-3 rounded-xl bg-background border border-border">
+                <div className="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-400">
+                  <MapPin className="w-5 h-5" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500">Hometown</p>
-                  <p className="text-sm font-medium text-gray-800">{(fullProfile as any).hometown}</p>
+                <div>
+                  <p className="text-[10px] uppercase font-bold text-zinc-500">Hometown</p>
+                  <p className="text-sm font-semibold text-zinc-200">{fullProfile.hometown}</p>
                 </div>
               </div>
             )}
 
-            {/* Report Count */}
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                fullProfile.reportCount > 0 ? 'bg-red-100' : 'bg-green-100'
+            {/* Status */}
+            <div className="flex items-center gap-4 p-3 rounded-xl bg-background border border-border">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                fullProfile.reportCount > 0 ? 'bg-red-900/20 text-red-500' : 'bg-green-900/20 text-green-500'
               }`}>
-                <Flag className={`w-5 h-5 ${
-                  fullProfile.reportCount > 0 ? 'text-red-600' : 'text-green-600'
-                }`} />
+                <Flag className="w-5 h-5" />
               </div>
-              <div className="flex-1">
-                <p className="text-xs text-gray-500">Community Reports</p>
+              <div>
+                <p className="text-[10px] uppercase font-bold text-zinc-500">Community Status</p>
                 <p className={`text-sm font-semibold ${
-                  fullProfile.reportCount > 0 ? 'text-red-600' : 'text-green-600'
+                  fullProfile.reportCount > 0 ? 'text-red-400' : 'text-green-400'
                 }`}>
-                  {fullProfile.reportCount} {fullProfile.reportCount === 1 ? 'report' : 'reports'}
+                  {fullProfile.reportCount > 0 ? 'Flags Reported' : 'Good Standing'}
                 </p>
               </div>
             </div>
+
           </div>
         </div>
 
-        {/* Preferences Card */}
+        {/* Interests Card */}
         {(fullProfile.preferences || fullProfile.partnerPreferences) && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-              <Heart className="w-5 h-5 text-pink-500" />
-              Interests & Preferences
+          <div className="bg-surface border border-border rounded-2xl p-6 space-y-6">
+            <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+              <Heart className="w-4 h-4 text-accent" />
+              Preferences
             </h3>
 
             {fullProfile.preferences && fullProfile.preferences.length > 0 && (
               <div>
-                <p className="text-xs text-gray-500 mb-2">My Interests</p>
+                <p className="text-xs text-zinc-500 mb-3 font-medium">My Interests</p>
                 <div className="flex flex-wrap gap-2">
                   {fullProfile.preferences.map((pref: string, idx: number) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full"
-                    >
+                    <span key={idx} className="px-3 py-1.5 bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs font-medium rounded-lg">
                       {pref}
                     </span>
                   ))}
@@ -455,13 +379,10 @@ export default function ProfileView({
 
             {fullProfile.partnerPreferences && fullProfile.partnerPreferences.length > 0 && (
               <div>
-                <p className="text-xs text-gray-500 mb-2">Looking For</p>
+                <p className="text-xs text-zinc-500 mb-3 font-medium">Looking For</p>
                 <div className="flex flex-wrap gap-2">
                   {fullProfile.partnerPreferences.map((pref: string, idx: number) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 bg-pink-100 text-pink-700 text-xs font-medium rounded-full"
-                    >
+                    <span key={idx} className="px-3 py-1.5 bg-accent/10 border border-accent/20 text-accent text-xs font-medium rounded-lg">
                       {pref}
                     </span>
                   ))}
@@ -471,27 +392,20 @@ export default function ProfileView({
           </div>
         )}
 
-        {/* Message Button (for other users) */}
+        {/* Action Button */}
         {!isOwnProfile && (
           <button
             onClick={handleSendMessageRequest}
             disabled={sendingRequest}
-                  className="w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white py-4 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-accent hover:bg-accent-hover text-white py-4 rounded-xl font-bold text-sm shadow-lg shadow-accent/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             <MessageCircle className="w-5 h-5" />
-            {sendingRequest ? 'Sending...' : 'Send Message Request'}
+            {sendingRequest ? 'Sending Request...' : 'Send Message Request'}
           </button>
         )}
       </div>
 
-      {/* Toast Notification */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

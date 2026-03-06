@@ -120,8 +120,14 @@ export function VerificationRequests() {
     if (!selectedRequest) return;
 
     setActionLoading(true);
+    setError(null); // Clear previous errors
+    
     try {
       const token = localStorage.getItem('token');
+      
+      console.log(`[ADMIN] Starting ${modalAction} for user:`, selectedRequest.userId);
+      console.log('[ADMIN] Verification ID:', selectedRequest.id);
+      
       const response = await fetch('/api/admin/verifications', {
         method: 'POST',
         headers: {
@@ -136,10 +142,14 @@ export function VerificationRequests() {
         }),
       });
 
+      const data = await response.json();
+      console.log(`[ADMIN] API Response (${response.status}):`, data);
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || `Failed to ${modalAction} verification`);
+        throw new Error(data.error || data.details || `Failed to ${modalAction} verification`);
       }
+
+      console.log(`[ADMIN] ✅ ${modalAction} successful for user ${selectedRequest.userId}`);
 
       // Update local state - remove from pending or update status
       setRequests(prev => 
@@ -153,9 +163,19 @@ export function VerificationRequests() {
       setShowConfirmModal(false);
       setSelectedRequest(null);
       setRejectReason('');
+      
+      // Show success message
+      setError(null);
+      
+      // Refresh the list after 1 second
+      setTimeout(() => fetchVerifications(true), 1000);
     } catch (err) {
-      console.error(`Error ${modalAction}ing verification:`, err);
-      setError(err instanceof Error ? err.message : `Failed to ${modalAction} verification`);
+      console.error(`[ADMIN] ❌ Error ${modalAction}ing verification:`, err);
+      const errorMessage = err instanceof Error ? err.message : `Failed to ${modalAction} verification`;
+      setError(errorMessage);
+      
+      // Show error in alert for visibility
+      alert(`Error: ${errorMessage}\n\nCheck browser console (F12) for details.`);
     } finally {
       setActionLoading(false);
     }

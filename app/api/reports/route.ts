@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
 
     // Verify reporter exists
     const { data: reporter, error: reporterError } = await supabase
-      .from('users')
-      .select('id, username, is_restricted')
+      .from('users_v2')
+      .select('id, is_restricted')
       .eq('id', reporterId)
       .single();
 
@@ -77,13 +77,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify reported user exists
-    const { data: reportedUser, error: reportedError } = await supabase
-      .from('users')
-      .select('id, username')
-      .eq('id', reportedUserId)
+    const { data: reportedProfile, error: reportedError } = await supabase
+      .from('profiles_v2')
+      .select('user_id, anonymous_name')
+      .eq('user_id', reportedUserId)
       .single();
 
-    if (reportedError || !reportedUser) {
+    if (reportedError || !reportedProfile) {
       return NextResponse.json(
         { error: 'Reported user not found' },
         { status: 404 }
@@ -138,11 +138,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get updated report count for the reported user
-    const { data: updatedUser } = await supabase
-      .from('users')
-      .select('report_count, total_reports')
-      .eq('id', reportedUserId)
+    // Get updated report count for the reported user from profiles_v2
+    const { data: updatedProfile } = await supabase
+      .from('profiles_v2')
+      .select('total_reports')
+      .eq('user_id', reportedUserId)
       .single();
 
     return NextResponse.json(
@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
           status: newReport.status,
           createdAt: newReport.created_at,
         },
-        reportedUserReportCount: updatedUser?.report_count || updatedUser?.total_reports || 0,
+        reportedUserReportCount: updatedProfile?.total_reports || 0,
       },
       { status: 201 }
     );
@@ -208,17 +208,7 @@ export async function GET(request: NextRequest) {
         admin_notes,
         reviewed_at,
         created_at,
-        updated_at,
-        reporter:users!reports_reporter_id_fkey(
-          id,
-          username,
-          profiles(full_name, avatar_url)
-        ),
-        reported_user:users!reports_reported_user_id_fkey(
-          id,
-          username,
-          profiles(full_name, avatar_url)
-        )
+        updated_at
       `
     );
 
@@ -254,6 +244,39 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Enrich reports with user data from users_v2 and profiles_v2
+    const userIds = new Set<string>();
+    reports?.forEach(r => {
+      if (r.reporter_id) userIds.add(r.reporter_id);
+      if (r.reported_user_id) userIds.add(r.reported_user_id);
+    });
+
+    const { data: profiles } = await supabase
+      .from('profiles_v2')
+      .select('user_id, anonymous_name, anonymous_avatar_url')
+      .in('user_id', Array.from(userIds));
+
+    const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+    const enrichedReports = reports?.map(report => {
+      const reporterProfile = profileMap.get(report.reporter_id);
+      const reportedProfile = profileMap.get(report.reported_user_id);
+      
+      return {
+        ...report,
+        reporter: reporterProfile ? {
+          id: report.reporter_id,
+          username: reporterProfile.anonymous_name,
+          avatar: reporterProfile.anonymous_avatar_url,
+        } : null,
+        reported_user: reportedProfile ? {
+          id: report.reported_user_id,
+          username: reportedProfile.anonymous_name,
+          avatar: reportedProfile.anonymous_avatar_url,
+        } : null,
+      };
+    });
+
     // Get total count
     let countQuery = supabase
       .from('reports')
@@ -284,7 +307,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      reports,
+      reports: enrichedReports,
       summary: reportSummary,
       pagination: {
         page,

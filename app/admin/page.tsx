@@ -6,16 +6,18 @@ import { DashboardStats } from '@/components/admin/DashboardStats';
 import { UsersManagement } from '@/components/admin/UsersManagement';
 import { VerificationRequests } from '@/components/admin/VerificationRequests';
 import { ReportsManagement } from '@/components/admin/ReportsManagement';
+import { NoticeBoardManagement } from '@/components/admin/NoticeBoardManagement';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { 
   LayoutDashboard, 
   Users, 
   ShieldCheck, 
   AlertTriangle,
-  Shield
+  Shield,
+  ClipboardList
 } from 'lucide-react';
 
-type AdminTab = 'dashboard' | 'users' | 'verifications' | 'reports';
+type AdminTab = 'dashboard' | 'users' | 'verifications' | 'reports' | 'notice-board';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -73,6 +75,7 @@ export default function AdminPage() {
     { id: 'users' as AdminTab, label: 'Users', icon: Users },
     { id: 'verifications' as AdminTab, label: 'Verifications', icon: ShieldCheck },
     { id: 'reports' as AdminTab, label: 'Reports', icon: AlertTriangle },
+    { id: 'notice-board' as AdminTab, label: 'Notice Board', icon: ClipboardList },
   ];
 
   return (
@@ -111,6 +114,7 @@ export default function AdminPage() {
         {activeTab === 'users' && <UsersManagement />}
         {activeTab === 'verifications' && <VerificationRequests />}
         {activeTab === 'reports' && <ReportsManagement />}
+        {activeTab === 'notice-board' && <NoticeBoardManagement />}
       </main>
     </div>
   );

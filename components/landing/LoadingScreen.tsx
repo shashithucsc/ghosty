@@ -19,18 +19,17 @@ export function LoadingScreen() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Generate ambient floating particles
+    // Generate ambient floating square particles
     const particleArray = Array.from({ length: 20 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 8 + 4,
+      size: Math.random() * 12 + 8,
       duration: Math.random() * 3 + 2,
       delay: Math.random() * 2,
     }));
     setParticles(particleArray);
 
-    // Simulate loading progress
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -45,47 +44,29 @@ export function LoadingScreen() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#030014] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#FDF8F5] overflow-hidden font-sans text-black">
       
-      {/* --- Ambient Background Effects --- */}
-      <div className="absolute inset-0 w-full h-full">
-        {/* Grain/Noise Texture Overlay */}
+      {/* --- Ambient Neobrutalist Background (Solid Patterns) --- */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none">
+        {/* Solid Dot Grid */}
         <div 
-          className="absolute inset-0 opacity-[0.03] pointer-events-none z-[1]" 
+          className="absolute inset-0 opacity-10" 
           style={{ 
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` 
+            backgroundImage: 'radial-gradient(#000000 2px, transparent 2px)', 
+            backgroundSize: '30px 30px' 
           }} 
         />
-
-        {/* Deep Plasma Gradients */}
+        
+        {/* Large Decorative Solid Shapes */}
         <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3]
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-10%] left-[-20%] w-[70vw] h-[70vw] bg-purple-900/30 blur-[120px] rounded-full mix-blend-screen" 
+          animate={{ rotate: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-20 -left-20 w-96 h-96 border-8 border-black opacity-5 rounded-none"
         />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.3, 1],
-            opacity: [0.2, 0.4, 0.2]
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute bottom-[-10%] right-[-20%] w-[70vw] h-[70vw] bg-indigo-900/20 blur-[120px] rounded-full mix-blend-screen" 
-        />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.1, 1],
-            x: [-20, 20, -20],
-            y: [-20, 20, -20]
-          }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[20%] left-[50%] -translate-x-1/2 w-[500px] h-[500px] bg-fuchsia-600/10 blur-[100px] rounded-full pointer-events-none" 
-        />
+        <div className="absolute bottom-10 right-10 w-32 h-32 bg-[#FFD166] border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] opacity-20" />
       </div>
 
-      {/* --- Floating Particles --- */}
+      {/* --- Floating Particles (Solid Squares) --- */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <AnimatePresence>
           {particles.map((particle) => (
@@ -93,10 +74,10 @@ export function LoadingScreen() {
               key={particle.id}
               initial={{ opacity: 0, scale: 0 }}
               animate={{ 
-                opacity: [0, 0.6, 0],
+                opacity: [0, 1, 0],
                 scale: [0, 1, 0],
-                x: [0, (Math.random() - 0.5) * 200],
-                y: [0, (Math.random() - 0.5) * 200],
+                x: [0, (Math.random() - 0.5) * 150],
+                y: [0, (Math.random() - 0.5) * 150],
               }}
               transition={{ 
                 duration: particle.duration,
@@ -104,7 +85,7 @@ export function LoadingScreen() {
                 delay: particle.delay,
                 ease: "easeInOut"
               }}
-              className="absolute bg-purple-400/40 rounded-full blur-sm"
+              className="absolute bg-black border-2 border-black"
               style={{
                 left: `${particle.x}%`,
                 top: `${particle.y}%`,
@@ -119,61 +100,40 @@ export function LoadingScreen() {
       {/* --- Main Content --- */}
       <div className="relative z-10 flex flex-col items-center gap-8 px-6">
         
-        {/* Floating Glass Decorations */}
+        {/* Floating Icons with Hard Shadows */}
         <motion.div 
-          animate={{ 
-            y: [0, -15, 0],
-            rotate: [0, 5, 0]
-          }} 
+          animate={{ y: [0, -15, 0], rotate: [-12, -8, -12] }} 
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           className="absolute top-[-120px] left-[-100px] hidden sm:block"
         >
-          <div className="w-20 h-20 rounded-3xl bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center shadow-2xl transform -rotate-12">
-            <Ghost className="w-9 h-9 text-purple-300 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
+          <div className="w-20 h-20 bg-white border-4 border-black flex items-center justify-center shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+            <Ghost className="w-10 h-10 text-black stroke-[3]" />
           </div>
         </motion.div>
 
         <motion.div 
-          animate={{ 
-            y: [0, 20, 0],
-            rotate: [0, -5, 0]
-          }} 
+          animate={{ y: [0, 20, 0], rotate: [0, 5, 0] }} 
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
           className="absolute top-[-80px] right-[-120px] hidden sm:block"
         >
-          <div className="w-16 h-16 rounded-full bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center shadow-2xl">
-            <Heart className="w-7 h-7 text-pink-400 fill-pink-400/20 drop-shadow-[0_0_10px_rgba(236,72,153,0.5)]" />
+          <div className="w-16 h-16 rounded-full bg-[#FF6B6B] border-4 border-black flex items-center justify-center shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+            <Heart className="w-8 h-8 text-black stroke-[3] fill-black" />
           </div>
         </motion.div>
 
-        {/* Animated Logo with Glass Container */}
+        {/* Logo Container (No Blurs, Solid Shadow) */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.6, ease: "backOut" }}
           className="relative"
         >
-          {/* Glass Container */}
-          <div className="relative p-8 rounded-[2rem] bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl">
-            {/* Pulsing Glow Ring */}
-            <motion.div 
-              animate={{ 
-                scale: [1, 1.2, 1],
-                opacity: [0.5, 0.8, 0.5]
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute inset-0 rounded-[2rem] bg-purple-500/20 blur-2xl"
-            />
-            
-            {/* Logo */}
+          <div className="relative p-10 bg-white border-8 border-black shadow-[16px_16px_0px_rgba(0,0,0,1)]">
             <div className="relative w-32 h-32 sm:w-40 sm:h-40">
               <motion.div 
-                animate={{ 
-                  y: [0, -10, 0],
-                  rotate: [0, 2, -2, 0]
-                }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="relative w-full h-full filter drop-shadow-2xl"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="relative w-full h-full"
               >
                 <Image
                   src="/logo.png"
@@ -183,149 +143,72 @@ export function LoadingScreen() {
                   priority
                 />
               </motion.div>
-              
-              {/* Multi-layer Glow */}
-              <div className="absolute inset-0 blur-xl opacity-40">
-                <Image
-                  src="/logo.png"
-                  alt="Logo Glow"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <div className="absolute inset-0 blur-3xl opacity-20">
-                <Image
-                  src="/logo.png"
-                  alt="Logo Glow"
-                  fill
-                  className="object-contain"
-                />
-              </div>
             </div>
 
-            {/* Corner Sparkles */}
+            {/* Corner Indicators */}
             <motion.div
-              animate={{ 
-                scale: [0, 1, 0],
-                rotate: [0, 180, 360]
-              }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
-              className="absolute top-2 right-2"
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+              className="absolute -top-6 -right-6 bg-[#FFD166] border-4 border-black p-2 shadow-[4px_4px_0px_rgba(0,0,0,1)]"
             >
-              <Sparkles className="w-5 h-5 text-yellow-400" />
+              <Sparkles className="w-6 h-6 text-black stroke-[3]" />
             </motion.div>
+            
             <motion.div
-              animate={{ 
-                scale: [0, 1, 0],
-                rotate: [0, -180, -360]
-              }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 1, delay: 1 }}
-              className="absolute bottom-2 left-2"
+              animate={{ rotate: [0, 15, -15, 0] }}
+              transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+              className="absolute -bottom-6 -left-6 bg-[#A3E635] border-4 border-black p-2 shadow-[4px_4px_0px_rgba(0,0,0,1)]"
             >
-              <Zap className="w-5 h-5 text-purple-400" />
+              <Zap className="w-6 h-6 text-black stroke-[3]" />
             </motion.div>
           </div>
         </motion.div>
 
-        {/* App Name with Enhanced Typography */}
+        {/* Loading Bar Section */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex flex-col items-center gap-3"
-        >
-         
-          
-          <motion.p 
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="text-gray-400 text-lg tracking-wide"
-          >
-           
-          </motion.p>
-        </motion.div>
-
-        {/* Interactive Loading Bar */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="w-64 sm:w-80"
+          className="w-72 sm:w-96 text-center"
         >
-          {/* Glass Container for Progress Bar */}
-          <div className="relative p-1 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg">
-            <div className="relative h-2 bg-black/20 rounded-full overflow-hidden">
-              {/* Progress Fill */}
+          {/* Progress Container */}
+          <div className="relative p-2 bg-white border-4 border-black shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+            <div className="relative h-6 bg-gray-200 border-2 border-black overflow-hidden">
               <motion.div 
-                className="absolute inset-y-0 left-0 bg-purple-500 rounded-full"
+                className="absolute inset-y-0 left-0 bg-[#4ECDC4] border-r-4 border-black"
                 style={{ width: `${Math.min(progress, 100)}%` }}
                 transition={{ duration: 0.3 }}
               />
-              {/* Shimmer Effect */}
-              <motion.div
-                animate={{ x: ['-100%', '200%'] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-              />
             </div>
           </div>
           
-          {/* Progress Text */}
-          <motion.p 
-            className="text-center mt-3 text-sm text-gray-400 font-medium"
-            key={Math.floor(progress)}
-          >
-            {Math.floor(Math.min(progress, 100))}%
-          </motion.p>
+          <h2 className="mt-4 font-black uppercase text-2xl tracking-widest italic">
+            LOADING MATCHES... {Math.floor(Math.min(progress, 100))}%
+          </h2>
         </motion.div>
 
-        {/* Animated Loading Dots */}
-        <div className="flex gap-2">
+        {/* Bouncing Blocks (Replacing Dots) */}
+        <div className="flex gap-4">
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
               animate={{ 
-                y: [0, -15, 0],
-                scale: [1, 1.2, 1]
+                y: [0, -20, 0],
+                rotate: [0, 90, 0]
               }}
               transition={{ 
                 duration: 0.6,
                 repeat: Infinity,
-                delay: i * 0.15,
-                ease: "easeInOut"
+                delay: i * 0.1,
+                ease: "anticipate"
               }}
-              className="w-3 h-3 rounded-full bg-purple-400 shadow-lg shadow-purple-500/50"
+              className={`w-5 h-5 border-4 border-black shadow-[3px_3px_0px_rgba(0,0,0,1)] ${
+                i === 0 ? 'bg-[#FF6B6B]' : i === 1 ? 'bg-[#FFD166]' : 'bg-[#A3E635]'
+              }`}
             />
           ))}
         </div>
       </div>
-
-      {/* Bottom Floating Elements */}
-      <motion.div 
-        animate={{ 
-          y: [0, 15, 0],
-          rotate: [0, -3, 0]
-        }} 
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-[10%] left-[10%] hidden lg:block"
-      >
-        <div className="w-16 h-16 rounded-2xl bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center shadow-2xl transform rotate-12">
-          <Heart className="w-7 h-7 text-pink-300 fill-pink-300/30" />
-        </div>
-      </motion.div>
-
-      <motion.div 
-        animate={{ 
-          y: [0, -12, 0],
-          rotate: [0, 4, 0]
-        }} 
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute bottom-[15%] right-[8%] hidden lg:block"
-      >
-        <div className="w-14 h-14 rounded-full bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center shadow-2xl">
-          <Sparkles className="w-6 h-6 text-purple-300" />
-        </div>
-      </motion.div>
     </div>
   );
 }

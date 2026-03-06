@@ -48,7 +48,7 @@ const UpdateReportSchema = z.object({
 
 async function verifyAdmin(adminId: string): Promise<boolean> {
   const { data } = await supabase
-    .from('users')
+    .from('users_v2')
     .select('is_admin')
     .eq('id', adminId)
     .single();
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });
     }
 
-    // Enrich reports with user data
+    // Enrich reports with user data from both users_v2 and profiles_v2
     if (reports && reports.length > 0) {
       const userIds = new Set<string>();
       reports.forEach(r => {
@@ -141,33 +141,48 @@ export async function GET(request: NextRequest) {
         if (r.reported_user_id) userIds.add(r.reported_user_id);
       });
 
+      // Fetch from users_v2 for real identity and admin info
       const { data: users } = await supabase
-        .from('users')
-        .select('id, username, email, report_count, is_restricted, verification_status')
+        .from('users_v2')
+        .select('id, username, email, full_name, is_restricted, verification_status')
         .in('id', Array.from(userIds));
 
+      // Fetch from profiles_v2 for anonymous persona info
+      const { data: profiles } = await supabase
+        .from('profiles_v2')
+        .select('user_id, anonymous_name, anonymous_avatar_url, total_reports')
+        .in('user_id', Array.from(userIds));
+
       const usersMap = new Map(users?.map(u => [u.id, u]) || []);
+      const profilesMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
 
       // Add user data to reports
       reports.forEach(report => {
         if (report.reporter_id) {
           const reporter = usersMap.get(report.reporter_id);
+          const reporterProfile = profilesMap.get(report.reporter_id);
           if (reporter) {
             (report as any).reporter = {
               id: reporter.id,
               username: reporter.username,
               email: reporter.email,
+              anonymous_name: reporterProfile?.anonymous_name || null,
             };
           }
         }
         if (report.reported_user_id) {
           const reportedUser = usersMap.get(report.reported_user_id);
+          const reportedProfile = profilesMap.get(report.reported_user_id);
           if (reportedUser) {
             (report as any).reported_user = {
               id: reportedUser.id,
               username: reportedUser.username,
               email: reportedUser.email,
-              report_count: reportedUser.report_count,
+              full_name: reportedUser.full_name,
+              // Anonymous persona that was reported
+              anonymous_name: reportedProfile?.anonymous_name || 'Unknown',
+              anonymous_avatar_url: reportedProfile?.anonymous_avatar_url || null,
+              total_reports: reportedProfile?.total_reports || 0,
               is_restricted: reportedUser.is_restricted,
               verification_status: reportedUser.verification_status,
             };
@@ -274,9 +289,9 @@ export async function PATCH(request: NextRequest) {
 
     // If report is resolved and restrictUser is true, restrict the reported user
     if (status === 'resolved' && restrictUser && report.reported_user_id) {
-      // Direct update to restrict user
+      // Update users_v2 to restrict user
       const { error: restrictError } = await supabase
-        .from('users')
+        .from('users_v2')
         .update({
           is_restricted: true,
           updated_at: new Date().toISOString(),
@@ -288,20 +303,20 @@ export async function PATCH(request: NextRequest) {
         // Non-critical error, continue
       }
 
-      // Increment report count
-      const { data: userData } = await supabase
-        .from('users')
-        .select('report_count')
-        .eq('id', report.reported_user_id)
+      // Increment total_reports in profiles_v2
+      const { data: profileData } = await supabase
+        .from('profiles_v2')
+        .select('total_reports')
+        .eq('user_id', report.reported_user_id)
         .single();
 
-      if (userData) {
+      if (profileData) {
         await supabase
-          .from('users')
+          .from('profiles_v2')
           .update({
-            report_count: (userData.report_count || 0) + 1,
+            total_reports: (profileData.total_reports || 0) + 1,
           })
-          .eq('id', report.reported_user_id);
+          .eq('user_id', report.reported_user_id);
       }
     }
 

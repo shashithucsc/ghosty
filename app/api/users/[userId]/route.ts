@@ -15,32 +15,49 @@ export async function GET(
   try {
     const { userId } = await params;
 
-    // Fetch user data
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('id, username, gender, university_name, faculty, bio, birthday, verification_status')
+    // Fetch user data from users_v2 and profiles_v2
+    const { data: userAuth, error: authError } = await supabase
+      .from('users_v2')
+      .select('id, gender, verification_status')
       .eq('id', userId)
       .single();
 
-    if (error || !user) {
+    if (authError || !userAuth) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       );
     }
 
-    // Return user data
+    // Fetch anonymous profile data
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles_v2')
+      .select('anonymous_name, anonymous_avatar_url, bio, age, height_cm, skin_tone, degree_type, hometown')
+      .eq('user_id', userId)
+      .single();
+
+    if (profileError || !profile) {
+      return NextResponse.json(
+        { error: 'Profile not found' },
+        { status: 404 }
+      );
+    }
+
+    // Return user data with anonymous persona
     return NextResponse.json({
       success: true,
       user: {
-        id: user.id,
-        username: user.username,
-        gender: user.gender,
-        university: user.university_name,
-        faculty: user.faculty,
-        bio: user.bio,
-        birthday: user.birthday,
-        verificationStatus: user.verification_status,
+        id: userAuth.id,
+        username: profile.anonymous_name, // Anonymous name for privacy
+        avatar: profile.anonymous_avatar_url,
+        gender: userAuth.gender,
+        bio: profile.bio,
+        age: profile.age,
+        height: profile.height_cm,
+        skinTone: profile.skin_tone,
+        degree: profile.degree_type,
+        hometown: profile.hometown,
+        verificationStatus: userAuth.verification_status,
       }
     });
   } catch (error) {

@@ -33,8 +33,8 @@ const VerifiedRegistrationSchema = z.object({
     .max(20, 'Username must be less than 20 characters')
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  partnerPreferences: z.string().min(1, 'Partner preferences are required'),
-  bio: z.string().min(20, 'Bio must be at least 20 characters'),
+  partnerPreferences: z.string().optional(),
+  bio: z.string().optional(),
   proofType: z.enum(['student_id', 'facebook', 'academic'], { message: 'Please select a valid proof type' }),
 });
 
@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
       faculty: formData.get('faculty') as string,
       username: formData.get('username') as string,
       password: formData.get('password') as string,
-      partnerPreferences: formData.get('partnerPreferences') as string,
-      bio: formData.get('bio') as string,
+      partnerPreferences: (formData.get('partnerPreferences') as string) || '',
+      bio: (formData.get('bio') as string) || '',
       proofType: formData.get('proofType') as string,
     };
 
@@ -136,9 +136,18 @@ export async function POST(request: NextRequest) {
       data: { publicUrl },
     } = supabaseAdmin.storage.from('proof_uploads').getPublicUrl(filePath);
 
-    // Create user record
+    // Calculate age from birthday
+    const birthDate = new Date(validatedData.birthday);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    // Create user record in users_v2 (private identity & auth)
     const { data: newUser, error: insertError } = await supabaseAdmin
-      .from('users')
+      .from('users_v2')
       .insert({
         username: sanitizedUsername,
         password_hash: passwordHash,
@@ -153,10 +162,6 @@ export async function POST(request: NextRequest) {
         gender: validatedData.gender,
         university_name: validatedData.university,
         faculty: validatedData.faculty,
-        bio: validatedData.bio,
-        preferences: validatedData.partnerPreferences,
-        partner_preferences: validatedData.partnerPreferences,
-        report_count: 0,
         is_restricted: false,
         is_admin: false,
         created_at: new Date().toISOString(),
@@ -188,7 +193,7 @@ export async function POST(request: NextRequest) {
       console.error('Error creating verification record:', verificationError);
 
       // Clean up user and file if verification record creation failed
-      await supabaseAdmin.from('users').delete().eq('id', newUser.id);
+      await supabaseAdmin.from('users_v2').delete().eq('id', newUser.id);
       await supabaseAdmin.storage.from('proof_uploads').remove([filePath]);
 
       return NextResponse.json(
@@ -211,20 +216,20 @@ export async function POST(request: NextRequest) {
       // Non-critical error, continue
     }
 
-    // Create profile record (if profiles table exists)
+    // Create profile record in profiles_v2 (public anonymous persona)
+    // Generate avatar based on gender
+    let avatar = '👤';
+    if (validatedData.gender.toLowerCase() === 'male') avatar = '🧑';
+    else if (validatedData.gender.toLowerCase() === 'female') avatar = '👩';
+
     const { error: profileError } = await supabaseAdmin
-      .from('profiles')
+      .from('profiles_v2')
       .insert({
         user_id: newUser.id,
         anonymous_name: sanitizedUsername,
-        real_name: validatedData.fullName,
-        dob: validatedData.birthday,
-        gender: validatedData.gender,
-        university: validatedData.university,
-        faculty: validatedData.faculty,
-        bio: validatedData.bio,
-        verified: false, // Will be set to true after admin approval
-        verification_type: validatedData.proofType,
+        anonymous_avatar_url: avatar,
+        bio: validatedData.bio || `Hi, I'm ${sanitizedUsername}!`,
+        age: age,
         public: true,
       });
 

@@ -33,9 +33,9 @@ export async function POST(request: NextRequest) {
     const validatedData = RecordSwipeSchema.parse(body);
     const { userId, targetUserId, action } = validatedData;
 
-    // Verify users exist
+    // Verify users exist in users_v2
     const { data: users, error: usersError } = await supabase
-      .from('users')
+      .from('users_v2')
       .select('id')
       .in('id', [userId, targetUserId]);
 
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const { data: existingSwipe } = await supabase
       .from('swipes')
       .select('id, action')
-      .eq('user_id', userId)
+      .eq('swiper_user_id', userId)
       .eq('target_user_id', targetUserId)
       .maybeSingle();
 
@@ -93,9 +93,10 @@ export async function POST(request: NextRequest) {
     const { data: newSwipe, error: createError } = await supabase
       .from('swipes')
       .insert({
-        user_id: userId,
+        swiper_user_id: userId,
         target_user_id: targetUserId,
         action,
+        swiped_at: new Date().toISOString(),
       })
       .select()
       .single();
@@ -144,9 +145,9 @@ export async function GET(request: NextRequest) {
     const validatedQuery = GetSwipesQuerySchema.parse(queryData);
     const { userId, action, limit } = validatedQuery;
 
-    // Verify user exists
+    // Verify user exists in users_v2
     const { data: user, error: userError } = await supabase
-      .from('users')
+      .from('users_v2')
       .select('id')
       .eq('id', userId)
       .single();
@@ -162,7 +163,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('swipes')
       .select('*')
-      .eq('user_id', userId)
+      .eq('swiper_user_id', userId)
       .order('created_at', { ascending: false })
       .limit(limit);
 

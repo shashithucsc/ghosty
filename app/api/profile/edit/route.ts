@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/client';
 
-// GET - Fetch full user profile data for editing
+// GET - Fetch full user profile data for editing (V2)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -14,12 +14,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch user data
+    // Fetch user data from users_v2 (private identity)
     const { data: userData, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('id, username, email, full_name, birthday, gender, university_name, faculty, bio')
+      .from('users_v2')
+      .select('id, username, email, full_name, birthday, gender, university_name, faculty, verification_status, registration_type, is_admin')
       .eq('id', userId)
       .single();
+
+    console.log(`[API /profile/edit] Fetching user ${userId} - verification_status:`, userData?.verification_status);
 
     if (userError) {
       console.error('Error fetching user:', userError);
@@ -29,9 +31,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch profile data
+    // Fetch profile data from profiles_v2 (public anonymous persona)
     const { data: profileData, error: profileError } = await supabaseAdmin
-      .from('profiles')
+      .from('profiles_v2')
       .select('*')
       .eq('user_id', userId)
       .single();
@@ -50,8 +52,12 @@ export async function GET(request: NextRequest) {
       gender: userData.gender,
       universityName: userData.university_name,
       faculty: userData.faculty,
-      bio: userData.bio,
-      // Profile data
+      // Verification info
+      verificationStatus: userData.verification_status,
+      registrationType: userData.registration_type,
+      isAdmin: userData.is_admin,
+      // All profile data from profiles_v2
+      bio: profileData?.bio || '',
       anonymousName: profileData?.anonymous_name || '',
       anonymousAvatar: profileData?.anonymous_avatar_url || '👤',
       age: profileData?.age || null,
@@ -61,6 +67,8 @@ export async function GET(request: NextRequest) {
       hometown: profileData?.hometown || '',
       isPublic: profileData?.public ?? true,
     };
+
+    console.log(`[API /profile/edit] Returning data with verification_status:`, combinedData.verificationStatus);
 
     return NextResponse.json({ success: true, data: combinedData });
   } catch (error) {
@@ -72,7 +80,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT - Update user profile data
+// PUT - Update user profile data (V2)
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -91,6 +99,8 @@ export async function PUT(request: NextRequest) {
       degreeType,
       hometown,
       isPublic,
+      email,  // Optional: only if changing email
+      password, // Optional: only if changing password
     } = body;
 
     if (!userId) {
@@ -112,18 +122,26 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Update users table
+    // Only update users_v2 if changing private identity data or auth credentials
+    const userUpdates: any = {
+      full_name: fullName,
+      birthday: birthday,
+      gender: gender,
+      university_name: universityName,
+      faculty: faculty,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Add email/password if provided (auth changes)
+    if (email) userUpdates.email = email;
+    if (password) {
+      const bcrypt = require('bcryptjs');
+      userUpdates.password_hash = await bcrypt.hash(password, 12);
+    }
+
     const { error: userError } = await supabaseAdmin
-      .from('users')
-      .update({
-        full_name: fullName,
-        birthday: birthday,
-        gender: gender,
-        university_name: universityName,
-        faculty: faculty,
-        bio: bio,
-        updated_at: new Date().toISOString(),
-      })
+      .from('users_v2')
+      .update(userUpdates)
       .eq('id', userId);
 
     if (userError) {
@@ -134,25 +152,20 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Check if profile exists
+    // Check if profile exists in profiles_v2
     const { data: existingProfile } = await supabaseAdmin
-      .from('profiles')
+      .from('profiles_v2')
       .select('user_id')
       .eq('user_id', userId)
       .single();
 
     if (existingProfile) {
-      // Update existing profile
+      // Update existing profile in profiles_v2 (public data only)
       const { error: profileError } = await supabaseAdmin
-        .from('profiles')
+        .from('profiles_v2')
         .update({
           anonymous_name: anonymousName,
           anonymous_avatar_url: anonymousAvatar,
-          real_name: fullName,
-          dob: birthday,
-          gender: gender,
-          university: universityName,
-          faculty: faculty,
           bio: bio,
           age: age,
           height_cm: heightCm,
@@ -171,18 +184,13 @@ export async function PUT(request: NextRequest) {
         );
       }
     } else {
-      // Create new profile
+      // Create new profile in profiles_v2
       const { error: profileError } = await supabaseAdmin
-        .from('profiles')
+        .from('profiles_v2')
         .insert({
           user_id: userId,
           anonymous_name: anonymousName || 'Anonymous',
           anonymous_avatar_url: anonymousAvatar || '👤',
-          real_name: fullName,
-          dob: birthday,
-          gender: gender,
-          university: universityName,
-          faculty: faculty,
           bio: bio,
           age: age,
           height_cm: heightCm,

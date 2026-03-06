@@ -17,32 +17,6 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
   const [selectedUniversities, setSelectedUniversities] = useState<string[]>(currentFilters.universities);
   const [selectedInterests, setSelectedInterests] = useState<string[]>(currentFilters.interests);
 
-  const universities = [
-    'Stanford University',
-    'MIT',
-    'Harvard University',
-    'UC Berkeley',
-    'Yale University',
-    'Oxford University',
-    'Cambridge University',
-    'Other',
-  ];
-
-  const interests = [
-    'Music',
-    'Movies',
-    'Sports',
-    'Reading',
-    'Gaming',
-    'Cooking',
-    'Travel',
-    'Art',
-    'Photography',
-    'Fitness',
-    'Dancing',
-    'Technology',
-  ];
-
   const toggleUniversity = (uni: string) => {
     setSelectedUniversities((prev) =>
       prev.includes(uni) ? prev.filter((u) => u !== uni) : [...prev, uni]
@@ -61,7 +35,7 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
       universities: selectedUniversities,
       interests: selectedInterests,
     });
-    onClose(); // Close the panel after applying
+    onClose(); 
   };
 
   const handleReset = () => {
@@ -71,7 +45,6 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
   };
 
   const handleLogout = () => {
-    // Clear all localStorage items
     localStorage.removeItem('userId');
     localStorage.removeItem('username');
     localStorage.removeItem('token');
@@ -80,62 +53,65 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
     localStorage.removeItem('anonymousName');
     localStorage.removeItem('avatar');
     
-    // Redirect to login
     router.push('/login');
   };
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop (Solid Dark, No Blur) */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-fade-in"
+        className="fixed inset-0 bg-black/90 z-50 animate-fade-in"
         onClick={onClose}
       ></div>
 
-      {/* Panel */}
-      <div className="fixed inset-x-0 bottom-0 sm:inset-y-0 sm:right-0 sm:left-auto sm:w-full sm:max-w-md z-50 animate-slide-up sm:animate-slide-left">
-        <div className="h-full bg-white shadow-2xl overflow-y-auto">
+      {/* Panel (Super compact) */}
+      <div className="fixed inset-x-0 bottom-0 sm:inset-y-0 sm:right-0 sm:left-auto sm:w-full sm:max-w-[280px] z-50 animate-slide-up sm:animate-slide-left font-sans text-black">
+        <div className="h-full bg-[#FDF8F5] border-l-2 border-black shadow-[-4px_0_0_rgba(0,0,0,1)] overflow-y-auto flex flex-col">
+          
           {/* Header */}
-          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                <Sliders className="w-5 h-5 text-purple-600" />
+          <div className="sticky top-0 bg-[#FFD166] border-b-2 border-black px-3 py-2.5 flex items-center justify-between z-10 shadow-[0_2px_0px_rgba(0,0,0,1)]">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-white border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_rgba(0,0,0,1)]">
+                <Sliders className="w-3.5 h-3.5 stroke-[3] text-black" />
               </div>
-              <h2 className="text-xl font-bold text-gray-800">Filters</h2>
+              <h2 className="text-base font-black uppercase tracking-tight">Filters</h2>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="w-7 h-7 bg-white border-2 border-black flex items-center justify-center shadow-[1px_1px_0px_rgba(0,0,0,1)] hover:bg-[#FF6B6B] hover:text-white active:translate-y-[1px] active:translate-x-[1px] active:shadow-none transition-all"
             >
-              <X className="w-6 h-6 text-gray-600" />
+              <X className="w-4 h-4 stroke-[3]" />
             </button>
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-8 pb-48">
+          <div className="flex-1 p-3 space-y-4 pb-32">
+            
             {/* Age Filter */}
-            <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div className="bg-white border-2 border-black rounded-lg p-3 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+              <div className="flex items-center gap-2 mb-3 border-b-2 border-black pb-2">
+                <div className="w-6 h-6 bg-[#4ECDC4] border-2 border-black rounded-full flex items-center justify-center shrink-0">
+                  <svg className="w-3 h-3 stroke-[2] text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800">Age Range</h3>
+                <h3 className="text-sm font-black uppercase tracking-tight">Age Range</h3>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">Minimum: {ageRange[0]}</span>
-                  <span className="text-sm font-medium text-gray-600">Maximum: {ageRange[1]}</span>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase text-gray-600">
+                  <span>Min: {ageRange[0]}</span>
+                  <span>Max: {ageRange[1]}</span>
                 </div>
                 <div className="space-y-2">
+                  {/* Custom Neobrutalist Range Sliders would ideally require custom CSS, but standard inputs are styled to fit */}
                   <input
                     type="range"
                     min="18"
                     max="50"
                     value={ageRange[0]}
                     onChange={(e) => setAgeRange([parseInt(e.target.value), ageRange[1]])}
-                    className="w-full range-slider"
+                    className="w-full accent-black cursor-pointer h-1"
                   />
                   <input
                     type="range"
@@ -143,12 +119,12 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
                     max="50"
                     value={ageRange[1]}
                     onChange={(e) => setAgeRange([ageRange[0], parseInt(e.target.value)])}
-                    className="w-full range-slider"
+                    className="w-full accent-black cursor-pointer h-1"
                   />
                 </div>
-                <div className="text-center p-3 bg-purple-100 rounded-xl border border-purple-200">
-                  <span className="text-purple-700 font-bold">
-                    {ageRange[0]} - {ageRange[1]} years old
+                <div className="text-center p-2 bg-[#FFD166] border-2 border-black rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                  <span className="text-black font-black uppercase text-xs">
+                    {ageRange[0]} - {ageRange[1]} YRS
                   </span>
                 </div>
               </div>
@@ -158,31 +134,31 @@ export function FilterPanel({ currentFilters, onApply, onClose }: FilterPanelPro
             <div>
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-red-50 hover:bg-red-100 border-2 border-red-200 rounded-xl transition-all group shadow-sm"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-white border-2 border-black rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:bg-[#FF6B6B] hover:text-white hover:translate-y-[-1px] hover:translate-x-[-1px] hover:shadow-[3px_3px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all group"
               >
-                <div className="w-10 h-10 rounded-full bg-red-100 group-hover:bg-red-200 flex items-center justify-center transition-colors">
-                  <LogOut className="w-5 h-5 text-red-600 group-hover:scale-110 transition-transform" />
+                <div className="w-6 h-6 bg-black border border-black rounded-lg flex items-center justify-center group-hover:bg-white transition-colors">
+                  <LogOut className="w-3.5 h-3.5 text-white group-hover:text-[#FF6B6B] stroke-[2]" />
                 </div>
-                <span className="text-base font-semibold text-red-600">
-                  Logout from Account
+                <span className="text-sm font-black uppercase tracking-wider">
+                  Log Out
                 </span>
               </button>
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className="fixed bottom-0 inset-x-0 sm:right-0 sm:left-auto sm:w-full sm:max-w-md bg-white border-t border-gray-200 p-6 space-y-3 shadow-2xl">
+          <div className="fixed bottom-16 sm:bottom-0 inset-x-0 sm:right-0 sm:left-auto sm:w-full sm:max-w-[280px] bg-white border-t-2 border-l-2 border-black p-3 space-y-2 shadow-[0_-2px_0px_rgba(0,0,0,1)]">
             <button
               onClick={handleApply}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 text-lg font-semibold rounded-xl shadow-lg transition-all"
+              className="w-full bg-[#4ECDC4] text-black py-2.5 text-sm font-black uppercase tracking-wider rounded-lg border-2 border-black shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:translate-y-[-1px] hover:translate-x-[-1px] hover:shadow-[4px_4px_0px_rgba(0,0,0,1)] active:translate-y-[3px] active:translate-x-[3px] active:shadow-none transition-all"
             >
-              Apply Age Filter
+              Apply Filters
             </button>
             <button
               onClick={handleReset}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 text-base font-semibold rounded-xl transition-all"
+              className="w-full bg-white text-black py-2 text-xs font-black uppercase tracking-wider rounded-lg border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:bg-[#F8F9FA] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all"
             >
-              Reset Filter
+              Reset
             </button>
           </div>
         </div>

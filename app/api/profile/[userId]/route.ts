@@ -17,7 +17,7 @@ const UserIdSchema = z.object({
 });
 
 // =============================================
-// GET /api/profile/[userId] - Get user profile
+// GET /api/profile/[userId] - Get user profile (V2)
 // =============================================
 export async function GET(
   request: NextRequest,
@@ -28,10 +28,10 @@ export async function GET(
     const validatedParams = UserIdSchema.parse({ userId: paramUserId });
     const { userId } = validatedParams;
 
-    // Get user data
+    // Get user data from users_v2 (verification status, registration type)
     const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id, username, birthday, gender, report_count, verification_status, registration_type, bio, university_name, faculty, preferences, partner_preferences, created_at')
+      .from('users_v2')
+      .select('id, username, verification_status, registration_type, created_at')
       .eq('id', userId)
       .single();
 
@@ -43,55 +43,39 @@ export async function GET(
       );
     }
 
-    // Get profile data with new fields
+    // Get profile data from profiles_v2 (all public display data)
     const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*, height_cm, degree_type, hometown, skin_tone')
+      .from('profiles_v2')
+      .select('*')
       .eq('user_id', userId)
       .single();
 
     if (profileError) {
       console.error('Error fetching profile:', profileError);
-    }
-
-    // Calculate age from birthday
-    let age = null;
-    if (user.birthday) {
-      const birthDate = new Date(user.birthday);
-      const today = new Date();
-      age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-    } else if (profile?.dob) {
-      const birthDate = new Date(profile.dob);
-      const today = new Date();
-      age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
+      return NextResponse.json(
+        { error: 'Profile not found' },
+        { status: 404 }
+      );
     }
 
     // Check if user is verified
-    const isVerified = user.verification_status === 'verified' || profile?.verified === true;
+    const isVerified = user.verification_status === 'verified';
 
     // Base response (available for all users)
     const baseProfile = {
       id: user.id,
       username: user.username,
-      age: age,
-      reportCount: user.report_count || profile?.total_reports || 0,
+      age: profile.age || null,
+      reportCount: profile.total_reports || 0,
       isVerified: isVerified,
       registrationType: user.registration_type,
-      avatar: profile?.anonymous_avatar_url || '👤',
-      anonymousName: profile?.anonymous_name || user.username,
-      // Include optional details so limited profiles can display them
-      university: profile?.university || user.university_name || null,
-      degree_type: profile?.degree_type || null,
-      height_cm: profile?.height_cm || null,
-      hometown: profile?.hometown || null,
+      avatar: profile.anonymous_avatar_url || '👤',
+      anonymousName: profile.anonymous_name || user.username,
+      // Include profile display fields
+      degree_type: profile.degree_type || null,
+      height_cm: profile.height_cm || null,
+      hometown: profile.hometown || null,
+      skin_tone: profile.skin_tone || null,
     };
 
     // If user is unverified (simple registration), return limited data
@@ -106,30 +90,8 @@ export async function GET(
     // If verified, return full profile details
     const fullProfile = {
       ...baseProfile,
-      // Personal info
-      realName: profile?.real_name || user.username,
-      gender: user.gender || profile?.gender,
-      bio: user.bio || profile?.bio,
-      
-      // Education info
-      university: user.university_name || profile?.university,
-      faculty: user.faculty || profile?.faculty,
-      degree_type: profile?.degree_type,
-      
-      // Physical info
-      height_cm: profile?.height_cm,
-      hometown: profile?.hometown,
-      skin_tone: profile?.skin_tone,
-      
-      // Preferences (parsed if JSON string)
-      preferences: user.preferences ? 
-        (typeof user.preferences === 'string' ? JSON.parse(user.preferences) : user.preferences) : null,
-      partnerPreferences: user.partner_preferences ?
-        (typeof user.partner_preferences === 'string' ? JSON.parse(user.partner_preferences) : user.partner_preferences) : null,
-      
-      // Additional profile data
-      verificationType: profile?.verification_type || user.verification_status,
-      isPublic: profile?.public !== false,
+      bio: profile.bio || '',
+      isPublic: profile.public !== false,
       memberSince: user.created_at,
     };
 

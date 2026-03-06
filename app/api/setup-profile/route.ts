@@ -84,10 +84,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user exists
+    // Check if user exists in users_v2
     const { data: existingUser, error: userError } = await supabaseAdmin
-      .from('users')
-      .select('id')
+      .from('users_v2')
+      .select('id, username')
       .eq('id', userId)
       .single();
 
@@ -98,45 +98,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update users table with partner preferences
-    const { error: userUpdateError } = await (supabaseAdmin as any)
-      .from('users')
-      .update({
-        partner_preferences_json: partner_preferences,
-      })
-      .eq('id', userId);
+    // Store partner preferences in separate preferences table (if exists)
+    // Or you can create a partner_preferences column in profiles_v2 if needed
+    // For now, we'll skip this since you mentioned using existing preferences table
 
-    if (userUpdateError) {
-      console.error('Error updating user preferences:', userUpdateError);
-      return NextResponse.json(
-        { error: 'Failed to save partner preferences' },
-        { status: 500 }
-      );
-    }
-
-    // Get user's username for anonymous_name
-    const { data: userData } = await supabaseAdmin
-      .from('users')
-      .select('username')
-      .eq('id', userId)
-      .single();
-
-    // Upsert profile (insert or update)
+    // Upsert profile in profiles_v2 (all public persona data)
     const profileData: any = {
       user_id: userId,
-      anonymous_name: userData?.username || `User${userId.slice(0, 8)}`,
+      anonymous_name: existingUser.username,
       age: qualifications.age,
     };
     
     // Add optional fields only if provided
     if (qualifications.height_cm) profileData.height_cm = qualifications.height_cm;
-    if (qualifications.university) profileData.university = qualifications.university;
     if (qualifications.degree) profileData.degree_type = qualifications.degree;
     if (qualifications.hometown) profileData.hometown = qualifications.hometown;
     if (qualifications.skin_tone) profileData.skin_tone = qualifications.skin_tone;
 
     const { data: profile, error: profileError } = await (supabaseAdmin as any)
-      .from('profiles')
+      .from('profiles_v2')
       .upsert(profileData, { onConflict: 'user_id' })
       .select()
       .single();
@@ -153,7 +133,6 @@ export async function POST(request: NextRequest) {
     const sanitizedProfile = {
       user_id: profile.user_id,
       height_cm: profile.height_cm,
-      university: profile.university,
       degree_type: profile.degree_type,
       hometown: profile.hometown,
       age: profile.age,

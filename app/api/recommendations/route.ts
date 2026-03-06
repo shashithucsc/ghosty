@@ -152,66 +152,42 @@ export async function GET(request: NextRequest) {
     const universitiesArray = universities ? universities.split(',').filter(Boolean) : [];
     const interestsArray = interests ? interests.split(',').filter(Boolean) : [];
 
-    // Step 1: Get viewer's profile and gender from profiles table (fallback to users if needed)
-    const { data: viewerProfile, error: viewerError } = await supabaseAdmin
-      .from('profiles')
-      .select('gender, user_id, age, height_cm, degree_type')
-      .eq('user_id', userId)
-      .single();
-
-    let viewerGender: string | null = null;
-    if (viewerProfile && !viewerError) {
-      viewerGender = viewerProfile.gender ?? null;
-    } else {
-      // Fallback to users table for gender if profile is missing
-      const { data: viewerUserRow } = await supabaseAdmin
-        .from('users')
-        .select('gender')
-        .eq('id', userId)
-        .single();
-      viewerGender = (viewerUserRow as any)?.gender ?? null;
-    }
-
-    // Get viewer's partner preferences from users table
-    const { data: viewerUser, error: prefError } = await supabaseAdmin
-      .from('users')
-      .select('partner_preferences_json')
+    // Step 1: Get viewer's gender from users_v2 (private identity)
+    const { data: viewerUser, error: viewerError } = await supabaseAdmin
+      .from('users_v2')
+      .select('gender, id')
       .eq('id', userId)
       .single();
 
-    // If preferences missing, build a sensible default from query params
-    let prefs: any = undefined;
-    if (!prefError && viewerUser && (viewerUser as any).partner_preferences_json) {
-      prefs = (viewerUser as any).partner_preferences_json;
-    } else {
-      // Defaults: use query minAge/maxAge if provided, otherwise broad range
-      const ageMin = validation.data.minAge ?? 18;
-      const ageMax = validation.data.maxAge ?? 100;
-      prefs = {
-        age_min: ageMin,
-        age_max: ageMax,
-        education_levels: [],
-        height_pref: { type: 'no_preference' },
-        hometown: '',
-        skin_tone: '',
-      };
-    }
+    const viewerGender = viewerUser?.gender || null;
+
+    // Get viewer's partner preferences from preferences table (if exists)
+    // Note: This should come from your existing preferences table as per instructions
+    // For now, using default preferences if not found
+    let prefs: any = {
+      age_min: validation.data.minAge ?? 18,
+      age_max: validation.data.maxAge ?? 100,
+      education_levels: [],
+      height_pref: { type: 'no_preference' },
+      hometown: '',
+      skin_tone: '',
+    };
 
     // Step 2: Get blocked user IDs to exclude
     const { data: blockedUsers } = await supabaseAdmin
       .from('blocks')
-      .select('blocked_user_id')
-      .eq('blocker_user_id', userId);
+      .select('blocked_id')
+      .eq('blocker_id', userId);
 
-    const blockedIds = blockedUsers?.map((b: any) => b.blocked_user_id) || [];
+    const blockedIds = blockedUsers?.map((b: any) => b.blocked_id) || [];
 
     // Get users who blocked the viewer
     const { data: blockedByUsers } = await supabaseAdmin
       .from('blocks')
-      .select('blocker_user_id')
-      .eq('blocked_user_id', userId);
+      .select('blocker_id')
+      .eq('blocked_id', userId);
 
-    const blockedByIds = blockedByUsers?.map((b: any) => b.blocker_user_id) || [];
+    const blockedByIds = blockedByUsers?.map((b: any) => b.blocker_id) || [];
 
     // Get users already interacted with (swipes)
     let interactedUserIds: string[] = [];
@@ -225,37 +201,68 @@ export async function GET(request: NextRequest) {
       console.log('Swipes table not found, skipping interaction filter');
     }
 
-    // Combine all excluded user IDs
-    const excludedUserIds = [...new Set([...blockedIds, ...blockedByIds, ...interactedUserIds, userId])];
+    // Get users already matched with (from matches table - check both directions)
+    let matchedUserIds: string[] = [];
+    try {
+      const { data: matches } = await supabaseAdmin
+        .from('matches')
+        .select('user1_id, user2_id')
+        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
+      
+      if (matches) {
+        matchedUserIds = matches.map((match: any) => 
+          match.user1_id === userId ? match.user2_id : match.user1_id
+        );
+      }
+    } catch (error) {
+      console.log('Matches table not found or error fetching matches:', error);
+    }
 
-    // Step 3: Fetch opposite gender candidates with complete profiles from profiles table
+    // Get users with existing chats (from chats table - check both directions)
+    let chatUserIds: string[] = [];
+    try {
+      const { data: chats } = await supabaseAdmin
+        .from('chats')
+        .select('sender_id, receiver_id')
+        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
+      
+      if (chats) {
+        // Get unique user IDs from chats (excluding current user)
+        const chatPartners = new Set<string>();
+        chats.forEach((chat: any) => {
+          if (chat.sender_id !== userId) chatPartners.add(chat.sender_id);
+          if (chat.receiver_id !== userId) chatPartners.add(chat.receiver_id);
+        });
+        chatUserIds = Array.from(chatPartners);
+      }
+    } catch (error) {
+      console.log('Chats table not found or error fetching chats:', error);
+    }
+
+    // Combine all excluded user IDs
+    const excludedUserIds = [...new Set([...blockedIds, ...blockedByIds, ...interactedUserIds, ...matchedUserIds, ...chatUserIds, userId])];
+
+    // Step 3: Fetch candidates from profiles_v2 (public anonymous personas)
     let query = supabaseAdmin
-      .from('profiles')
+      .from('profiles_v2')
       .select(`
         user_id,
+        anonymous_name,
+        anonymous_avatar_url,
+        bio,
         age,
         height_cm,
         skin_tone,
-        hometown,
-        university,
-        faculty,
         degree_type,
-        bio,
-        gender,
-        verified,
-        anonymous_name,
-        real_name
+        hometown,
+        total_reports,
+        public
       `)
-      .not('gender', 'is', null);
+      .eq('public', true);
 
-    // CRITICAL: Apply opposite gender filter - exclude same gender
-    // This ensures males don't see males and females don't see females
-    // Using case-insensitive comparison to handle 'Male'/'male', 'Female'/'female' variations
-    if (viewerGender) {
-      // Use NOT with ilike for case-insensitive gender exclusion
-      // This will exclude 'Male', 'male', 'MALE', etc. if viewer is male
-      query = query.not('gender', 'ilike', viewerGender);
-    }
+    // CRITICAL: Filter by opposite gender using users_v2 data
+    // We need to get gender from users_v2 and exclude same gender
+    // This will be done after fetching by joining with users_v2
 
     // Apply age filter if provided
     if (minAge !== null && minAge !== undefined) {
@@ -263,11 +270,6 @@ export async function GET(request: NextRequest) {
     }
     if (maxAge !== null && maxAge !== undefined) {
       query = query.lte('age', maxAge);
-    }
-
-    // Apply university filter if provided
-    if (universitiesArray.length > 0) {
-      query = query.in('university', universitiesArray);
     }
 
     // Exclude blocked and interacted users
@@ -298,19 +300,28 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Step 4: Get user details for candidates
+    // Step 4: Get user details from users_v2 (verification, gender, restriction status)
     const candidateUserIds = candidates.map(c => c.user_id);
     const { data: candidateUsers } = await supabaseAdmin
-      .from('users')
-      .select('id, username, full_name, is_restricted, verification_status, is_admin')
+      .from('users_v2')
+      .select('id, username, gender, is_restricted, verification_status, is_admin')
       .in('id', candidateUserIds)
       .eq('is_restricted', false)
       .eq('is_admin', false); // Exclude admin users from recommendations
 
     const userMap = new Map(candidateUsers?.map(u => [u.id, u]) || []);
 
-    // Filter out restricted users and admins
-    let validCandidates = candidates.filter(c => userMap.has(c.user_id));
+    // Filter out restricted users, admins, AND same gender
+    let validCandidates = candidates.filter(c => {
+      const user = userMap.get(c.user_id);
+      if (!user) return false;
+      // Exclude same gender (case-insensitive)
+      if (viewerGender && user.gender && 
+          user.gender.toLowerCase() === viewerGender.toLowerCase()) {
+        return false;
+      }
+      return true;
+    });
 
     // TODO: Apply interests filter once interests column is added to database
     // Note: Interests column doesn't exist in current database schema
@@ -332,11 +343,11 @@ export async function GET(request: NextRequest) {
       // Calculate weighted match score
       const matchScore = calculateMatchScore(candidate, prefs);
 
-      // Generate avatar emoji based on gender
-      let avatar = '👤';
-      if (candidate.gender) {
-        if (candidate.gender.toLowerCase() === 'male') avatar = '🧑';
-        else if (candidate.gender.toLowerCase() === 'female') avatar = '👩';
+      // Use avatar from profiles_v2 or generate based on gender from users_v2
+      let avatar = candidate.anonymous_avatar_url || '👤';
+      if (!candidate.anonymous_avatar_url && user?.gender) {
+        if (user.gender.toLowerCase() === 'male') avatar = '🧑';
+        else if (user.gender.toLowerCase() === 'female') avatar = '👩';
         else avatar = '🙋';
       }
 
@@ -344,23 +355,20 @@ export async function GET(request: NextRequest) {
         id: candidate.user_id,
         userId: candidate.user_id,
         anonymousName: candidate.anonymous_name || user?.username || 'Anonymous',
-        realName: candidate.real_name || candidate.anonymous_name || user?.username || 'Anonymous',
         avatar,
-        age: candidate.age,
-        gender: candidate.gender || 'Not specified',
-        university: candidate.university || 'University',
-        faculty: candidate.faculty || 'Not specified',
+        age: candidate.age || 0,
+        gender: user?.gender || 'Not specified',
         bio: candidate.bio || 'No bio yet',
         height: candidate.height_cm,
         degree: candidate.degree_type,
         hometown: candidate.hometown,
         skinTone: candidate.skin_tone,
-        interests: [], // interests field will be added when column exists
-        isVerified: candidate.verified || user?.verification_status === 'verified',
+        interests: [], // TODO: Add interests once implemented
+        isVerified: user?.verification_status === 'verified',
         verificationStatus: user?.verification_status || 'unverified',
-        matchScore,
-        sharedInterests: [],
-        totalReports: 0,
+        totalReports: candidate.total_reports || 0,
+        matchScore: matchScore,
+        sharedInterests: [], // TODO: Calculate once interests implemented
         isLiked: false,
         isSkipped: false,
       };

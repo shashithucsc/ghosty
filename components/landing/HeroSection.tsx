@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Heart, Sparkles, Ghost, Globe, ChevronRight } from 'lucide-react';
+import { Heart, ChevronRight, ShieldCheck, Zap } from 'lucide-react';
 import { SignInModal } from './SignInModal';
 
 export function HeroSection() {
@@ -11,127 +11,94 @@ export function HeroSection() {
   const router = useRouter();
 
   const handleStartDating = () => {
-    // Check if user is already logged in with proper validation
     const userId = localStorage.getItem('userId');
     const username = localStorage.getItem('username');
     
-    // Only redirect to dashboard if userId exists, is not "null" string, and is not empty
     if (userId && userId !== 'null' && userId !== 'undefined' && userId.trim() !== '' && username) {
-      // User is logged in, redirect to dashboard
       router.push('/dashboard');
     } else {
-      // User is not logged in or session is invalid, show sign in modal
       setIsModalOpen(true);
     }
   };
 
   return (
-    <div className="relative min-h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden bg-[#030014]">
+    <div className="relative min-h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden bg-[#FDF8F5] font-sans text-black">
       
-      {/* --- Ambient Background Effects --- */}
-      <div className="absolute inset-0 w-full h-full">
-        {/* Grain/Noise Texture Overlay */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-[1]" 
-             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} 
+      {/* --- Hard Neobrutalist Background --- */}
+      <div className="absolute inset-0 w-full h-full bg-[#FDF8F5]">
+        {/* Solid, non-fading dot grid */}
+        <div 
+          className="absolute inset-0 opacity-10" 
+          style={{ 
+            backgroundImage: 'radial-gradient(#000000 3px, transparent 3px)', 
+            backgroundSize: '40px 40px' 
+          }} 
         />
-
-        {/* Deep Plasma Gradients */}
-        <div className="absolute top-[-10%] left-[-20%] w-[70vw] h-[70vw] bg-purple-900/30 blur-[120px] rounded-full mix-blend-screen animate-pulse-slow" />
-        <div className="absolute bottom-[-10%] right-[-20%] w-[70vw] h-[70vw] bg-indigo-900/20 blur-[120px] rounded-full mix-blend-screen animate-pulse-slow animation-delay-2000" />
-        <div className="absolute top-[20%] left-[50%] -translate-x-1/2 w-[500px] h-[500px] bg-fuchsia-600/10 blur-[100px] rounded-full pointer-events-none" />
       </div>
 
       {/* --- Main Content --- */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 flex flex-col items-center justify-center text-center mt-[-5vh]">
+      <div className="relative z-10 w-full max-w-5xl mx-auto px-6 flex flex-col items-center justify-center text-center">
         
-        {/* Glass Badge */}
+        {/* High-End Pill Badge -> Chunky Solid Badge */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "circOut" }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-xl mb-8 shadow-lg shadow-purple-500/10"
+          transition={{ duration: 0.5, ease: "circOut" }}
+          className="inline-flex items-center gap-3 px-6 py-2 border-4 border-black bg-[#FFD166] shadow-[4px_4px_0px_rgba(0,0,0,1)] mb-10"
         >
-          <Sparkles className="w-4 h-4 text-purple-400" />
-          <span className="text-xs sm:text-sm font-medium text-purple-200/80 tracking-wide uppercase">
-            Anonymous Campus Dating
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full bg-[#FF6B6B] border-2 border-black"></span>
+            <span className="relative inline-flex h-3 w-3 bg-[#FF6B6B] border-2 border-black"></span>
+          </span>
+          <span className="text-sm font-black text-black tracking-widest uppercase">
+            Exclusive Campus Network
           </span>
         </motion.div>
 
         {/* Hero Title */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
-          className="relative mb-6"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mb-8"
         >
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight leading-[0.9]">
-            <span className="block text-white drop-shadow-xl">
-             Welcome to
-            </span>
-            <span className="relative inline-block mt-2">
-              <span className="absolute inset-0 blur-3xl bg-purple-600/40" />
-              <span className="relative bg-clip-text text-transparent bg-purple-400 text-glow">
-                අතැගිලි
-              </span>
+          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-tight text-black leading-[1.1] uppercase">
+            Connect Without <br />
+            {/* Highlighted text block with a slight tilt */}
+            <span className="inline-block mt-4 bg-[#4ECDC4] border-4 border-black px-6 py-2 shadow-[8px_8px_0px_rgba(0,0,0,1)] transform -rotate-2">
+              Expectations.
             </span>
           </h1>
         </motion.div>
 
         {/* Subtitle */}
         <motion.p 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="max-w-xl text-lg sm:text-xl text-gray-400 mb-10 leading-relaxed font-light"
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="max-w-2xl text-lg sm:text-xl text-gray-800 font-bold uppercase tracking-widest mt-6 mb-12 leading-relaxed"
         >
-          Dating without the bias. <br className="hidden sm:block" />
-          <span className="text-gray-200 font-normal">Chat first, reveal later.</span>
+          A private, verified dating space for university students. 
+          <span className="block text-[#FF6B6B] mt-2 font-black">Chat anonymously. Reveal when ready.</span>
         </motion.p>
 
         {/* Action Buttons */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
           className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
         >
           <button
             onClick={handleStartDating}
-            className="btn-glass-primary px-8 py-4 flex items-center justify-center gap-3 group"
+            className="group relative px-10 py-5 bg-[#A3E635] text-black font-black uppercase tracking-wider text-xl border-4 border-black rounded-2xl shadow-[8px_8px_0px_rgba(0,0,0,1)] transition-all hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[12px_12px_0px_rgba(0,0,0,1)] active:translate-y-[8px] active:translate-x-[8px] active:shadow-none flex items-center justify-center gap-4"
           >
-            <Heart className="w-5 h-5 fill-current text-purple-600 group-hover:scale-110 transition-transform" />
-            <span className="text-lg">Start Dating</span>
-            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
+            Start Matching
+            <ChevronRight className="w-6 h-6 stroke-[4] group-hover:translate-x-2 transition-transform" />
           </button>
-
-         
         </motion.div>
       </div>
 
-      {/* --- Floating Glass Elements (3D Decoration) --- */}
-      {/* Left Element */}
-      <motion.div 
-        animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }} 
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[20%] left-[5%] hidden lg:block"
-      >
-        <div className="w-24 h-24 rounded-3xl bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center shadow-2xl transform -rotate-12">
-           <Ghost className="w-10 h-10 text-purple-300 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
-        </div>
-      </motion.div>
-
-      {/* Right Element */}
-      <motion.div 
-        animate={{ y: [0, 25, 0], rotate: [0, -5, 0] }} 
-        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute bottom-[20%] right-[5%] hidden lg:block"
-      >
-        <div className="w-20 h-20 rounded-full bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center shadow-2xl">
-           <Heart className="w-8 h-8 text-pink-400 fill-pink-400/20 drop-shadow-[0_0_10px_rgba(236,72,153,0.5)]" />
-        </div>
-      </motion.div>
-
-      {/* SignIn Modal (Logic Preserved) */}
       <SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );

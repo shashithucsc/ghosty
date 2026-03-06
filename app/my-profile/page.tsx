@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, User, Mail, Calendar, Users, School, GraduationCap, MapPin, Ruler, Palette, Award, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Save, User, Mail, Calendar, Users, School, GraduationCap, MapPin, Ruler, Palette, Award, Eye, EyeOff, MessageSquarePlus, Loader2 } from 'lucide-react';
+import CreatePostModal from '@/components/profile/CreatePostModal';
 
 interface ProfileData {
   id: string;
@@ -24,10 +25,8 @@ interface ProfileData {
   isPublic: boolean;
 }
 
-const avatarOptions = ['👤', '😊', '😎', '🤓', '😇', '🥳', '🤩', '😍', '🥰', '😋', '🤔', '🧐', '🤗', '🤠', '👻', '🎭', '🎨', '🎯', '⚡', '🌟'];
-
 const skinToneOptions = ['Fair', 'Medium', 'Olive', 'Tan', 'Brown', 'Dark'];
-const degreeOptions = ['Diploma', 'Private Degree', 'Goverment Degree', 'Master', 'PhD'];
+const degreeOptions = ['Diploma', 'Private Degree', 'Government Degree', 'Master', 'PhD'];
 const genderOptions = ['Male', 'Female'];
 
 export default function MyProfilePage() {
@@ -36,60 +35,53 @@ export default function MyProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState('');
 
   const [profileData, setProfileData] = useState<ProfileData>({
-    id: '',
-    username: '',
-    email: '',
-    fullName: '',
-    birthday: '',
-    gender: '',
-    universityName: '',
-    faculty: '',
-    bio: '',
-    anonymousName: '',
-    anonymousAvatar: '👤',
-    age: null,
-    heightCm: null,
-    skinTone: '',
-    degreeType: '',
-    hometown: '',
-    isPublic: true,
+    id: '', username: '', email: '', fullName: '', birthday: '', gender: '',
+    universityName: '', faculty: '', bio: '', anonymousName: '', anonymousAvatar: 'U', // Removed emoji default
+    age: null, heightCm: null, skinTone: '', degreeType: '', hometown: '', isPublic: true,
   });
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  useEffect(() => { loadProfile(); }, []);
 
   const loadProfile = async () => {
     const userId = localStorage.getItem('userId');
-    if (!userId) {
-      router.push('/login');
-      return;
+    const verificationStatusLocal = localStorage.getItem('verificationStatus');
+    const registrationType = localStorage.getItem('registrationType');
+    const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+    if (!userId) { router.push('/login'); return; }
+    setVerificationStatus(verificationStatusLocal || 'unverified');
+
+    if (!isAdmin) {
+      if (registrationType === 'verified' && verificationStatusLocal === 'pending') {
+        router.push('/pending-verification'); return;
+      }
+      if (registrationType === 'verified' && verificationStatusLocal === 'rejected') {
+        localStorage.clear(); router.push('/login'); return;
+      }
+      if (registrationType === 'verified' && verificationStatusLocal !== 'verified') {
+        router.push('/pending-verification'); return;
+      }
     }
+
+    setIsCheckingAuth(false);
 
     try {
       const response = await fetch(`/api/profile/edit?userId=${userId}`);
       const result = await response.json();
-
-      if (response.ok && result.success) {
-        setProfileData(result.data);
-      } else {
-        setError('Failed to load profile');
-      }
-    } catch (err) {
-      console.error('Error loading profile:', err);
-      setError('Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
+      if (response.ok && result.success) setProfileData(result.data);
+      else setError('Failed to load profile');
+    } catch (err) { setError('Failed to load profile'); } 
+    finally { setLoading(false); }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
-    setError('');
-    setSuccess('');
+    setSaving(true); setError(''); setSuccess('');
 
     try {
       const response = await fetch('/api/profile/edit', {
@@ -112,333 +104,252 @@ export default function MyProfilePage() {
       });
 
       const result = await response.json();
-
       if (response.ok && result.success) {
-        setSuccess('Profile updated successfully!');
-        // Update localStorage
+        setSuccess('Profile updated successfully');
         localStorage.setItem('username', result.data.username);
         localStorage.setItem('avatar', result.data.avatar);
-        
-        // Scroll to top to show success message
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        setError(result.error || 'Failed to update profile');
+        setError(result.error || 'Failed to update');
       }
-    } catch (err) {
-      console.error('Error updating profile:', err);
-      setError('Failed to update profile');
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { setError('Failed to update profile'); } 
+    finally { setSaving(false); }
   };
 
   const handleChange = (field: keyof ProfileData, value: any) => {
     setProfileData(prev => ({ ...prev, [field]: value }));
   };
 
-  if (loading) {
+  if (isCheckingAuth || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-800 dark:text-white text-lg">Loading profile...</p>
-        </div>
+      <div className="min-h-screen bg-[#FDF8F5] flex items-center justify-center font-sans">
+        <div className="w-16 h-16 border-4 border-black border-t-[#FFD166] rounded-full animate-spin shadow-[4px_4px_0px_rgba(0,0,0,1)]"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-950 py-6 px-4 pb-24">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-[#FDF8F5] py-8 px-4 pb-24 font-sans text-black">
+      <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Profile</h1>
+        <div className="flex items-center justify-between mb-8 border-b-4 border-black pb-6">
+          <h1 className="text-4xl font-black uppercase tracking-tight">Edit Profile</h1>
+          {verificationStatus === 'verified' && profileData.id && (
+            <button
+              onClick={() => setIsCreatePostModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-3 bg-[#FFD166] border-4 border-black text-black font-black uppercase text-sm shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:bg-[#ffc033] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all"
+            >
+              <MessageSquarePlus className="w-5 h-5 stroke-[3]" />
+              <span className="hidden sm:inline">Create Post</span>
+            </button>
+          )}
         </div>
 
-        {/* Success/Error Messages */}
+        <CreatePostModal
+          isOpen={isCreatePostModalOpen}
+          onClose={() => setIsCreatePostModalOpen(false)}
+          userId={profileData.id}
+          userGender={profileData.gender}
+          verificationStatus={verificationStatus}
+        />
+
+        {/* Alerts */}
         {success && (
-          <div className="mb-6 p-4 rounded-xl bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700/50 backdrop-blur-xl">
-            <p className="text-green-800 dark:text-green-300 text-center font-medium">{success}</p>
+          <div className="mb-6 p-4 bg-[#A3E635] border-4 border-black font-black uppercase tracking-wider text-center shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            {success}
           </div>
         )}
-
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700/50 backdrop-blur-xl">
-            <p className="text-red-800 dark:text-red-300 text-center font-medium">{error}</p>
+          <div className="mb-6 p-4 bg-[#FF6B6B] border-4 border-black font-black uppercase tracking-wider text-center shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Personal Information Section */}
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-2xl p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Personal Information
+        <form onSubmit={handleSubmit} className="space-y-8">
+          
+          {/* Section: Personal Info */}
+          <section className="bg-white border-4 border-black rounded-3xl p-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-xl font-black uppercase tracking-widest mb-6 flex items-center gap-3 bg-[#4ECDC4] self-start inline-flex px-3 py-1 border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+              <User className="w-5 h-5 stroke-[3]" /> 
+              Personal Info
             </h2>
+            
+            <div className="space-y-5">
+               {/* Read-Only Fields */}
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Username</label>
+                    <input type="text" value={profileData.username} disabled className="w-full px-4 py-3 bg-gray-200 border-4 border-black text-gray-500 font-bold uppercase cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Email</label>
+                    <input type="text" value={profileData.email} disabled className="w-full px-4 py-3 bg-gray-200 border-4 border-black text-gray-500 font-bold uppercase cursor-not-allowed" />
+                  </div>
+               </div>
 
-            <div className="space-y-4">
-              {/* Username (Read-only) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Username (Cannot be changed)
-                </label>
-                <input
-                  type="text"
-                  value={profileData.username}
-                  disabled
-                  className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                />
-              </div>
+               <div>
+                 <label className="block text-sm font-black uppercase tracking-widest mb-2">Full Name</label>
+                 <input 
+                   type="text" 
+                   value={profileData.fullName} 
+                   onChange={(e) => handleChange('fullName', e.target.value)}
+                   className="w-full px-4 py-3 bg-[#F8F9FA] border-4 border-black font-bold focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow"
+                 />
+               </div>
 
-              {/* Email (Read-only) */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Mail className="w-4 h-4" />
-                  Email (Cannot be changed)
-                </label>
-                <input
-                  type="email"
-                  value={profileData.email || 'Not provided'}
-                  disabled
-                  className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                />
-              </div>
-
-              {/* Full Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={profileData.fullName || ''}
-                  onChange={(e) => handleChange('fullName', e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                  placeholder="Your full name"
-                  required
-                />
-              </div>
-
-              {/* Birthday */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Calendar className="w-4 h-4" />
-                  Birthday
-                </label>
-                <input
-                  type="date"
-                  value={profileData.birthday || ''}
-                  onChange={(e) => handleChange('birthday', e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              {/* Gender */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Users className="w-4 h-4" />
-                  Gender
-                </label>
-                <select
-                  value={profileData.gender || ''}
-                  onChange={(e) => handleChange('gender', e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                  required
-                >
-                  <option value="" className="bg-white dark:bg-gray-800">Select gender</option>
-                  {genderOptions.map(option => (
-                    <option key={option} value={option} className="bg-white dark:bg-gray-800">{option}</option>
-                  ))}
-                </select>
-              </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Birthday</label>
+                    <input 
+                      type="date" 
+                      value={profileData.birthday} 
+                      onChange={(e) => handleChange('birthday', e.target.value)}
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border-4 border-black font-bold focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Gender</label>
+                    <select 
+                      value={profileData.gender} 
+                      onChange={(e) => handleChange('gender', e.target.value)}
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border-4 border-black font-bold uppercase focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow appearance-none"
+                    >
+                      <option value="">SELECT GENDER</option>
+                      {genderOptions.map(o => <option key={o} value={o}>{o.toUpperCase()}</option>)}
+                    </select>
+                  </div>
+               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Education Section */}
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-2xl p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <School className="w-5 h-5" />
+          {/* Section: Education */}
+          <section className="bg-white border-4 border-black rounded-3xl p-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-xl font-black uppercase tracking-widest mb-6 flex items-center gap-3 bg-[#FFD166] self-start inline-flex px-3 py-1 border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+              <School className="w-5 h-5 stroke-[3]" /> 
               Education
             </h2>
-
-            <div className="space-y-4">
-              {/* University */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  University
-                </label>
-                <input
-                  type="text"
-                  value={profileData.universityName || ''}
-                  onChange={(e) => handleChange('universityName', e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                  placeholder="Your university name"
-                  required
-                />
-              </div>
-
-              {/* Faculty */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <GraduationCap className="w-4 h-4" />
-                  Faculty
-                </label>
-                <input
-                  type="text"
-                  value={profileData.faculty || ''}
-                  onChange={(e) => handleChange('faculty', e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                  placeholder="Your faculty/department"
-                  required
-                />
-              </div>
-
-              {/* Degree Type */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Award className="w-4 h-4" />
-                  Degree Type
-                </label>
-                <select
-                  value={profileData.degreeType || ''}
-                  onChange={(e) => handleChange('degreeType', e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                >
-                  <option value="" className="bg-white dark:bg-gray-800">Select degree type</option>
-                  {degreeOptions.map(option => (
-                    <option key={option} value={option} className="bg-white dark:bg-gray-800">{option}</option>
-                  ))}
-                </select>
-              </div>
+            <div className="space-y-5">
+               <div>
+                 <label className="block text-sm font-black uppercase tracking-widest mb-2">University</label>
+                 <input 
+                   type="text" 
+                   value={profileData.universityName} 
+                   onChange={(e) => handleChange('universityName', e.target.value)}
+                   className="w-full px-4 py-3 bg-[#F8F9FA] border-4 border-black font-bold uppercase focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow"
+                 />
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Faculty</label>
+                    <input 
+                      type="text" 
+                      value={profileData.faculty} 
+                      onChange={(e) => handleChange('faculty', e.target.value)}
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border-4 border-black font-bold uppercase focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Degree Type</label>
+                    <select 
+                      value={profileData.degreeType} 
+                      onChange={(e) => handleChange('degreeType', e.target.value)}
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border-4 border-black font-bold uppercase focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow appearance-none"
+                    >
+                      <option value="">SELECT TYPE</option>
+                      {degreeOptions.map(o => <option key={o} value={o}>{o.toUpperCase()}</option>)}
+                    </select>
+                  </div>
+               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Additional Details Section */}
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-2xl p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Additional Details</h2>
-
-            <div className="space-y-4">
-              {/* Hometown */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <MapPin className="w-4 h-4" />
-                  Hometown
-                </label>
-                <input
-                  type="text"
-                  value={profileData.hometown || ''}
-                  onChange={(e) => handleChange('hometown', e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                  placeholder="Your hometown"
-                />
-              </div>
-
-              {/* Height */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Ruler className="w-4 h-4" />
-                  Height (cm)
-                </label>
-                <input
-                  type="number"
-                  value={profileData.heightCm || ''}
-                  onChange={(e) => handleChange('heightCm', e.target.value ? parseInt(e.target.value) : null)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                  placeholder="Your height in centimeters"
-                  min="100"
-                  max="250"
-                />
-              </div>
-
-              {/* Skin Tone */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  <Palette className="w-4 h-4" />
-                  Skin Tone
-                </label>
-                <select
-                  value={profileData.skinTone || ''}
-                  onChange={(e) => handleChange('skinTone', e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                >
-                  <option value="" className="bg-white dark:bg-gray-800">Select skin tone</option>
-                  {skinToneOptions.map(option => (
-                    <option key={option} value={option} className="bg-white dark:bg-gray-800">{option}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Bio */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Bio
-                </label>
-                <textarea
-                  value={profileData.bio || ''}
-                  onChange={(e) => handleChange('bio', e.target.value)}
-                  rows={4}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600 focus:border-transparent resize-none"
-                  placeholder="Tell others about yourself..."
-                  required
-                />
-              </div>
+          {/* Section: Details */}
+          <section className="bg-white border-4 border-black rounded-3xl p-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-xl font-black uppercase tracking-widest mb-6 flex items-center gap-3 bg-[#FF9F1C] self-start inline-flex px-3 py-1 border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+              <Palette className="w-5 h-5 stroke-[3]" /> 
+              Appearance & Bio
+            </h2>
+            <div className="space-y-5">
+               <div className="grid grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Height (cm)</label>
+                    <input 
+                      type="number" 
+                      value={profileData.heightCm || ''} 
+                      onChange={(e) => handleChange('heightCm', parseInt(e.target.value))}
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border-4 border-black font-bold focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-black uppercase tracking-widest mb-2">Skin Tone</label>
+                    <select 
+                      value={profileData.skinTone} 
+                      onChange={(e) => handleChange('skinTone', e.target.value)}
+                      className="w-full px-4 py-3 bg-[#F8F9FA] border-4 border-black font-bold uppercase focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow appearance-none"
+                    >
+                      <option value="">SELECT</option>
+                      {skinToneOptions.map(o => <option key={o} value={o}>{o.toUpperCase()}</option>)}
+                    </select>
+                  </div>
+               </div>
+               <div>
+                 <label className="block text-sm font-black uppercase tracking-widest mb-2">Hometown</label>
+                 <input 
+                   type="text" 
+                   value={profileData.hometown} 
+                   onChange={(e) => handleChange('hometown', e.target.value)}
+                   className="w-full px-4 py-3 bg-[#F8F9FA] border-4 border-black font-bold uppercase focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow"
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-black uppercase tracking-widest mb-2">Bio</label>
+                 <textarea 
+                   rows={4}
+                   value={profileData.bio} 
+                   onChange={(e) => handleChange('bio', e.target.value)}
+                   className="w-full px-4 py-3 bg-[#F8F9FA] border-4 border-black font-bold focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow resize-none"
+                   placeholder="WRITE SOMETHING ABOUT YOURSELF..."
+                 />
+               </div>
             </div>
-          </div>
+          </section>
 
-          {/* Privacy Section */}
-          <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200 dark:border-gray-700/50 rounded-2xl p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Privacy Settings</h2>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {profileData.isPublic ? (
-                  <Eye className="w-5 h-5 text-green-600 dark:text-green-400" />
-                ) : (
-                  <EyeOff className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                )}
-                <div>
-                  <p className="text-gray-900 dark:text-white font-medium">Profile Visibility</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {profileData.isPublic ? 'Your profile is visible to others' : 'Your profile is private'}
-                  </p>
+          {/* Section: Privacy (Chunky Toggle) */}
+          <section className="bg-[#F8F9FA] border-4 border-black rounded-3xl p-6 flex items-center justify-between shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+             <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 flex items-center justify-center border-4 border-black shadow-[2px_2px_0px_rgba(0,0,0,1)] ${profileData.isPublic ? 'bg-[#A3E635]' : 'bg-gray-300'}`}>
+                  {profileData.isPublic ? <Eye className="w-6 h-6 stroke-[3]" /> : <EyeOff className="w-6 h-6 stroke-[3]" />}
                 </div>
-              </div>
-              <button
+                <div>
+                  <p className="text-lg font-black uppercase tracking-tight">Public Profile</p>
+                  <p className="text-sm font-bold text-gray-600 uppercase">{profileData.isPublic ? 'Visible to everyone' : 'Hidden from feed'}</p>
+                </div>
+             </div>
+             
+             {/* Custom Neobrutalist Toggle Switch */}
+             <button
                 type="button"
                 onClick={() => handleChange('isPublic', !profileData.isPublic)}
-                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors ${
-                  profileData.isPublic ? 'bg-green-600' : 'bg-gray-400 dark:bg-gray-600'
+                className={`relative inline-flex h-10 w-20 items-center border-4 border-black transition-colors shadow-[4px_4px_0px_rgba(0,0,0,1)] ${
+                  profileData.isPublic ? 'bg-[#4ECDC4]' : 'bg-gray-300'
                 }`}
               >
-                <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                    profileData.isPublic ? 'translate-x-8' : 'translate-x-1'
-                  }`}
-                />
+                <span className={`inline-block h-8 w-8 border-4 border-black bg-white transition-transform ${
+                  profileData.isPublic ? 'translate-x-10' : 'translate-x-0'
+                }`} />
               </button>
-            </div>
-          </div>
+          </section>
 
           {/* Submit Button */}
           <button
             type="submit"
             disabled={saving}
-            className="w-full py-4 rounded-xl bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
+            className="w-full py-5 mt-4 bg-black text-white border-4 border-black font-black uppercase text-xl tracking-wider rounded-2xl shadow-[8px_8px_0px_rgba(163,230,53,1)] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[10px_10px_0px_rgba(163,230,53,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {saving ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-5 h-5" />
-                Save Changes
-              </>
-            )}
+            {saving ? <Loader2 className="w-6 h-6 stroke-[3] animate-spin" /> : <Save className="w-6 h-6 stroke-[3]" />}
+            {saving ? 'SAVING CHANGES...' : 'SAVE PROFILE'}
           </button>
+
         </form>
       </div>
     </div>

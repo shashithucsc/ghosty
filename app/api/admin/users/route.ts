@@ -42,7 +42,7 @@ const UpdateUserSchema = z.object({
 
 async function verifyAdmin(adminId: string): Promise<boolean> {
   const { data } = await supabase
-    .from('users')
+    .from('users_v2')
     .select('is_admin')
     .eq('id', adminId)
     .single();
@@ -113,8 +113,8 @@ export async function GET(request: NextRequest) {
       sortOrder,
     } = validatedQuery;
 
-    // Build query
-    let query = supabase.from('users').select(
+    // Build query - JOIN users_v2 with profiles_v2 for comprehensive admin view
+    let query = supabase.from('users_v2').select(
       `
         id,
         username,
@@ -126,11 +126,22 @@ export async function GET(request: NextRequest) {
         faculty,
         registration_type,
         verification_status,
-        report_count,
         is_restricted,
         is_admin,
         created_at,
-        updated_at
+        updated_at,
+        profiles_v2!inner (
+          anonymous_name,
+          anonymous_avatar_url,
+          bio,
+          age,
+          height_cm,
+          skin_tone,
+          degree_type,
+          hometown,
+          total_reports,
+          public
+        )
       `,
       { count: 'exact' }
     );
@@ -145,7 +156,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (minReports !== undefined && minReports > 0) {
-      query = query.gte('report_count', minReports);
+      query = query.gte('profiles_v2.total_reports', minReports);
     }
 
     if (search) {
@@ -155,8 +166,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Sorting
-    const sortColumn = sortBy === 'report_count' ? 'report_count' : sortBy;
-    query = query.order(sortColumn, { ascending: sortOrder === 'asc' });
+    if (sortBy === 'report_count') {
+      query = query.order('profiles_v2.total_reports', { ascending: sortOrder === 'asc' });
+    } else {
+      query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+    }
 
     // Pagination
     const offset = (page - 1) * limit;
@@ -212,7 +226,7 @@ export async function PATCH(request: NextRequest) {
 
     // Get user details
     const { data: user, error: userError } = await supabase
-      .from('users')
+      .from('users_v2')
       .select('id, username, verification_status, is_restricted, is_admin')
       .eq('id', userId)
       .single();
@@ -237,7 +251,7 @@ export async function PATCH(request: NextRequest) {
         // Approve verification
         actionType = 'approve_verification';
         const { error: approveError } = await supabase
-          .from('users')
+          .from('users_v2')
           .update({
             verification_status: 'verified',
             updated_at: new Date().toISOString(),
@@ -248,12 +262,6 @@ export async function PATCH(request: NextRequest) {
           throw approveError;
         }
 
-        // Also update profiles table
-        await supabase
-          .from('profiles')
-          .update({ verified: true })
-          .eq('user_id', userId);
-
         result = { message: 'User verification approved successfully' };
         break;
 
@@ -261,7 +269,7 @@ export async function PATCH(request: NextRequest) {
         // Restrict user account
         actionType = 'restrict_user';
         const { error: restrictError } = await supabase
-          .from('users')
+          .from('users_v2')
           .update({
             is_restricted: true,
             updated_at: new Date().toISOString(),
@@ -280,7 +288,7 @@ export async function PATCH(request: NextRequest) {
         // Unrestrict user account
         actionType = 'unrestrict_user';
         const { error: unrestrictError } = await supabase
-          .from('users')
+          .from('users_v2')
           .update({
             is_restricted: false,
             updated_at: new Date().toISOString(),
@@ -299,13 +307,9 @@ export async function PATCH(request: NextRequest) {
         // Delete user account
         actionType = 'delete_user';
         
-        // Delete associated data first (profiles, verifications, etc.)
-        // CASCADE will handle most of this, but explicitly delete profiles
-        await supabase.from('profiles').delete().eq('user_id', userId);
-
-        // Delete user
+        // Delete user (CASCADE will handle profiles_v2 deletion via foreign key)
         const { error: deleteError } = await supabase
-          .from('users')
+          .from('users_v2')
           .delete()
           .eq('id', userId);
 

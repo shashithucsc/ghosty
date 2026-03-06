@@ -106,34 +106,22 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ Raw requests:', requests);
 
-    // Enrich with sender profile data
+    // Enrich with sender profile data from profiles_v2 (anonymous persona only)
     const enrichedRequests = await Promise.all(
       (requests || []).map(async (req) => {
-        // Get sender's profile
+        // Get sender's profile from profiles_v2 (PUBLIC anonymous persona)
         const { data: senderProfile } = await supabase
-          .from('profiles')
-          .select('anonymous_name, real_name, gender, verified, anonymous_avatar_url, dob, age')
+          .from('profiles_v2')
+          .select('anonymous_name, anonymous_avatar_url, age')
           .eq('user_id', req.sender_id)
           .single();
 
-        // Get sender's user data
+        // Get sender's verification status and gender from users_v2
         const { data: senderUser } = await supabase
-          .from('users')
-          .select('username, gender, university_name')
+          .from('users_v2')
+          .select('username, gender, verification_status')
           .eq('id', req.sender_id)
           .single();
-
-        // Calculate age from dob if available, otherwise use age field
-        let calculatedAge = senderProfile?.age;
-        if (senderProfile?.dob) {
-          const birthDate = new Date(senderProfile.dob);
-          const today = new Date();
-          calculatedAge = today.getFullYear() - birthDate.getFullYear();
-          const monthDiff = today.getMonth() - birthDate.getMonth();
-          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            calculatedAge--;
-          }
-        }
 
         return {
           ...req,
@@ -141,11 +129,11 @@ export async function GET(request: NextRequest) {
             id: req.sender_id,
             username: senderUser?.username,
             profiles: {
-              full_name: senderProfile?.real_name || senderProfile?.anonymous_name || 'Anonymous',
+              full_name: senderProfile?.anonymous_name || senderUser?.username || 'Anonymous', // NEVER show real_name
               avatar_url: senderProfile?.anonymous_avatar_url || '👤',
-              verification_status: senderProfile?.verified || false,
-              age: calculatedAge,
-              gender: senderProfile?.gender || senderUser?.gender || 'Unknown',
+              verification_status: senderUser?.verification_status === 'verified',
+              age: senderProfile?.age,
+              gender: senderUser?.gender || 'Unknown',
             },
           },
         };
@@ -213,9 +201,9 @@ export async function POST(request: NextRequest) {
     // TODO: Add JWT authentication check here
     // Verify that the authenticated user matches userId
 
-    // Validate users exist
+    // Validate users exist in users_v2
     const { data: sender, error: senderError } = await supabase
-      .from('users')
+      .from('users_v2')
       .select('id, username')
       .eq('id', userId)
       .single();
@@ -228,7 +216,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: recipient, error: recipientError } = await supabase
-      .from('users')
+      .from('users_v2')
       .select('id, username')
       .eq('id', recipientId)
       .single();

@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     // Verify blocker exists
     const { data: blocker, error: blockerError } = await supabase
-      .from('users')
+      .from('users_v2')
       .select('id')
       .eq('id', blockerId)
       .single();
@@ -55,14 +55,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify blocked user exists
-    const { data: blocked, error: blockedError } = await supabase
-      .from('users')
-      .select('id, username')
-      .eq('id', blockedId)
+    // Verify blocked user exists and get their anonymous name
+    const { data: blockedProfile, error: blockedError } = await supabase
+      .from('profiles_v2')
+      .select('user_id, anonymous_name')
+      .eq('user_id', blockedId)
       .single();
 
-    if (blockedError || !blocked) {
+    if (blockedError || !blockedProfile) {
       return NextResponse.json(
         { error: 'User to block not found' },
         { status: 404 }
@@ -112,12 +112,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `You have blocked ${blocked.username}. They will no longer be able to contact you.`,
+      message: `You have blocked ${blockedProfile.anonymous_name}. They will no longer be able to contact you.`,
       block: {
         id: newBlock.id,
         blockedUser: {
-          id: blocked.id,
-          username: blocked.username,
+          id: blockedProfile.user_id,
+          username: blockedProfile.anonymous_name,
         },
         createdAt: newBlock.created_at,
       },
@@ -234,12 +234,7 @@ export async function GET(request: NextRequest) {
         blocker_id,
         blocked_id,
         reason,
-        created_at,
-        blocked_user:users!blocks_blocked_id_fkey(
-          id,
-          username,
-          gender
-        )
+        created_at
       `)
       .eq('blocker_id', userId)
       .order('created_at', { ascending: false })
@@ -253,6 +248,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Enrich with user data from users_v2 and profiles_v2
+    const blockedUserIds = blocks?.map(b => b.blocked_id) || [];
+    const { data: users } = await supabase
+      .from('users_v2')
+      .select('id, gender')
+      .in('id', blockedUserIds);
+
+    const { data: profiles } = await supabase
+      .from('profiles_v2')
+      .select('user_id, anonymous_name, anonymous_avatar_url')
+      .in('user_id', blockedUserIds);
+
+    const userMap = new Map(users?.map(u => [u.id, u]) || []);
+    const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+    const enrichedBlocks = blocks?.map(block => {
+      const user = userMap.get(block.blocked_id);
+      const profile = profileMap.get(block.blocked_id);
+      return {
+        ...block,
+        blocked_user: user && profile ? {
+          id: user.id,
+          username: profile.anonymous_name,
+          avatar: profile.anonymous_avatar_url,
+          gender: user.gender,
+        } : null,
+      };
+    }) || [];
+
     // Get total count
     const { count } = await supabase
       .from('blocks')
@@ -261,7 +285,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      blocks,
+      blocks: enrichedBlocks,
       pagination: {
         page,
         limit,

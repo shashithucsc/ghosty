@@ -71,10 +71,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ matches: [], total: 0 }, { status: 200 });
     }
 
-    // Fetch profiles for matched users
+    // Fetch profiles for matched users from profiles_v2 (anonymous persona)
     const { data: profiles, error: profilesError } = await supabaseAdmin
-      .from('profiles')
-      .select('user_id, anonymous_name, age, gender, university, faculty, bio, height_cm, degree_type, hometown, skin_tone, verified')
+      .from('profiles_v2')
+      .select('user_id, anonymous_name, anonymous_avatar_url, age, bio, height_cm, degree_type, hometown, skin_tone, total_reports')
       .in('user_id', filteredOtherUserIds);
 
     if (profilesError) {
@@ -82,10 +82,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch profiles' }, { status: 500 });
     }
 
-    // Fetch user details for verification status
+    // Fetch user details from users_v2 for verification status and gender
     const { data: users, error: usersError } = await supabaseAdmin
-      .from('users')
-      .select('id, username, verification_status')
+      .from('users_v2')
+      .select('id, username, verification_status, gender')
       .in('id', filteredOtherUserIds);
 
     if (usersError) {
@@ -100,11 +100,11 @@ export async function GET(request: NextRequest) {
       const profile = profiles?.find((p) => p.user_id === otherUserId);
       const user = userMap.get(otherUserId);
 
-      // Generate avatar emoji based on gender
-      let avatar = '👤';
-      if (profile?.gender) {
-        if (profile.gender.toLowerCase() === 'male') avatar = '🧑';
-        else if (profile.gender.toLowerCase() === 'female') avatar = '👩';
+      // Use avatar from profiles_v2 or generate based on gender from users_v2
+      let avatar = profile?.anonymous_avatar_url || '👤';
+      if (!profile?.anonymous_avatar_url && user?.gender) {
+        if (user.gender.toLowerCase() === 'male') avatar = '🧑';
+        else if (user.gender.toLowerCase() === 'female') avatar = '👩';
         else avatar = '🙋';
       }
 
@@ -117,17 +117,16 @@ export async function GET(request: NextRequest) {
           anonymousName: profile?.anonymous_name || user?.username || 'Anonymous',
           avatar,
           age: profile?.age || 0,
-          gender: profile?.gender || 'Not specified',
-          university: profile?.university || 'University',
-          faculty: profile?.faculty || 'Not specified',
+          gender: user?.gender || 'Not specified',
           bio: profile?.bio || 'No bio yet',
           height: profile?.height_cm,
           degree: profile?.degree_type,
           hometown: profile?.hometown,
           skinTone: profile?.skin_tone,
           interests: [],
-          isVerified: profile?.verified || user?.verification_status === 'verified',
+          isVerified: user?.verification_status === 'verified',
           verificationStatus: user?.verification_status || 'unverified',
+          totalReports: profile?.total_reports || 0,
         },
       };
     });

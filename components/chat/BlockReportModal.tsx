@@ -41,30 +41,31 @@ export function BlockReportModal({ userName, onBlock, onClose }: BlockReportModa
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop (Solid Black, No Blur) */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 animate-fade-in"
+        className="fixed inset-0 bg-black/90 z-50 animate-fade-in"
         onClick={onClose}
       ></div>
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div className="glassmorphic-card p-6 sm:p-8 max-w-md w-full animate-scale-in pointer-events-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none font-sans text-black">
+        <div className="bg-white border-4 border-black shadow-[12px_12px_0px_rgba(0,0,0,1)] p-6 sm:p-8 max-w-md w-full animate-scale-in pointer-events-auto max-h-[90vh] overflow-y-auto custom-scrollbar">
+          
           {/* Header */}
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-1">
+              <h2 className="text-xl sm:text-2xl font-black text-black uppercase tracking-tight mb-1">
                 {action === 'block' ? 'Block User' : action === 'report' ? 'Report User' : 'Actions'}
               </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm font-bold text-gray-600 uppercase tracking-widest">
                 {userName}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors -mt-2 -mr-2"
+              className="w-10 h-10 bg-white border-4 border-black flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:bg-[#FF6B6B] hover:text-white active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all -mt-2 -mr-2"
             >
-              <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <X className="w-5 h-5 stroke-[4]" />
             </button>
           </div>
 
@@ -73,13 +74,15 @@ export function BlockReportModal({ userName, onBlock, onClose }: BlockReportModa
             <div className="space-y-3">
               <button
                 onClick={() => setAction('block')}
-                className="w-full p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-left"
+                className="w-full p-4 bg-white border-4 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:bg-[#FF6B6B] hover:text-white hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all text-left group"
               >
-                <div className="flex items-center gap-3">
-                  <ShieldAlert className="w-6 h-6 text-red-600 dark:text-red-400" />
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-black border-2 border-black rounded-full flex items-center justify-center shrink-0">
+                    <ShieldAlert className="w-6 h-6 text-white stroke-[3]" />
+                  </div>
                   <div>
-                    <h3 className="font-semibold text-red-600 dark:text-red-400">Block User</h3>
-                    <p className="text-xs text-red-600/80 dark:text-red-400/80">
+                    <h3 className="font-black uppercase text-lg group-hover:text-white">Block User</h3>
+                    <p className="text-xs font-bold uppercase tracking-wider text-gray-600 group-hover:text-white/90">
                       They won't be able to contact you
                     </p>
                   </div>
@@ -88,13 +91,15 @@ export function BlockReportModal({ userName, onBlock, onClose }: BlockReportModa
 
               <button
                 onClick={() => setAction('report')}
-                className="w-full p-4 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 rounded-xl hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors text-left"
+                className="w-full p-4 bg-white border-4 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:bg-[#FFD166] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all text-left group"
               >
-                <div className="flex items-center gap-3">
-                  <Flag className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-black border-2 border-black rounded-full flex items-center justify-center shrink-0">
+                    <Flag className="w-6 h-6 text-white stroke-[3]" />
+                  </div>
                   <div>
-                    <h3 className="font-semibold text-yellow-600 dark:text-yellow-400">Report User</h3>
-                    <p className="text-xs text-yellow-600/80 dark:text-yellow-400/80">
+                    <h3 className="font-black uppercase text-lg group-hover:text-black">Report User</h3>
+                    <p className="text-xs font-bold uppercase tracking-wider text-gray-600 group-hover:text-black/80">
                       Report to moderators for review
                     </p>
                   </div>
@@ -106,31 +111,35 @@ export function BlockReportModal({ userName, onBlock, onClose }: BlockReportModa
           {/* Block Form */}
           {action === 'block' && (
             <div className="space-y-4">
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <p className="text-sm text-red-800 dark:text-red-300">
-                  <strong>Note:</strong> Blocking this user will prevent them from contacting you.
-                  You can unblock them later from settings.
+              <div className="bg-[#FF6B6B] border-4 border-black p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                <p className="text-sm font-bold text-black uppercase leading-relaxed">
+                  <strong className="font-black text-lg block mb-1">Note:</strong> 
+                  Blocking this user will prevent them from contacting you. You can unblock them later from settings.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-black uppercase tracking-widest text-black mb-3">
                   Reason for blocking (optional)
                 </label>
                 <div className="space-y-2">
                   {blockReasons.map((r) => (
-                    <label key={r} className="flex items-center gap-2 cursor-pointer group">
-                      <input
-                        type="radio"
-                        name="reason"
-                        value={r}
-                        checked={reason === r}
-                        onChange={(e) => setReason(e.target.value)}
-                        className="w-4 h-4 text-red-600 focus:ring-red-500"
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                    <label key={r} className="block cursor-pointer">
+                      <div className={`w-full p-3 border-4 border-black font-black uppercase tracking-wider text-sm transition-all ${
+                        reason === r 
+                          ? 'bg-black text-white shadow-[4px_4px_0px_rgba(255,107,107,1)] translate-y-[-2px] translate-x-[-2px]' 
+                          : 'bg-white text-black hover:bg-[#F8F9FA]'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="reason"
+                          value={r}
+                          checked={reason === r}
+                          onChange={(e) => setReason(e.target.value)}
+                          className="sr-only" // Hidden radio button, letting the label act as the block
+                        />
                         {r}
-                      </span>
+                      </div>
                     </label>
                   ))}
                 </div>
@@ -140,8 +149,8 @@ export function BlockReportModal({ userName, onBlock, onClose }: BlockReportModa
                     type="text"
                     value={otherReason}
                     onChange={(e) => setOtherReason(e.target.value)}
-                    placeholder="Please specify..."
-                    className="mt-3 w-full input-field"
+                    placeholder="PLEASE SPECIFY..."
+                    className="mt-3 w-full p-4 bg-[#F8F9FA] border-4 border-black font-bold uppercase focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow placeholder-gray-500"
                   />
                 )}
               </div>
@@ -149,13 +158,13 @@ export function BlockReportModal({ userName, onBlock, onClose }: BlockReportModa
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => setAction(null)}
-                  className="flex-1 btn-secondary py-3"
+                  className="flex-1 py-4 bg-white border-4 border-black text-black font-black uppercase shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:bg-[#F8F9FA] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all"
                 >
                   Back
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-semibold transition-colors"
+                  className="flex-1 py-4 bg-[#FF6B6B] border-4 border-black text-black font-black uppercase shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:bg-[#ff5252] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all"
                 >
                   Block User
                 </button>
@@ -166,31 +175,35 @@ export function BlockReportModal({ userName, onBlock, onClose }: BlockReportModa
           {/* Report Form */}
           {action === 'report' && (
             <div className="space-y-4">
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                  <strong>Note:</strong> Your report will be reviewed by our moderation team.
-                  False reports may result in account suspension.
+              <div className="bg-[#FFD166] border-4 border-black p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                <p className="text-sm font-bold text-black uppercase leading-relaxed">
+                  <strong className="font-black text-lg block mb-1">Note:</strong> 
+                  Your report will be reviewed by our moderation team. False reports may result in account suspension.
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Reason for reporting <span className="text-red-500">*</span>
+                <label className="block text-sm font-black uppercase tracking-widest text-black mb-3">
+                  Reason for reporting <span className="text-[#FF6B6B] text-lg">*</span>
                 </label>
                 <div className="space-y-2">
                   {reportReasons.map((r) => (
-                    <label key={r} className="flex items-center gap-2 cursor-pointer group">
-                      <input
-                        type="radio"
-                        name="reason"
-                        value={r}
-                        checked={reason === r}
-                        onChange={(e) => setReason(e.target.value)}
-                        className="w-4 h-4 text-yellow-600 focus:ring-yellow-500"
-                      />
-                      <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">
+                    <label key={r} className="block cursor-pointer">
+                      <div className={`w-full p-3 border-4 border-black font-black uppercase tracking-wider text-sm transition-all ${
+                        reason === r 
+                          ? 'bg-black text-white shadow-[4px_4px_0px_rgba(255,209,102,1)] translate-y-[-2px] translate-x-[-2px]' 
+                          : 'bg-white text-black hover:bg-[#F8F9FA]'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="reason"
+                          value={r}
+                          checked={reason === r}
+                          onChange={(e) => setReason(e.target.value)}
+                          className="sr-only" // Hidden radio button
+                        />
                         {r}
-                      </span>
+                      </div>
                     </label>
                   ))}
                 </div>
@@ -199,9 +212,9 @@ export function BlockReportModal({ userName, onBlock, onClose }: BlockReportModa
                   <textarea
                     value={otherReason}
                     onChange={(e) => setOtherReason(e.target.value)}
-                    placeholder="Please provide details..."
+                    placeholder="PLEASE PROVIDE DETAILS..."
                     rows={3}
-                    className="mt-3 w-full input-field resize-none"
+                    className="mt-3 w-full p-4 bg-[#F8F9FA] border-4 border-black font-bold uppercase focus:outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,1)] transition-shadow placeholder-gray-500 resize-none"
                   />
                 )}
               </div>
@@ -209,20 +222,21 @@ export function BlockReportModal({ userName, onBlock, onClose }: BlockReportModa
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => setAction(null)}
-                  className="flex-1 btn-secondary py-3"
+                  className="flex-1 py-4 bg-white border-4 border-black text-black font-black uppercase shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:bg-[#F8F9FA] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all"
                 >
                   Back
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={!reason}
-                  className="flex-1 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-semibold transition-colors"
+                  className="flex-1 py-4 bg-[#FFD166] border-4 border-black text-black font-black uppercase shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:bg-[#ffc033] hover:translate-y-[-2px] hover:translate-x-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:translate-x-0 disabled:hover:shadow-[4px_4px_0px_rgba(0,0,0,1)]"
                 >
                   Submit Report
                 </button>
               </div>
             </div>
           )}
+
         </div>
       </div>
     </>

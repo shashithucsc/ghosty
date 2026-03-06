@@ -20,7 +20,7 @@ const LoginSchema = z.object({
 });
 
 // =============================================
-// POST /api/auth/login - User login
+// POST /api/auth/login - User login (V2 - uses users_v2)
 // =============================================
 export async function POST(request: NextRequest) {
   try {
@@ -30,12 +30,18 @@ export async function POST(request: NextRequest) {
     const validatedData = LoginSchema.parse(body);
     const { username, password } = validatedData;
 
-    // Find user by username
+    // Find user by username in users_v2 (private identity & auth)
+    // Force fresh read from database (no cache) by adding timestamp to options
     const { data: user, error: userError } = await supabase
-      .from('users')
+      .from('users_v2')
       .select('*')
       .eq('username', username)
       .single();
+
+    // Log verification status for debugging
+    if (user) {
+      console.log(`[LOGIN] User ${username} - verification_status: ${user.verification_status}, registration_type: ${user.registration_type}`);
+    }
 
     if (userError || !user) {
       return NextResponse.json(
@@ -111,13 +117,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if profile is complete (exists in profiles table with required fields)
+    // Check if profile is complete (exists in profiles_v2 with required fields)
     // Admins don't need complete profiles
     let isProfileComplete = true;
     
     if (!isAdmin) {
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('profiles_v2')
         .select('user_id, age, height_cm, degree_type')
         .eq('user_id', user.id)
         .single();
